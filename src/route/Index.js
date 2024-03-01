@@ -186,6 +186,7 @@ const Pages = () => {
       "/docmetadata",
       "/fileviewer",
       "/systemInfo",
+      "/permissions",
     ];
 
     endpointsToHide.forEach((endpoint) => {

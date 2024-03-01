@@ -50,7 +50,7 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function LogTable({
+export default function DocmetaTable({
   rows,
   toggle,
   setModal,

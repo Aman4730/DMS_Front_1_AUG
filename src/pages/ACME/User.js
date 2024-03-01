@@ -10,7 +10,6 @@ import SearchBar from "../../components/SearchBar";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
-import UserTable from "../../components/Tables/UserTable";
 import { FormGroup, Modal, ModalBody, Form } from "reactstrap";
 import {
   Col,
@@ -23,6 +22,7 @@ import {
   BlockHeadContent,
 } from "../../../src/components/Component";
 import UserForm from "../../components/Forms/UserForm";
+import UserTable from "../../components/AllTables/UserTable";
 const UserListRegularPage = () => {
   // Destructure useContext variables
   const {

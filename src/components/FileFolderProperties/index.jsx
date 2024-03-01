@@ -1,12 +1,11 @@
 import * as React from "react";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
+import { Card, Divider } from "@mui/material";
+import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import { Card, Divider } from "@mui/material";
 import "./style.css";
 export default function FileFolderProperties({
   propertiesModelClose,
@@ -26,13 +25,8 @@ export default function FileFolderProperties({
     };
     return originalDate.toLocaleString("en-US", options);
   }
-
   const originalTimestamp1 = propertiesData?.updatedAt; // Replace with your actual timestamp
   const formattedDate1 = convertTimestampToFormattedDate(originalTimestamp1);
-
-  const originalTimestamp2 = propertiesData?.updatedAt; // Replace with your actual timestamp
-  const formattedDate2 = convertTimestampToFormattedDate(originalTimestamp2);
-
   function formatFileSize(sizeInBytes) {
     if (sizeInBytes < 1024) {
       return sizeInBytes + " B";
@@ -53,7 +47,7 @@ export default function FileFolderProperties({
         open={propertiesModel.status}
         onClose={propertiesModelClose}
         maxWidth="xs" // Set the maximum width (xs, sm, md, lg, xl)
-        fullWidth // Make the dialog take up the full width
+        fullWidth
       >
         <DialogTitle>Properties</DialogTitle>
         <DialogContent>

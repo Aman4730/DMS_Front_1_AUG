@@ -42,9 +42,10 @@ const GuestTSFolderCreate = ({
             pl: 3,
           }}
         >
-          {inputList?.map((data) => (
+          {inputList?.map((data, index) => (
             <TextField
               fullWidth
+              key={index}
               type={data.type}
               variant="outlined"
               onChange={handleChange}

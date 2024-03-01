@@ -10,7 +10,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
 import WorkspceForm from "../../components/Forms/WorkspceForm";
-import WorkspaceTable from "../../components/Tables/WorkspaceTable";
 import WorkspacePermission from "../../components/Forms/WorkspacePermission";
 import {
   Icon,
@@ -22,6 +21,7 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../../components/Component";
+import WorkspaceTable from "../../components/AllTables/WorkspaceTable";
 const Workspace = () => {
   const {
     isLogin,

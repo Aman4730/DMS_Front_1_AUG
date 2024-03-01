@@ -146,7 +146,6 @@ export default function CommonTable({
         return "/Image/default.svg";
     }
   }
-
   return (
     <Box>
       <Paper>
@@ -200,7 +199,6 @@ export default function CommonTable({
                   const fileSizeInBytes = data?.file_size || data?.folder_size;
                   const formattedSize = formatFileSize(fileSizeInBytes);
 
-                  const permission = data?.permission;
                   return (
                     <TableRow
                       hover

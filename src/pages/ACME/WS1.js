@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { LinearProgress, Stack } from "@mui/material";
 import WS1Header from "../../components/WS1Header.jsx";
 import { UserContext } from "../../context/UserContext";
-import CommonTable from "../../components/Tables/index.jsx";
+import CommonTable from "../../components/AllTables/index.jsx";
 import CreateLinkModel from "../../components/CreateLinkModel";
 import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
 import FileVersion from "../../components/FileVersion/index.jsx";
@@ -256,7 +256,7 @@ const WS1 = () => {
           notification["success"]({
             placement: "top",
             description: "",
-            message: "Deleted Successfully...",
+            message: apiRes?.data.message,
             style: {
               height: 60,
             },
@@ -697,13 +697,6 @@ const WS1 = () => {
       ...prevValues,
       [name]: checked,
     }));
-  };
-  const handleFileClose = () => {
-    resetFileForm();
-    setLoading(false);
-  };
-  const handleSubmitShareData = () => {
-    onFetchlink();
   };
   const onFetchlink = () => {
     setLoading(true);
@@ -1420,7 +1413,6 @@ const WS1 = () => {
       selected_users: [],
     });
   };
-
   // ---------------------------------Ws1 Rights
   return (
     <>
@@ -1453,7 +1445,11 @@ const WS1 = () => {
             open={openDelete.status}
             handleClose={handleCloseDelete}
             handleOkay={onDeleteClick}
-            title="User Delete?  You Sure!"
+            title={
+              openDelete.data.file_type
+                ? "File Deleted?  You Sure!"
+                : "Folder Deleted?  You Sure!"
+            }
             data={openDelete?.data?.id}
             file_type={openDelete.data.file_type}
           />
@@ -1525,7 +1521,7 @@ const WS1 = () => {
             handleLinkClose={handleLinkClose}
             handleDateChange={handleDateChange}
             handleCheckboxChange={handleCheckboxChange}
-            handleSubmitShareData={handleSubmitShareData}
+            handleSubmitShareData={onFetchlink}
             shareLink={shareLink}
             accesscheckbox={checkboxData}
           />

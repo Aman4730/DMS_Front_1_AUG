@@ -34,6 +34,7 @@ const GuestTSHeader = ({
   let create_folder = localStorage.getItem("create_folder");
   let upload_file = localStorage.getItem("upload_file");
   let upload_folder = localStorage.getItem("upload_folder");
+  console.log(upload_folder, "upload_folder");
 
   return (
     <Stack>

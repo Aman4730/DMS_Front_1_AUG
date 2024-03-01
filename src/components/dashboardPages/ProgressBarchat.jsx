@@ -1,6 +1,6 @@
-import { Card, Grid } from "@mui/material";
-import React from "react";
 import "./style.css";
+import React from "react";
+import { Card, Grid } from "@mui/material";
 
 const ProgressBar = ({ label, initialPercentage, isUser, used_quota }) => {
   const barColor = isUser ? "#48C9B0" : "#3498DB";

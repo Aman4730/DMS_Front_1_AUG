@@ -10,7 +10,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { UserContext } from "../../context/UserContext";
 import CreateLinkModel from "../../components/CreateLinkModel";
 import { BlockHeadContent } from "../../components/Component";
-import GlobalSearchTable from "../../components/Tables/GlobalSearchTable";
+import GlobalSearchTable from "../../components/AllTables/GlobalSearchTable";
 const GlobalSearch = () => {
   useEffect(() => {
     getUserRselect();

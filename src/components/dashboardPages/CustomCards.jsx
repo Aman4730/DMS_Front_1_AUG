@@ -1,6 +1,6 @@
-import { Card, Stack } from "@mui/material";
-import React from "react";
 import "./style.css";
+import React from "react";
+import { Card, Stack } from "@mui/material";
 
 const CustomCards = ({ counts }) => {
   let arr = [

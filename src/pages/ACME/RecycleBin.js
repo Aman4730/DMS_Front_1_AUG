@@ -17,7 +17,7 @@ import {
   Icon,
   Button,
 } from "../../../src/components/Component";
-import RecyclebinTable from "../../components/Tables/RecyclebinTable";
+import RecyclebinTable from "../../components/AllTables/RecyclebinTable";
 
 // RecycleBin component
 const RecycleBin = () => {
@@ -228,7 +228,6 @@ const RecycleBin = () => {
           </BlockHead>
         </Stack>
         <Block>
-          {/* Render the RecyclebinTable component */}
           <RecyclebinTable
             headCells={tableHeader}
             allfolderlist={getRecycyleBin}

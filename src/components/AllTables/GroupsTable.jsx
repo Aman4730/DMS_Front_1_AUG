@@ -51,7 +51,7 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function LogTable({
+export default function GroupsTable({
   allfolderlist,
   rows,
   headCells,

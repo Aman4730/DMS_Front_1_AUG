@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { notification } from "antd";
 import Head from "../../layout/head/Head";
@@ -6,22 +6,17 @@ import ModalPop from "../../components/Modal";
 import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import { LinearProgress, Stack } from "@mui/material";
-import WS1Header from "../../components/WS1Header.jsx";
 import { UserContext } from "../../context/UserContext";
+import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
 import CreateLinkModel from "../../components/CreateLinkModel";
 import FileVersion from "../../components/FileVersion/index.jsx";
-import FileUpload from "../../components/FileUploadModal/FileUpload";
-import Foldercreate from "../../components/Foldercreate/Foldercreate";
 import FileFolderMove from "../../components/FileFolderMove/index.jsx";
-import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
-import FileFolderComments from "../../components/FileFolderComments/index.jsx";
-import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
-import { Document, Page } from "react-pdf";
-import CommonTable from "../../components/Tables/index.jsx";
-import TeamSpaceTable from "../../components/Tables/TeamSpaceTable.jsx";
-import TeamSpaceFolderCreate from "../../components/TeamSpace/TeamSpaceFolderCreate.jsx";
-import TeamSpaceFileUpload from "../../components/TeamSpace/TeamSpaceFileUpload.jsx";
+import TeamSpaceTable from "../../components/AllTables/TeamSpaceTable.jsx";
 import TeamSpaceHeader from "../../components/TeamSpace/TeamSpaceHeader.jsx";
+import FileFolderComments from "../../components/FileFolderComments/index.jsx";
+import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
+import TeamSpaceFileUpload from "../../components/TeamSpace/TeamSpaceFileUpload.jsx";
+import TeamSpaceFolderCreate from "../../components/TeamSpace/TeamSpaceFolderCreate.jsx";
 const WS1 = () => {
   useEffect(() => {
     getAllfoldernames({
@@ -252,7 +247,7 @@ const WS1 = () => {
           notification["success"]({
             placement: "top",
             description: "",
-            message: "Deleted Successfully...",
+            message: apiRes?.data.message,
             style: {
               height: 60,
             },
@@ -1459,7 +1454,11 @@ const WS1 = () => {
             open={openDelete.status}
             handleClose={handleCloseDelete}
             handleOkay={onDeleteClick}
-            title="User Delete?  You Sure!"
+            title={
+              openDelete.data.file_type
+                ? "File Deleted?  You Sure!"
+                : "Folder Deleted?  You Sure!"
+            }
             data={openDelete?.data?.id}
             file_type={openDelete.data.file_type}
           />

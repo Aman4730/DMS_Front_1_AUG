@@ -7,27 +7,23 @@ import DialogTitle from "@mui/material/DialogTitle";
 import "react-datepicker/dist/react-datepicker.css";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import {
-  Autocomplete,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
   Grid,
   Stack,
+  Checkbox,
   Typography,
+  Autocomplete,
+  FormControlLabel,
 } from "@mui/material";
 export default function CreateLinkModel({
   error,
   openLink,
-  moveData,
   teamSpace,
   selectedDate,
   shareFormData,
   userDropdowns,
   checkboxValues,
   accesscheckbox,
-  setSelectedDate,
   handleShareData,
   handleLinkClose,
   handleDateChange,

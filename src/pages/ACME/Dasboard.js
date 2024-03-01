@@ -16,17 +16,10 @@ const Dashboard = () => {
     getcountextension,
   } = useContext(UserContext);
   const [counts, setCounts] = useState([]);
-  console.log(counts, "counts");
   const [tableData, setTableData] = useState([]);
   const [quotadetail, setQuotadetail] = useState([]);
   const [userquota, setUserquota] = useState([]);
   const [extension, setExtension] = useState({});
-  // useEffect(() => {
-  //   getworkspace();
-  //   getExtension();
-  //   getFolderFile();
-  //   getQuotadetails();
-  // }, []);
   useEffect(() => {
     const abortController = new AbortController();
     getworkspace();
@@ -81,7 +74,6 @@ const Dashboard = () => {
       (apiErr) => {}
     );
   };
-
   return (
     <React.Fragment>
       <Head title="Dashboard - Regular"></Head>

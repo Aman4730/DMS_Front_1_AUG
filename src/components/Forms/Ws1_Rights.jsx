@@ -1,19 +1,17 @@
 import * as React from "react";
+import { Button } from "../Component";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import {
-  Autocomplete,
-  Checkbox,
-  FormControlLabel,
   Grid,
+  Checkbox,
   TextField,
   Typography,
+  Autocomplete,
+  FormControlLabel,
 } from "@mui/material";
-import { codepenEmbed } from "react-syntax-highlighter/dist/esm/styles/hljs";
-import { Button } from "../Component";
-
 export default function Ws1_Rights({
   data,
   isLogin,

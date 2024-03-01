@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { LinearProgress, Stack } from "@mui/material";
 import WS1Header from "../../components/WS1Header.jsx";
 import { UserContext } from "../../context/UserContext";
-import CommonTable from "../../components/Tables/index.jsx";
+import CommonTable from "../AllTables/index.jsx";
 import CreateLinkModel from "../../components/CreateLinkModel";
 import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
 import FileVersion from "../../components/FileVersion/index.jsx";
@@ -69,7 +69,6 @@ const GuestTeamSpace = () => {
   const [groupsDropdown, setGroupsDropdown] = useState([]);
   const [permissionUserList, setPermissionUserList] = useState([]);
   const [workspacePermissionWs1, setWorkspacePermissionWs1] = useState({});
-  console.log(workspacePermissionWs1, "workspacePermissionWs1");
 
   const [permissionForm, setPermissionForm] = useState({
     selected_group: [],
@@ -162,10 +161,12 @@ const GuestTeamSpace = () => {
     })
       .then((response) => response.json())
       .then((apiRes) => {
-        console.log(apiRes, "jfdasjhfd");
         setAllfolderlist([
-          ...apiRes?.response_file,
-          ...apiRes?.response_folder,
+          ...apiRes?.response_file.map((file) => ({ ...file, type: "file" })),
+          ...apiRes?.response_folder.map((folder) => ({
+            ...folder,
+            type: "folder",
+          })),
         ]);
       })
       .catch((error) => {
@@ -193,7 +194,6 @@ const GuestTeamSpace = () => {
   }, [workspace?.length]);
   const workspacePermission = () => {
     allfolderlist?.map((data) => {
-      console.log(data, "data");
       setWorkspacePermissionWs1(data);
     });
   };
@@ -687,7 +687,6 @@ const GuestTeamSpace = () => {
     comment: false,
     properties: false,
   });
-  console.log(checkboxValues, "checkboxValues");
 
   const handleClickLinkOpen = (id, file_type, name) => {
     setShareId({ id: id, file_type: file_type, name: name });
@@ -710,7 +709,6 @@ const GuestTeamSpace = () => {
   };
   const handleCheckboxChange = (event) => {
     const { name, checked } = event.target;
-    console.log(event.target);
     setCheckboxValues((prevValues) => ({
       ...prevValues,
       [name]: checked,
@@ -884,6 +882,8 @@ const GuestTeamSpace = () => {
     };
     getAllfoldernames(apiData);
     setCurrentFolderData(data);
+
+    localStorage.setItem("permission", JSON.stringify(data));
     localStorage.setItem("create_folder", data.create_folder);
     localStorage.setItem("upload_file", data.upload_file);
     localStorage.setItem("upload_folder", data.upload_folder);
@@ -914,6 +914,7 @@ const GuestTeamSpace = () => {
       arr.splice(data.index + 1, 100);
       setList(arr);
     }
+    localStorage.setItem("permission", JSON.stringify(data));
     localStorage.setItem("create_folder", data.create_folder);
     localStorage.setItem("upload_file", data.upload_file);
     localStorage.setItem("upload_folder", data.upload_folder);

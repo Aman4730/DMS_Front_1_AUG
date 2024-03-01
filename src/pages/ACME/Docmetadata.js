@@ -10,7 +10,6 @@ import { AuthContext } from "../../context/AuthContext";
 import { UserContext } from "../../context/UserContext";
 import Meta_Properties from "../../components/Meta_properties";
 import { Form, Modal, ModalBody, FormGroup } from "reactstrap";
-import DocmetaTable from "../../components/Tables/DocmetaTable";
 import { Stack, TextField, Typography, Autocomplete } from "@mui/material";
 import {
   Col,
@@ -22,6 +21,7 @@ import {
   BlockHeadContent,
 } from "../../components/Component";
 import DocMetaData from "../../components/Forms/DocMetaData";
+import DocmetaTable from "../../components/AllTables/DocmetaTable";
 
 const Docmetadata = () => {
   const {

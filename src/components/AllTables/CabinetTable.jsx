@@ -13,7 +13,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import LockPersonIcon from "@mui/icons-material/LockPerson";
+import { Switch } from "@mui/material";
 
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
@@ -51,15 +51,13 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function LogTable({
+export default function CabinetTable({
   rows,
   headCells,
   searchTerm,
   onEditClick,
   allfolderlist,
   handleClickOpen,
-  onPermissionClick,
-  onEditPermissionClick,
 }) {
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
@@ -103,9 +101,7 @@ export default function LogTable({
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   const emptyRows =
-    page > 0
-      ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist?.length)
-      : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
 
   return (
     <Box>
@@ -127,82 +123,32 @@ export default function LogTable({
                 : allfolderlist
               )
                 ?.filter((item) =>
-                  item.workspace_name
+                  item.cabinet_name
                     ?.toLowerCase()
                     .includes(searchTerm?.toLowerCase())
                 )
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
-                  // function formatSizeInGB(sizeInBytes) {
-                  //   return sizeInBytes / (1024 * 1024 * 1024);
-                  // }
-
-                  // const formattedSize = formatSizeInGB(row.quota);
-                  function formatFileSize(sizeInBytes) {
-                    if (sizeInBytes < 1024) {
-                      return sizeInBytes + " B";
-                    } else if (sizeInBytes < 1024 * 1024) {
-                      return (sizeInBytes / 1024).toFixed(2) + " KB";
-                    } else if (sizeInBytes < 1024 * 1024) {
-                      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
-                    } else {
-                      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " GB";
-                    }
-                  }
-                  const fileSizeInBytes = row.quota;
-                  const formattedSize = formatFileSize(fileSizeInBytes);
-                  let userName = "";
-                  for (let i = 0; i < row.selected_users.length; i++) {
-                    userName = userName + "\n" + row.selected_users[i];
-                  }
-                  const fileSizeInBytes1 = row.quota / 1024 / 1024;
                   return (
                     <TableRow
                       hover
+                      key={index}
                       onClick={(event) => handleClick(event, row.name)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
-                      key={index}
                       selected={isItemSelected}
                       sx={{ cursor: "pointer" }}
                     >
-                      <TableCell
-                        style={{
-                          fontSize: "12px",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {row.workspace_name}
-                      </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
-                        {row.selected_cabinet}
+                        {row.cabinet_name}
                       </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.selected_groups}
                       </TableCell>
-                      <TableCell
-                        style={{
-                          fontSize: "12px",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          maxWidth: "150px",
-                        }}
-                      >
-                        <abbr
-                          title={userName}
-                          style={{ cursor: "pointer", textDecoration: "none" }}
-                        >
-                          {row.selected_users}
-                        </abbr>
-                      </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
-                        {row.workspace_type}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {formattedSize}
+                        {row.selected_users}
                       </TableCell>
                       <TableCell>
                         <Tooltip
@@ -210,46 +156,6 @@ export default function LogTable({
                           onClick={() => onEditClick(row.id)}
                         >
                           <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                        <Tooltip
-                          className=""
-                          // onClick={() =>
-                          //   onPermissionClick(row.id, row.workspace_type)
-                          // }
-                          onClick={() => {
-                            if (row?.workspacePermission?.id) {
-                              onEditPermissionClick({
-                                workspace_name: row?.workspace_name,
-                                id: row?.workspacePermission?.id,
-                                policy_type:
-                                  row?.workspacePermission?.policy_type,
-                                workspace_id:
-                                  row?.workspacePermission?.workspace_id,
-                              });
-                            } else {
-                              onPermissionClick(
-                                row.id,
-                                row.workspace_type,
-                                row.workspace_name
-                              );
-                            }
-                          }}
-                        >
-                          <LockPersonIcon
-                            tag="a"
-                            containerClassName="btn btn-trigger btn-icon"
-                            id={"" + row.id}
-                            icon="icon ni ni-na"
-                            direction="top"
-                            text="Edit"
-                            style={{
-                              backgroundColor: "transparent",
-                              boxShadow: "none",
-                              // color: "#454545",
-                              cursor: "pointer",
-                              fontSize: "20px",
-                            }}
-                          />
                         </Tooltip>
                         <Tooltip
                           title="Delete"

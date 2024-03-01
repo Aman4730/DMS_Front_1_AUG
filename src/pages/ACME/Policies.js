@@ -8,7 +8,6 @@ import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import PolicyModal from "../../components/PolicyModal";
 import { UserContext } from "../../context/UserContext";
-import PolicyTable from "../../components/Tables/PolicyTable";
 import {
   Icon,
   Block,
@@ -19,6 +18,7 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../../../src/components/Component";
+import PolicyTable from "../../components/AllTables/PolicyTable";
 const Policies = () => {
   const {
     getpolicy,

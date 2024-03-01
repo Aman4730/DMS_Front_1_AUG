@@ -9,7 +9,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
 import { Stack, Typography } from "@mui/material";
-import DoctypeTable from "../../components/Tables/DoctypeTable";
 import { FormGroup, Modal, ModalBody, Form } from "reactstrap";
 import {
   BlockBetween,
@@ -20,6 +19,7 @@ import {
   Col,
   Button,
 } from "../../components/Component";
+import DoctypeTable from "../../components/AllTables/DoctypeTable";
 const Workspace = () => {
   const {
     contextData,

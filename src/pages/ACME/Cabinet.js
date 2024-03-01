@@ -8,7 +8,6 @@ import Content from "../../layout/content/Content";
 import SearchBar from "../../components/SearchBar";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
-import CabinetTable from "../../components/Tables/CabinetTable";
 import { FormGroup, Modal, ModalBody, Form } from "reactstrap";
 import {
   Icon,
@@ -21,6 +20,7 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../../components/Component";
+import CabinetTable from "../../components/AllTables/CabinetTable";
 
 const Cabinet = () => {
   const {
@@ -145,7 +145,7 @@ const Cabinet = () => {
       let submittedData = {
         id: editId,
         selected_groups: formData.selected_groups,
-        cabinet_name: formData.cabinet_name,
+        cabinet_name: formData?.cabinet_name,
         path_name: formData.path_name,
         selected_users: formData.selected_users,
       };
@@ -169,7 +169,7 @@ const Cabinet = () => {
       );
     } else {
       let submittedData = {
-        cabinet_name: formData.cabinet_name,
+        cabinet_name: formData?.cabinet_name,
         selected_groups: formData.selected_groups,
         selected_users: formData.selected_users,
       };
@@ -357,7 +357,7 @@ const Cabinet = () => {
                         className="form-control"
                         type="text"
                         name="Workspace Name"
-                        defaultValue={formData.cabinet_name}
+                        defaultValue={formData?.cabinet_name}
                         onChange={(e) =>
                           setFormData({
                             ...formData,

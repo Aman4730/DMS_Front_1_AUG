@@ -7,14 +7,13 @@ import {
   TextField,
   Autocomplete,
 } from "@mui/material";
-export default function PermissionTable({
+export default function PermissionForm({
   editId,
   formData,
   cabinetList,
   handleSubmit,
   userDropdowns,
   groupsDropdown,
-  handleClickMove,
   handleAutocompleteChange,
 }) {
   return (
@@ -27,10 +26,11 @@ export default function PermissionTable({
               size="small"
               id="Cabinet"
               options={cabinetList || []}
+              isOptionEqualToValue={(option, value) => option === value}
               renderInput={(params) => (
                 <TextField {...params} label="Select Cabinet" />
               )}
-              value={formData.Cabinet}
+              value={formData?.Cabinet}
               onChange={(event, value) =>
                 handleAutocompleteChange("Cabinet", value)
               }
@@ -42,10 +42,11 @@ export default function PermissionTable({
               size="small"
               id="WorkSpace_Type"
               options={["My Workspace", "TeamSpace"]}
+              isOptionEqualToValue={(option, value) => option === value}
               renderInput={(params) => (
                 <TextField {...params} label="WorkSpace Type" />
               )}
-              value={formData.WorkSpace_Type}
+              value={formData?.WorkSpace_Type}
               onChange={(event, value) =>
                 handleAutocompleteChange("WorkSpace_Type", value)
               }
@@ -57,10 +58,11 @@ export default function PermissionTable({
               size="small"
               id="WorkSpace"
               options={["None", "SSL", "TLS", "STARTLS"]}
+              isOptionEqualToValue={(option, value) => option === value}
               renderInput={(params) => (
                 <TextField {...params} label="WorkSpace/TeamSpace" />
               )}
-              value={formData.WorkSpace}
+              value={formData?.WorkSpace}
               onChange={(event, value) =>
                 handleAutocompleteChange("WorkSpace", value)
               }
@@ -72,10 +74,11 @@ export default function PermissionTable({
               size="small"
               id="Groups"
               options={groupsDropdown || ""}
+              isOptionEqualToValue={(option, value) => option === value}
               renderInput={(params) => (
                 <TextField {...params} label="Select Groups" />
               )}
-              value={formData.Groups}
+              value={formData?.Groups}
               onChange={(event, value) =>
                 handleAutocompleteChange("Groups", value)
               }
@@ -87,6 +90,7 @@ export default function PermissionTable({
               size="small"
               id="Users"
               options={userDropdowns || ""}
+              isOptionEqualToValue={(option, value) => option === value}
               renderInput={(params) => (
                 <TextField {...params} label="Select Users" />
               )}
@@ -112,6 +116,7 @@ export default function PermissionTable({
                 "Comments",
                 "Properties",
               ]}
+              isOptionEqualToValue={(option, value) => option === value}
               renderInput={(params) => (
                 <TextField {...params} label="Select Permissions" />
               )}

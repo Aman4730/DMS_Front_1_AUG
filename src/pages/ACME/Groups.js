@@ -9,7 +9,6 @@ import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
-import GroupTables from "../../components/Tables/GroupsTable";
 import { FormGroup, Modal, ModalBody, Form } from "reactstrap";
 import {
   Block,
@@ -23,6 +22,7 @@ import {
   Button,
   RSelect,
 } from "../../../src/components/Component";
+import GroupsTable from "../../components/AllTables/GroupsTable";
 const UserListRegularPage = () => {
   const { contextData, add_group, getGroups, userDropdownU, deletegroup } =
     useContext(UserContext);
@@ -359,7 +359,7 @@ const UserListRegularPage = () => {
           </BlockHead>
         </Stack>
         <Block>
-          <GroupTables
+          <GroupsTable
             headCells={tableHeader}
             allfolderlist={userData}
             onEditClick={onEditClick}

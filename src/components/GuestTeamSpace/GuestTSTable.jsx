@@ -139,7 +139,9 @@ export default function GuestTSTable({
         return "/Image/default.svg";
     }
   }
-
+  let permission = localStorage.getItem("permission");
+  let permissionObject = JSON.parse(permission);
+  console.log(permissionObject, "djkfsdg");
   return (
     <Box>
       <Paper>
@@ -156,7 +158,6 @@ export default function GuestTSTable({
             />
             <TableBody>
               {allfolderlist?.map((data, index) => {
-                console.log(data, "jhjhj");
                 const isItemSelected = isSelected(data?.name);
                 const labelId = `enhanced-table-checkbox-${index}`;
                 const originalTimestamp = data?.updatedAt;
@@ -189,6 +190,109 @@ export default function GuestTSTable({
                 }
                 const fileSizeInBytes = data?.file_size || data?.folder_size;
                 const formattedSize = formatFileSize(fileSizeInBytes);
+                // if (
+                //   (((data?.name == "view") == true) ===
+                //     permissionObject?.view) ==
+                //     true ||
+                //   (((data?.name == "share") == true) ===
+                //     permissionObject?.share) ==
+                //     true ||
+                //   (((data?.name == "move") == true) ===
+                //     permissionObject?.move) ==
+                //     true ||
+                //   (((data?.name == "rights") == true) ===
+                //     permissionObject?.rights) ==
+                //     true ||
+                //   (((data?.name == "rename") == true) ===
+                //     permissionObject?.rename) ==
+                //     true ||
+                //   (((data?.name == "upload_folder") == true) ===
+                //     permissionObject?.upload_folder) ==
+                //     true ||
+                //   (((data?.name == "create_folder") == true) ===
+                //     permissionObject?.create_folder) ==
+                //     true ||
+                //   (((data?.name == "upload_file") == true) ===
+                //     permissionObject?.upload_file) ==
+                //     true ||
+                //   (((data?.name == "delete") == true) ===
+                //     permissionObject?.delete_per) ==
+                //     true ||
+                //   (((data?.name == "download") == true) ===
+                //     permissionObject?.download_per) ==
+                //     true ||
+                //   (((data?.name == "comment") == true) ===
+                //     permissionObject?.comments) ==
+                //     true ||
+                //   (((data?.name == "properties") == true) ===
+                //     permissionObject?.properties) ==
+                //     true
+                // )
+                // const parentFolderPermissions = {
+                //   read: true,
+                //   write: true,
+                //   execute: true,
+                // };
+                // setPermissions(rootFolder, parentFolderPermissions);
+                // function setPermissions(parentFolder) {
+                //   parentFolder.permissions = true;
+
+                //   if (
+                //     parentFolder.children &&
+                //     parentFolder.children.length > 0
+                //   ) {
+                //     parentFolder.children.forEach((child) => {
+                //       setPermissions(child, permissions);
+                //     });
+                //   }
+
+                //   if (parentFolder.files && parentFolder.files.length > 0) {
+                //     parentFolder.files.forEach((file) => {
+                //       file.permissions = permissions;
+                //     });
+                //   }
+                // }
+
+                // const rootFolder = {
+                //   name: "Root",
+                //   permissions: null,
+                //   children: [
+                //     {
+                //       name: "Folder A",
+                //       permissions: null,
+                //       children: [
+                //         {
+                //           name: "Subfolder A1",
+                //           permissions: null,
+                //           children: [],
+                //           files: [
+                //             {
+                //               name: "File1.txt",
+                //               permissions: null,
+                //             },
+                //             {
+                //               name: "File2.txt",
+                //               permissions: null,
+                //             },
+                //           ],
+                //         },
+                //       ],
+                //       files: [],
+                //     },
+                //     {
+                //       name: "Folder B",
+                //       permissions: null,
+                //       children: [],
+                //       files: [
+                //         {
+                //           name: "File3.txt",
+                //           permissions: null,
+                //         },
+                //       ],
+                //     },
+                //   ],
+                //   files: [],
+                // };
                 return (
                   <TableRow
                     hover
@@ -343,6 +447,92 @@ export default function GuestTSTable({
                         ""
                       )}
                     </TableCell>
+                    {/* <TableCell
+                      style={{
+                        cursor: "pointer",
+                        fontSize: "13px",
+                      }}
+                      align="right"
+                    >
+                      {data?.view === "true" && (
+                        <Tooltip
+                          title="View"
+                          onClick={() => {
+                            navigate(
+                              data?.id,
+                              data?.file_name,
+                              data?.filemongo_id
+                            );
+                          }}
+                        >
+                          <VisibilityIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.rename === "true" && (
+                        <Tooltip title="Edit">
+                          <EditIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.download_per === "true" && (
+                        <Tooltip
+                          title="Download"
+                          onClick={() => {
+                            if (data.file_type) {
+                              onFileDownload(
+                                data?.filemongo_id,
+                                data?.file_name
+                              );
+                            } else {
+                              onDownloadfolders(data?.id);
+                            }
+                          }}
+                        >
+                          <FileDownloadIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.move === "true" && (
+                        <Tooltip title="Move">
+                          <DriveFileMoveIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.share === "true" && (
+                        <Tooltip
+                          title="Share"
+                          onClick={() => handleClickLinkOpen(data?.id)}
+                        >
+                          <ShareIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.delete_per === "true" && (
+                        <Tooltip
+                          title="Delete"
+                          onClick={() =>
+                            handleOpenDeleteFile(
+                              data?.id,
+                              data?.file_type,
+                              data?.filemongo_id
+                            )
+                          }
+                        >
+                          <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.comments === "true" && (
+                        <Tooltip title="Comments">
+                          <SmsIcon fontSize="small" sx={{ mr: 1 }} />
+                        </Tooltip>
+                      )}
+                      {data?.properties === "true" && (
+                        <Tooltip title="Properties">
+                          <ArticleIcon sx={{ mr: 1 }} fontSize="small" />
+                        </Tooltip>
+                      )}
+                      {data?.rights === "true" && (
+                        <Tooltip title="Rights" style={{ marginRight: "35px" }}>
+                          <AdminPanelSettingsIcon fontSize="small" />
+                        </Tooltip>
+                      )}
+                    </TableCell> */}
                   </TableRow>
                 );
               })}

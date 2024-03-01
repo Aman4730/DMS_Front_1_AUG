@@ -11,7 +11,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
 import WorkFlowForm from "../../components/Forms/WorkFlowForm";
-import WorkFlowTable from "../../components/Tables/WorkFlowTable";
 import {
   Block,
   Icon,
@@ -22,6 +21,7 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../../../src/components/Component";
+import WorkFlowTable from "../../components/AllTables/WorkFlowTable";
 const WorkFlow = () => {
   const {
     contextData,

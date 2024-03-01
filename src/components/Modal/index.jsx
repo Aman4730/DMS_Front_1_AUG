@@ -1,31 +1,27 @@
 import React from "react";
+import { TextField } from "@mui/material";
 import {
   Button,
   Dialog,
-  DialogActions,
   DialogTitle,
   FormControl,
+  DialogActions,
 } from "@mui/material";
-import { TextField } from "@mui/material";
 const ModalPop = ({
   open,
-  handleClose = () => alert("Please add handle cancel function"),
-  title,
-  handleOkay = () => alert("Please add handle success function"),
   data,
-  addNew,
-  id,
-  input,
+  title,
+  file_type,
+  folderNameInput,
   type = "normal",
   buttonSuccessTitle = "Okay",
   buttonCancelTitle = "Cancel",
+  handleOkay = () => alert("Please add handle success function"),
+  handleClose = () => alert("Please add handle cancel function"),
+  handleChange = () => alert("Please add handle change function"),
   inputList = [
     { type: "file", name: "Default", placeholder: "Default Placeholder" },
   ],
-  handleChange = () => alert("Please add handle change function"),
-  folderNameInput,
-  filedelete,
-  file_type,
 }) => {
   return (
     <Dialog

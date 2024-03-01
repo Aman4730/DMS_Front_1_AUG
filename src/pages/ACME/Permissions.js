@@ -7,7 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import FileFolderMove from "../../components/FileFolderMove";
 import PermissionForm from "../../components/Forms/PermissionForm";
-import PermissionTable from "../../components/Tables/PermissionTable";
+import PermissionTable from "../../components/AllTables/PermissionTable";
 
 const Permissions = () => {
   const {

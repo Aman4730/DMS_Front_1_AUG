@@ -7,7 +7,7 @@ import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import SmtpForm from "../../components/Forms/SmtpForm";
 import { UserContext } from "../../context/UserContext";
-import SmtpMainTable from "../../components/Tables/SmtpMainTable";
+import SmtpMainTable from "../../components/AllTables/SmtpMainTable";
 
 const Smtp = () => {
   const { createsmtp, getsmtp, addtestemail, editsmtp, deletesmtp } =
