@@ -1,0 +1,26 @@
+.verticleLine {
+    height: 165px;
+    width: 0px;
+}
+
+.horizontalLine {
+    height: 100px;
+    width: 100%;
+    margin: 0px 8px;
+    position: relative;
+    bottom: -17px;
+}
+#systemInfoBtn {
+  height: 24px;
+  width: 70px;
+  outline: none;
+  background: #6577FF;
+  color: white;
+  font-size: 12px;
+}
+.overFlow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid red;
+}

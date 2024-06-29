@@ -1,8 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.dd5bf774.css",
-    "main.js": "/static/js/main.7342b6b1.js",
-    "static/js/27.9c6e8b4a.chunk.js": "/static/js/27.9c6e8b4a.chunk.js",
+    "main.css": "/static/css/main.74c68cc6.css",
+    "main.js": "/static/js/main.dabb3716.js",
     "static/media/Nioicon.svg": "/static/media/Nioicon.d9ed4e64ae58ff1c578f.svg",
     "static/media/Nioicon.eot": "/static/media/Nioicon.eab00b4717a1c8fb3c96.eot",
     "static/media/Nioicon.woff": "/static/media/Nioicon.2c5e7ddbf9ffb0323103.woff",
@@ -57,7 +56,6 @@
     "static/media/Nunito-Regular.woff2": "/static/media/Nunito-Regular.6b9b90c58fb9657aaa8e.woff2",
     "static/media/logo-dark.png": "/static/media/logo-dark.4efff1a5ed90169795e2.png",
     "static/media/logo.png": "/static/media/logo.4b9628cf07f2cf94ec1f.png",
-    "static/media/acmeLogo.jpeg": "/static/media/acmeLogo.5737c13751454da74081.jpeg",
     "static/media/g.png": "/static/media/g.bee05950a0b45be5cf59.png",
     "static/media/j.png": "/static/media/j.4115f13ff04dcc24113c.png",
     "static/media/e.jpg": "/static/media/e.2fc76c546f608f656b09.jpg",
@@ -71,7 +69,7 @@
     "index.html": "/index.html"
   },
   "entrypoints": [
-    "static/css/main.dd5bf774.css",
-    "static/js/main.7342b6b1.js"
+    "static/css/main.74c68cc6.css",
+    "static/js/main.dabb3716.js"
   ]
 }

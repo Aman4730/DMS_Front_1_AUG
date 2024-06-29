@@ -55,7 +55,6 @@ export default function DoctypeTable({
   headCells,
   searchTerm,
   onBlockClick,
-  allfolderlist,
   handleClickOpen,
 }) {
   const [order, setOrder] = React.useState("asc");
@@ -98,9 +97,6 @@ export default function DoctypeTable({
   };
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
-
   return (
     <Box>
       <Paper>
@@ -113,9 +109,8 @@ export default function DoctypeTable({
               headCells={headCells}
             />
             <TableBody>
-              {allfolderlist
-                .filter((item) =>
-                  item.doctype_name
+              {rows?.filter((item) =>
+                  item?.doctype_name
                     ?.toLowerCase()
                     .includes(searchTerm?.toLowerCase())
                 )
@@ -131,7 +126,6 @@ export default function DoctypeTable({
                       aria-checked={isItemSelected}
                       tabIndex={-1}
                       selected={isItemSelected}
-                      sx={{ cursor: "pointer" }}
                     >
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.doctype_name}
@@ -159,18 +153,20 @@ export default function DoctypeTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!rows.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

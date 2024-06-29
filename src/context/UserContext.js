@@ -412,6 +412,18 @@ export const UserContextProvider = (props) => {
       }
     );
   }
+  async function add_omegaAuth(userSubmittedData, handleApiRes, handleApiError) {
+    await AxiosPost(
+      "omegaAuth",
+      userSubmittedData,
+      (apiRes) => {
+        handleApiRes(apiRes);
+      },
+      (apiError) => {
+        handleApiError(apiError);
+      }
+    );
+  }
   async function add_metaproperties(
     userSubmittedData,
     handleApiRes,
@@ -419,6 +431,22 @@ export const UserContextProvider = (props) => {
   ) {
     await AxiosPost(
       "getmetaproperties",
+      userSubmittedData,
+      (apiRes) => {
+        handleApiRes(apiRes);
+      },
+      (apiError) => {
+        handleApiError(apiError);
+      }
+    );
+  }
+  async function sharingcancel(
+    userSubmittedData,
+    handleApiRes,
+    handleApiError
+  ) {
+    await AxiosPost(
+      "sharingcancel",
       userSubmittedData,
       (apiRes) => {
         handleApiRes(apiRes);
@@ -531,6 +559,18 @@ export const UserContextProvider = (props) => {
   async function add_Policies(userSubmittedData, handleApiRes, handleApiError) {
     await AxiosPost(
       "addpolicies",
+      userSubmittedData,
+      (apiRes) => {
+        handleApiRes(apiRes);
+      },
+      (apiError) => {
+        handleApiError(apiError);
+      }
+    );
+  }
+  async function restartService(userSubmittedData, handleApiRes, handleApiError) {
+    await AxiosPost(
+      "restartService",
       userSubmittedData,
       (apiRes) => {
         handleApiRes(apiRes);
@@ -852,6 +892,18 @@ export const UserContextProvider = (props) => {
       }
     );
   }
+  async function fetchpermissions(data, handleApiRes, handleApiError) {
+    await AxiosPost(
+      "fetchpermissions",
+      data,
+      (apiRes) => {
+        handleApiRes(apiRes);
+      },
+      (apiError) => {
+        handleApiError(apiError);
+      }
+    );
+  }
   async function workspaceAuths(data, handleApiRes, handleApiError) {
     await AxiosPost(
       "workspace_auths",
@@ -1114,6 +1166,7 @@ export const UserContextProvider = (props) => {
         addfolderlogs: addfolderlogs,
         addPermission: addPermission,
         add_permission: add_permission,
+        add_omegaAuth:add_omegaAuth,
         addcreatefolder: addcreatefolder,
         add_docmetadata: add_docmetadata,
         adduploadcreate: adduploadcreate,
@@ -1151,9 +1204,11 @@ export const UserContextProvider = (props) => {
         getGroupsDropdown: getGroupsDropdown,
         getadminteamspace: getadminteamspace,
         getfoldernameslist: getfoldernameslist,
+        fetchpermissions:fetchpermissions,
         getlatestfolderfiles: getlatestfolderfiles,
         getWorkspacePermission: getWorkspacePermission,
         editsmtp: editsmtp,
+        sharingcancel:sharingcancel,
         updateUser: updateUser,
         userDropdownU: userDropdownU,
         deleteNotes: deleteNotes,
@@ -1179,6 +1234,7 @@ export const UserContextProvider = (props) => {
         Cancelfileupload: Cancelfileupload,
         folders: folders,
         restoreFiles: restoreFiles,
+        restartService:restartService,
         isLogin,
         isGuestLogin,
         workSpaceData,

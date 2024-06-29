@@ -39,14 +39,14 @@ const Cabinet = () => {
   const [userDropdowns, setUserDropdowns] = useState([]);
   const [groupsDropdown, setGroupsDropdown] = useState([]);
   const [formData, setFormData] = useState({
-    cabinet_name: "",
     path_name: "",
-    selected_groups: "",
+    cabinet_name: "",
     selected_users: "",
+    selected_groups: "",
   });
   const [modal, setModal] = useState({
-    edit: false,
     add: false,
+    edit: false,
   });
   // Delete
   const [open, setOpen] = useState({
@@ -316,9 +316,9 @@ const Cabinet = () => {
         </Stack>
         <Block>
           <CabinetTable
+            rows={userData}
             headCells={tableHeader}
             searchTerm={searchTerm}
-            allfolderlist={userData}
             onEditClick={onEditClick}
             handleClickOpen={handleClickOpen}
           />

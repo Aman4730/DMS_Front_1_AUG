@@ -1,4 +1,4 @@
-import { Card, CircularProgress, Grid, Stack, Typography } from "@mui/material";
+import { Card, CircularProgress, Grid, Stack } from "@mui/material";
 import React from "react";
 
 const ProgressBar = ({ system_Info }) => {
@@ -32,7 +32,7 @@ const ProgressBar = ({ system_Info }) => {
               size={140}
               variant="determinate"
               style={{ color: "green" }}
-              value={system_Info.memoryUsage}
+              value={Number(system_Info.memoryUsage)}
             />
             <p
               style={{

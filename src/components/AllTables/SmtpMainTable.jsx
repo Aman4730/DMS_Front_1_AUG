@@ -1,5 +1,6 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
+import { Switch } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import { Tooltip } from "@mui/material";
@@ -13,7 +14,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TableContainer from "@mui/material/TableContainer";
 import TablePagination from "@mui/material/TablePagination";
-import { Switch } from "@mui/material";
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
@@ -97,7 +97,6 @@ export default function SmtpMainTable({
     setPage(0);
   };
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage) : 0;
 
   return (
     <Box>
@@ -181,13 +180,11 @@ export default function SmtpMainTable({
                   </TableRow>
                 );
               })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
+              {!getSmpt.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>

@@ -65,6 +65,8 @@ const Workspace = () => {
     comment: null,
     properties: null,
     version_enable: null,
+    view_watermark:null,
+    download_watermark:null
   });
   const [open, setOpen] = useState({
     status: false,
@@ -167,7 +169,7 @@ const Workspace = () => {
             notification["success"]({
               placement: "top",
               description: "",
-              message: "Workspace Updated, Please login again..",
+              message: "Workspace Updated Successfully",
               style: {
                 height: 70,
               },
@@ -194,7 +196,7 @@ const Workspace = () => {
             notification["success"]({
               placement: "top",
               description: "",
-              message: "Workspace Created, Please login again...",
+              message: apiRes.data.message,
               style: {
                 height: 70,
               },
@@ -285,6 +287,8 @@ const Workspace = () => {
           upload_folder: permissionData.upload_folder,
           create_folder: permissionData.create_folder,
           upload_file: permissionData.upload_file,
+          view_watermark: permissionData.view_watermark,
+          download_watermark: permissionData.download_watermark,
           delete: permissionData.delete_per,
           download: permissionData.download_per,
           move: permissionData.move,
@@ -303,16 +307,22 @@ const Workspace = () => {
   };
   const tableHeader = [
     {
-      id: "Workspace Name",
-      numeric: false,
-      disablePadding: true,
-      label: "Workspace Name",
-    },
-    {
       id: "Cabinet",
       numeric: false,
       disablePadding: true,
       label: "Cabinet",
+    },
+    {
+      id: "Workspace Type",
+      numeric: false,
+      disablePadding: true,
+      label: "Workspace Type",
+    },
+    {
+      id: "Workspace Name",
+      numeric: false,
+      disablePadding: true,
+      label: "Workspace Name",
     },
     {
       id: "Groups",
@@ -326,12 +336,7 @@ const Workspace = () => {
       disablePadding: true,
       label: "User",
     },
-    {
-      id: "Workspace Type",
-      numeric: false,
-      disablePadding: true,
-      label: "Workspace Type",
-    },
+
     {
       id: "Quota(Gb)",
       numeric: false,
@@ -382,6 +387,8 @@ const Workspace = () => {
         upload_file: checkboxValues.upload_file,
         upload_folder: checkboxValues.upload_folder,
         create_folder: checkboxValues.create_folder,
+        view_watermark: checkboxValues.view_watermark,
+        download_watermark: checkboxValues.download_watermark,
         policy_type: PermissionEditedId.policy_type,
         workspace_id: PermissionEditedId.workspace_id,
         workspace_name: PermissionEditedId.workspace_name,
@@ -421,6 +428,8 @@ const Workspace = () => {
         upload_file: checkboxValues.upload_file,
         upload_folder: checkboxValues.upload_folder,
         create_folder: checkboxValues.create_folder,
+        view_watermark: checkboxValues.view_watermark,
+        download_watermark: checkboxValues.download_watermark,
       };
       add_permission(
         submittedData,
@@ -456,6 +465,8 @@ const Workspace = () => {
       rights: null,
       comment: null,
       properties: null,
+      view_watermark: null,
+      download_watermark: null,
     });
     setPermissionEditedId(0);
   };
@@ -507,10 +518,17 @@ const Workspace = () => {
         label: "Create Folder",
         name: "create_folder",
       },
-
       {
         label: "Upload File",
         name: "upload_file",
+      },
+      {
+        label: "View W",
+        name: "view_watermark",
+      },
+      {
+        label: "Download W",
+        name: "download_watermark",
       },
     ],
     buttonLabels: {
@@ -600,7 +618,7 @@ const Workspace = () => {
             <WorkspaceTable
               searchTerm={searchTerm}
               headCells={tableHeader}
-              allfolderlist={userData}
+              rows={userData}
               onEditClick={onEditClick}
               handleClickOpen={handleClickOpen}
               onPermissionClick={handleOpenPermission}

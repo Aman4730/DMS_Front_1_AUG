@@ -1,7 +1,6 @@
 import * as React from "react";
-import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
-import { Card, Divider } from "@mui/material";
+import { Button, Card, Divider } from "@mui/material";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -25,7 +24,7 @@ export default function FileFolderProperties({
     };
     return originalDate.toLocaleString("en-US", options);
   }
-  const originalTimestamp1 = propertiesData?.updatedAt; // Replace with your actual timestamp
+  const originalTimestamp1 = propertiesData?.updatedAt;
   const formattedDate1 = convertTimestampToFormattedDate(originalTimestamp1);
   function formatFileSize(sizeInBytes) {
     if (sizeInBytes < 1024) {
@@ -122,7 +121,20 @@ export default function FileFolderProperties({
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={propertiesModelClose}>Close</Button>
+          <Button
+            variant="outlined"
+            style={{
+              marginLeft: "5px",
+              height: "35px",
+              width: "80px",
+              outline: "none",
+              color: "#7460ff",
+              border:"1px solid #7460ff"
+            }}
+            onClick={propertiesModelClose}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

@@ -1,19 +1,20 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
+import { Switch } from "@mui/material";
 import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
+import TableRow from "@mui/material/TableRow";
 import EditIcon from "@mui/icons-material/Edit";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Switch } from "@mui/material";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import TableContainer from "@mui/material/TableContainer";
+import TablePagination from "@mui/material/TablePagination";
+import CloudSyncIcon from "@mui/icons-material/CloudSync";
 
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
@@ -52,34 +53,24 @@ function EnhancedTableHead(props) {
 }
 
 export default function UserTable({
-  allfolderlist,
   rows,
   headCells,
-  onEditClick,
-  handleClickOpen,
-  onBlockClick,
   searchTerm,
+  onEditClick,
+  onBlockClick,
+  handleClickOpen,
+  handleClickSyncOpen,
 }) {
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("calories");
-  const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
+  const [order, setOrder] = React.useState("asc");
+  const [selected, setSelected] = React.useState([]);
+  const [orderBy, setOrderBy] = React.useState("");
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelected = rows.map((n) => n.name);
-      setSelected(newSelected);
-      return;
-    }
-    setSelected([]);
   };
 
   const handleClick = (event, name) => {
@@ -111,9 +102,6 @@ export default function UserTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
-
   return (
     <Box>
       <Paper>
@@ -127,11 +115,11 @@ export default function UserTable({
             />
             <TableBody>
               {(rowsPerPage > 0
-                ? allfolderlist.slice(
+                ? rows.slice(
                     page * rowsPerPage,
                     page * rowsPerPage + rowsPerPage
                   )
-                : allfolderlist
+                : rows
               )
                 ?.filter((item) =>
                   (item.display_name || item.email)
@@ -140,8 +128,7 @@ export default function UserTable({
                 )
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-                  const originalTimestamp = row.createdAt;
+                  const originalTimestamp = row.validity_date;
                   const originalDate = new Date(originalTimestamp);
                   const options = {
                     year: "numeric",
@@ -152,7 +139,7 @@ export default function UserTable({
                     hour12: false,
                   };
                   const convertedTimestamp = originalDate.toLocaleString(
-                    "en-US",
+                    "en-GB",
                     options
                   );
 
@@ -163,14 +150,13 @@ export default function UserTable({
 
                   return (
                     <TableRow
-                      key={index} // Use the 'id' as the key
+                      key={index}
                       hover
                       onClick={(event) => handleClick(event, row.name)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
                       selected={isItemSelected}
-                      sx={{ cursor: "pointer" }}
                     >
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.display_name}
@@ -179,15 +165,29 @@ export default function UserTable({
                         {row.email}
                       </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
+                        {convertedTimestamp == "Invalid Date"
+                          ? "No Expiry"
+                          : convertedTimestamp}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "12px" }}>
+                        {row.user_type}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "12px" }}>
                         {row.emp_code}
                       </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
                         {formattedSize}
                       </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.user_type}
-                      </TableCell>
                       <TableCell>
+                        <Tooltip
+                          title="Omega Sync"
+                          onClick={() => handleClickSyncOpen(row.emp_code)}
+                        >
+                          <CloudSyncIcon
+                            sx={{ ml: 1, mr: 1 }}
+                            fontSize="small"
+                          />
+                        </Tooltip>
                         <Tooltip
                           title="Edit"
                           onClick={() => onEditClick(row.id)}
@@ -211,18 +211,21 @@ export default function UserTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!rows.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>
+        
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

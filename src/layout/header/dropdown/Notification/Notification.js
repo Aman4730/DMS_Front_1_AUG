@@ -1,9 +1,10 @@
-import React from "react";
-import { DropdownToggle, DropdownMenu, UncontrolledDropdown } from "reactstrap";
-
-import Icon from "../../../../components/icon/Icon";
+import React, { useContext, useEffect, useState } from "react";
 import data from "./NotificationData";
-
+import Icon from "../../../../components/icon/Icon";
+import { DropdownToggle, DropdownMenu, UncontrolledDropdown } from "reactstrap";
+import { AuthContext } from "../../../../context/AuthContext";
+import "./notification.css";
+import Loading from "../../../../components/Loading";
 const NotificationItem = (props) => {
   const { icon, iconStyle, text, time, id, index } = props;
   return (
@@ -16,7 +17,23 @@ const NotificationItem = (props) => {
         />
       </div>
       <div className="nk-notification-content">
-        <div className="nk-notification-text">{text}</div>
+        <div
+          className="nk-notification-text"
+          style={{
+            fontSize: "12px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "220px",
+          }}
+        >
+          <abbr
+            title={text}
+            style={{ cursor: "pointer", textDecoration: "none" }}
+          >
+            {text}
+          </abbr>
+        </div>
         <div className="nk-notification-time">{time}</div>
       </div>
     </div>
@@ -24,6 +41,30 @@ const NotificationItem = (props) => {
 };
 
 const Notification = () => {
+  const { userAuthContextData } = useContext(AuthContext);
+  const [userData] = userAuthContextData;
+  //Notification
+  const [events, setEvents] = useState([]);
+  const [loader, setLoader] = useState(false);
+  let token = localStorage.getItem("token") || "";
+
+  useEffect(() => {
+    setLoader(true);
+    const eventSource = new EventSource(
+      `${process.env.REACT_APP_API_URL_LOCAL}/getnotification?email=${userData.email}`
+    );
+
+    eventSource.onmessage = function (event) {
+      const eventData = JSON.parse(event.data);
+      setEvents((prevEvents) => [...prevEvents, eventData]);
+      setLoader(false);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   return (
     <UncontrolledDropdown className="user-dropdown">
       <DropdownToggle tag="a" className="dropdown-toggle nk-quick-nav-icon">
@@ -47,19 +88,40 @@ const Notification = () => {
           </a>
         </div>
         <div className="dropdown-body">
-          <div className="nk-notification">
-            {data.notification.map((item, index) => (
-              <NotificationItem
-                key={item.id}
-                id={item.id}
-                icon={item.icon}
-                iconStyle={item.iconStyle}
-                text={item.text}
-                time={item.time}
-                index={index}
-              />
-            ))}
-          </div>
+          {events?.length > 0 > 0 && !loader ? (
+            <div className="nk-notification">
+              {events
+                .slice()
+                .reverse()
+                .map((item, index) => {
+                  return (
+                    <NotificationItem
+                      key={index}
+                      id={item.id}
+                      icon={item.icon}
+                      iconStyle={item.iconStyle}
+                      text={item.message}
+                      time={item.time}
+                      index={index}
+                      isError={item.isError}
+                    />
+                  );
+                })}
+            </div>
+          ) : loader ? (
+            <Loading />
+          ) : (
+            <div className="text-center no-data h-100 mb-0 serachBar">
+              <div className="loading-wave serachBar">
+                <p
+                  className="text-center serachBar"
+                  style={{ textAlign: "center" }}
+                >
+                  No data Available
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="dropdown-foot center">
           <a

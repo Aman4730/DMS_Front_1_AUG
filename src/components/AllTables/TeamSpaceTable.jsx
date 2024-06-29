@@ -12,15 +12,19 @@ import EditIcon from "@mui/icons-material/Edit";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import ShareIcon from "@mui/icons-material/Share";
+import BlockIcon from "@mui/icons-material/Block";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArticleIcon from "@mui/icons-material/Article";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TableContainer from "@mui/material/TableContainer";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import TablePagination from "@mui/material/TablePagination";
+import PreviewIcon from "@mui/icons-material/Preview";
+import SecurityUpdateIcon from "@mui/icons-material/SecurityUpdate";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 import SportsVolleyballRoundedIcon from "@mui/icons-material/SportsVolleyballRounded";
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
@@ -63,18 +67,16 @@ export default function TeamSpaceTable({
   isLogin,
   callApi,
   headCells,
-  propertys,
   searchTerm,
-  setPropertys,
   allfolderlist,
   onEditFileClick,
   onFileDownload,
   handleClickMove,
-  PermissionPolicy,
   onDownloadfolders,
   handleClickLinkOpen,
   openEditFolderModal,
   handleOpenDeleteFile,
+  handleClickShareOpen,
   handleOpenPermission,
   onEditPermissionClick,
   handleClickOpenCommets,
@@ -82,15 +84,14 @@ export default function TeamSpaceTable({
   handleClickVersionOpen,
   handleClickOpenProperties,
 }) {
-  // const property = PermissionPolicy?.map((data) => {
-  //   setPropertys(data);
-  // });
   const history = useHistory();
   const navigate = (id, data, filemongo_id) => {
     history.push("/fileviewer", {
       id: id,
       file: data,
       filemongo_id: filemongo_id,
+      workspace_type: "TeamSpace",
+      commentHide: "true",
     });
   };
   const [order, setOrder] = React.useState("asc");
@@ -119,8 +120,6 @@ export default function TeamSpaceTable({
     setPage(0);
   };
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   function getFileIconByExtension(filename) {
     switch (filename) {
@@ -168,10 +167,12 @@ export default function TeamSpaceTable({
                     ?.toLowerCase()
                     .includes(searchTerm?.toLowerCase())
                 )
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((data, index) => {
                   const isItemSelected = isSelected(data.name);
                   const originalTimestamp = data.updatedAt;
                   const originalDate = new Date(originalTimestamp);
+                  const originalExpiryDate = new Date(data?.expiry_date);
                   const options = {
                     year: "numeric",
                     month: "2-digit",
@@ -181,7 +182,11 @@ export default function TeamSpaceTable({
                     hour12: false,
                   };
                   const convertedTimestamp = originalDate.toLocaleString(
-                    "en-US",
+                    "en-GB",
+                    options
+                  );
+                  const convertedExpiryDate = originalExpiryDate.toLocaleString(
+                    "en-GB",
                     options
                   );
                   function formatFileSize(sizeInBytes) {
@@ -200,7 +205,14 @@ export default function TeamSpaceTable({
                   const fileSizeInBytes = data?.file_size || data?.folder_size;
                   const formattedSize = formatFileSize(fileSizeInBytes);
 
-                  const permission = data?.permission;
+                  let shared_by = "";
+                  for (let i = 0; i < data?.shared_by?.length; i++) {
+                    shared_by = shared_by + "\n" + data?.shared_by[i];
+                  }
+                  let share_with = "";
+                  for (let i = 0; i < data?.share_with?.length; i++) {
+                    share_with = share_with + "\n" + data?.share_with[i];
+                  }
                   return (
                     <TableRow
                       hover
@@ -210,18 +222,18 @@ export default function TeamSpaceTable({
                       key={index}
                       selected={isItemSelected}
                       sx={{
-                        cursor: "pointer",
+                        cursor: data.file_type ? "" : "pointer",
                       }}
                     >
                       <TableCell
                         onClick={() => (data.file_type ? "" : callApi(data))}
                         className="tablefont"
                         style={{
-                          fontSize: "13px",
+                          fontSize: "12px",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          maxWidth: "300px",
+                          maxWidth: "250px",
                         }}
                       >
                         <img
@@ -236,20 +248,65 @@ export default function TeamSpaceTable({
                           height="22px"
                           style={{ marginRight: "5px", marginBottom: "2px" }}
                         />
-                        {data?.file_name || data.folder_name}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "13px" }}>
-                        {convertedTimestamp}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "13px" }}>
-                        {data.shared_by || "Not Shared"}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "13px" }}>
-                        {data.share_with || "Not Shared"}
+                        {data?.file_name || data?.folder_name}
                       </TableCell>
                       <TableCell
                         style={{
-                          fontSize: "13px",
+                          fontSize: "12px",
+                          whiteSpace: "nowrap",
+                          maxWidth: "250px",
+                        }}
+                      >
+                        {convertedTimestamp}
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "12px",
+                          whiteSpace: "nowrap",
+                          maxWidth: "250px",
+                        }}
+                      >
+                        {convertedExpiryDate == "Invalid Date"
+                          ? "No Expiry"
+                          : convertedExpiryDate}
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "12px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "150px",
+                        }}
+                      >
+                        <abbr
+                          title={shared_by}
+                          style={{ cursor: "pointer", textDecoration: "none" }}
+                        >
+                          {data.shared_by || "Not Shared"}
+                        </abbr>
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "12px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "150px",
+                        }}
+                      >
+                        <abbr
+                          title={share_with}
+                          style={{ cursor: "pointer", textDecoration: "none" }}
+                        >
+                          {data.share_with || "Not Shared"}
+                        </abbr>
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "12px",
+                          whiteSpace: "nowrap",
+                          maxWidth: "250px",
                         }}
                       >
                         {formattedSize}
@@ -275,6 +332,38 @@ export default function TeamSpaceTable({
                           ) : (
                             ""
                           )}
+                          {data?.shared_by?.length > 0 &&
+                            (data?.share_with?.length > 0 ? (
+                              <Tooltip
+                                title="Share Cancel"
+                                onClick={() =>
+                                  handleClickShareOpen(
+                                    data?.id,
+                                    data?.file_type
+                                  )
+                                }
+                              >
+                                <SettingsBackupRestoreIcon
+                                  fontSize="small"
+                                  sx={{ mr: 1 }}
+                                />
+                              </Tooltip>
+                            ) : (
+                                  <Tooltip
+                                title="Share Cancel"
+                                onClick={() =>
+                                  handleClickShareOpen(
+                                    data?.id,
+                                    data?.file_type
+                                  )
+                                }
+                              >
+                                <SettingsBackupRestoreIcon
+                                  fontSize="small"
+                                  sx={{ mr: 1 }}
+                                />
+                              </Tooltip>
+                            ))}
                           <Tooltip
                             title="View"
                             onClick={() => {
@@ -292,10 +381,50 @@ export default function TeamSpaceTable({
                             <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
                           <Tooltip
+                            title="View W"
+                            onClick={() => {
+                              if (data.file_type) {
+                                navigate(
+                                  data.id,
+                                  data?.file_name,
+                                  data.filemongo_id
+                                );
+                              } else {
+                                callApi(data);
+                              }
+                            }}
+                          >
+                            <PreviewIcon fontSize="small" sx={{ mr: 1 }} />
+                          </Tooltip>
+                          <Tooltip
+                            title="Download W"
+                            onClick={() => {
+                              if (data.file_type) {
+                                onFileDownload(
+                                  data.filemongo_id,
+                                  data.file_name,
+                                  data.file_size,
+                                  data.file_type
+                                );
+                              } else {
+                                onDownloadfolders(
+                                  data.id,
+                                  data.folder_name,
+                                  data.folder_size
+                                );
+                              }
+                            }}
+                          >
+                            <SecurityUpdateIcon
+                              fontSize="small"
+                              sx={{ mr: 1 }}
+                            />
+                          </Tooltip>
+                          <Tooltip
                             title="Edit"
                             onClick={() => {
                               if (data.file_type) {
-                                onEditFileClick(data.id);
+                                onEditFileClick(data.id, data.file_type);
                               } else {
                                 openEditFolderModal(data?.id);
                               }
@@ -309,10 +438,16 @@ export default function TeamSpaceTable({
                               if (data.file_type) {
                                 onFileDownload(
                                   data.filemongo_id,
-                                  data.file_name
+                                  data.file_name,
+                                  data.file_size,
+                                  data.file_type
                                 );
                               } else {
-                                onDownloadfolders(data.id, data.folder_name);
+                                onDownloadfolders(
+                                  data.id,
+                                  data.folder_name,
+                                  data.folder_size
+                                );
                               }
                             }}
                           >
@@ -407,6 +542,19 @@ export default function TeamSpaceTable({
                           ) : (
                             ""
                           )}
+                          {data?.isShared === true && (
+                            <Tooltip
+                              title="Share Cancel"
+                              onClick={() =>
+                                handleClickShareOpen(data?.id, data?.file_type)
+                              }
+                            >
+                              <SettingsBackupRestoreIcon
+                                fontSize="small"
+                                sx={{ mr: 1 }}
+                              />
+                            </Tooltip>
+                          )}
                           {data?.permission?.view == true ||
                           workspacePermissionWs1?.view == true ? (
                             <Tooltip
@@ -435,7 +583,7 @@ export default function TeamSpaceTable({
                               title="Edit"
                               onClick={() => {
                                 if (data.file_type) {
-                                  onEditFileClick(data.id);
+                                  onEditFileClick(data.id, data.file_type);
                                 } else {
                                   openEditFolderModal(data?.id);
                                 }
@@ -454,10 +602,16 @@ export default function TeamSpaceTable({
                                 if (data.file_type) {
                                   onFileDownload(
                                     data.filemongo_id,
-                                    data.file_name
+                                    data.file_name,
+                                    data.file_size,
+                                    data.file_type
                                   );
                                 } else {
-                                  onDownloadfolders(data.id, data.folder_name);
+                                  onDownloadfolders(
+                                    data.id,
+                                    data.folder_name,
+                                    data.folder_size
+                                  );
                                 }
                               }}
                             >
@@ -568,13 +722,11 @@ export default function TeamSpaceTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
+              {!allfolderlist.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    No data available
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>

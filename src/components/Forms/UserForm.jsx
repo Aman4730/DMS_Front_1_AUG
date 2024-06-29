@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Button } from "../Component";
 import DatePicker from "react-datepicker";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -10,10 +9,13 @@ import {
   Grid,
   Stack,
   TextField,
+  IconButton,
   Autocomplete,
   InputAdornment,
-  IconButton,
+  Button,
 } from "@mui/material";
+import dayjs from "dayjs";
+
 export default function UserForm({
   editId,
   openForm,
@@ -29,6 +31,17 @@ export default function UserForm({
   const handleTogglePassword = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
+  const minDays = 5; // Minimum number of days from today
+  const maxDays = 30; // Maximum number of days from today
+
+  const minDate = dayjs().add(minDays, "day");
+  const maxDate = dayjs().add(maxDays, "day");
+
+  const disabledDate = (currentDate) => {
+    console.log(currentDate, "currentDate");
+    return currentDate && (currentDate < minDate || currentDate > maxDate);
+  };
+
   return (
     <Stack>
       <React.Fragment>
@@ -73,6 +86,7 @@ export default function UserForm({
                   type="text"
                   margin="dense"
                   label="Email"
+                  disabled={editId}
                   value={formData?.email}
                   onChange={handleChange}
                 />
@@ -82,7 +96,7 @@ export default function UserForm({
                   fullWidth
                   id="emp_code"
                   size="small"
-                  type="number"
+                  type="text"
                   margin="dense"
                   label="Employee Code"
                   value={formData?.emp_code}
@@ -119,18 +133,6 @@ export default function UserForm({
                   }}
                 />
               </Grid>
-              {/* <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="password"
-                  size="small"
-                  type="password"
-                  margin="dense"
-                  label="Password"
-                  value={formData?.password}
-                  onChange={handleChange}
-                />
-              </Grid> */}
               <Grid item xs={6}>
                 <TextField
                   fullWidth
@@ -148,7 +150,7 @@ export default function UserForm({
                   fullWidth
                   size="small"
                   id="tags-outlined"
-                  options={["Admin", "User", "Guest"]}
+                  options={["Admin", "User"]}
                   filterSelectedOptions
                   sx={{ mt: 1 }}
                   renderInput={(params) => (
@@ -202,22 +204,31 @@ export default function UserForm({
                   onChange={handleChange}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <DatePicker
                   name="userValidity"
                   selected={formData.userValidity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, userValidity: e })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, userValidity: e });
+                  }}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="User Validity"
+                  disabledDate={disabledDate}
+                  customInput={<TextField fullWidth size="small" />}
                 />
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseForm}>Cancel</Button>
-            <Button onClick={onFormSubmit} color="primary" size="md">
+            <Button variant="outlined" id="closeBtn" onClick={handleCloseForm}>
+              Cancel
+            </Button>
+            <Button
+              id="submitBtn"
+              onClick={onFormSubmit}
+              color="primary"
+              size="md"
+            >
               {editId ? "Update" : "Submit"}
             </Button>
           </DialogActions>

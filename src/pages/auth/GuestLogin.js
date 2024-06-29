@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { notification } from "antd";
 import { useHistory } from "react-router-dom";
+import TextCaptcha from "../../components/TextCaptcha";
 
 const GuestLogin = () => {
   const [loading, setLoading] = useState(false);
@@ -49,14 +50,28 @@ const GuestLogin = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
+          notification["success"]({
+            placement: "top",
+            message: "Login Successfully.",
+            style: {
+              height: 60,
+            },
+          });
           localStorage.setItem("guestlogin", JSON.stringify(data));
           localStorage.setItem("token", data.token);
           history.push("/guestTeamSpace");
-        } else if (data.status === false) {
+        } else if (data.success === "false") {
           notification.error({
             placement: "bottomRight",
             description: "",
             message: "Your account has been disabled",
+          });
+          notification["warning"]({
+            placement: "top",
+            message: "Your account has been disabled",
+            style: {
+              height: 60,
+            },
           });
         } else {
           notification.error({
@@ -73,6 +88,49 @@ const GuestLogin = () => {
         setLoading(false);
       });
   };
+  //captcha
+  const [captchaText, setCaptchaText] = useState(generateCaptchaText());
+  const [userInput, setUserInput] = useState("");
+  const [isCorrect, setIsCorrect] = useState(false);
+  function generateCaptchaText() {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let captcha = "";
+    for (let i = 0; i < 6; i++) {
+      captcha += characters.charAt(
+        Math.floor(Math.random() * characters.length)
+      );
+    }
+    return captcha;
+  }
+
+  function reloadCaptcha() {
+    setCaptchaText(generateCaptchaText());
+    setUserInput("");
+    setIsCorrect(false);
+  }
+
+  function handleCaptchaInput(event) {
+    setUserInput(event.target.value);
+    setIsCorrect(false);
+  }
+
+  function handleSubmitCaptcha(event) {
+    if (userInput.toLowerCase() === captchaText.toLowerCase()) {
+      setIsCorrect(true);
+      onFormSubmit(formData);
+    } else {
+      setIsCorrect(false);
+      reloadCaptcha();
+      notification["error"]({
+        placement: "top",
+        message: "Invalid Captcha",
+        style: {
+          height: 60,
+        },
+      });
+    }
+  }
 
   const { errors, register, handleSubmit } = useForm();
   return (
@@ -81,18 +139,18 @@ const GuestLogin = () => {
       <PageContainer>
         <Block className="nk-block-middle nk-auth-body  wide-xs">
           <PreviewCard className="card-bordered" bodyClass="card-inner-lg">
-            <BlockHead>
+            <BlockHead style={{ border: "1px solid red" }}>
               <BlockContent>
                 <div className="brand-logo text-center">
                   <Link to={process.env.PUBLIC_URL + "/"} className="logo-link">
                     <img
-                      className="logo-dark w-50"
+                      // className="logo-dark w-35"
+                      style={{ width: "40%", marginBottom: "2px" }}
                       src="/Image/acmeLogo.jpeg"
                       alt="logo-dark"
                     ></img>
                   </Link>
                 </div>
-                <br></br>
                 <BlockTitle tag="h5" className="text-center">
                   Guest Sign In - ACME DocHub
                 </BlockTitle>
@@ -106,7 +164,10 @@ const GuestLogin = () => {
                 </Alert>
               </div>
             )}
-            <Form className="is-alter" onSubmit={handleSubmit(onFormSubmit)}>
+            <Form
+              className="is-alter"
+              onSubmit={handleSubmit(handleSubmitCaptcha)}
+            >
               <FormGroup>
                 <div className="form-label-group">
                   <label className="form-label" htmlFor="default-01">
@@ -169,6 +230,15 @@ const GuestLogin = () => {
                   )}
                 </div>
               </FormGroup>
+              <TextCaptcha
+                userInput={userInput}
+                isCorrect={isCorrect}
+                captchaText={captchaText}
+                reloadCaptcha={reloadCaptcha}
+                handleInputChange={handleCaptchaInput}
+                handleSubmit={handleSubmitCaptcha}
+                generateCaptchaText={generateCaptchaText}
+              />
               <FormGroup>
                 <Button
                   size="lg"

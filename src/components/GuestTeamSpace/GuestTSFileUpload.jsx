@@ -1,3 +1,5 @@
+import { Icon } from "../Component";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -10,25 +12,22 @@ import {
   Autocomplete,
 } from "@mui/material";
 import "./GuestTeamSpace.css";
-import { Icon, RSelect } from "../Component";
-import React, { useEffect, useState } from "react";
 export default function GuestTSFileUpload({
   open,
   close,
   loading,
-  fileDesc,
-  handleOkay,
   editFileId,
   formValues,
   Properties,
+  handleOkay,
   selectedFile,
+  fileNameInput,
   handleFileChange,
+  handleChangeFile,
   matchedWorkspace,
   handleInputChange,
-  handleChangeFile,
-  fileNameInput,
-  handleDoctypeAutocomplete,
   handleCloseFileModal,
+  handleDoctypeAutocomplete,
 }) {
   const [propertys, setPropertys] = useState([]);
   const property = () => {
@@ -53,9 +52,7 @@ export default function GuestTSFileUpload({
   }
   const fileSizeInBytes = selectedFile?.size;
   const formattedSize = formatFileSize(fileSizeInBytes);
-
   const metadata = matchedWorkspace?.map((data) => data?.doctype);
-
   return (
     <>
       <Backdrop sx={{ color: "#fff", zIndex: 1 }} open={open}>
@@ -86,9 +83,9 @@ export default function GuestTSFileUpload({
                   fullWidth
                   size="small"
                   id="tags-outlined"
+                  filterSelectedOptions
                   options={metadata || ""}
                   getOptionLabel={(option) => option}
-                  filterSelectedOptions
                   renderInput={(params) => (
                     <TextField {...params} label="Selected DocType" />
                   )}
@@ -97,8 +94,8 @@ export default function GuestTSFileUpload({
               </Grid>
             </Grid>
             <Grid container columnSpacing={1} rowSpacing={1}>
-              {Properties?.map((data, index) => (
-                <React.Fragment key={index}>
+              {Properties?.map((data) => (
+                <React.Fragment key={data.name}>
                   {data.fieldtype == "Text" ? (
                     <Grid item xs={6}>
                       <TextField
@@ -202,7 +199,7 @@ export default function GuestTSFileUpload({
                 {editFileId || selectedFile ? (
                   <Button
                     variant="contained"
-                    onClick={handleOkay}
+                    onClick={() => handleOkay()}
                     style={{
                       height: "35px",
                       outline: "none",

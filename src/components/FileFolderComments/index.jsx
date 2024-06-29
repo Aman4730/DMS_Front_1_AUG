@@ -7,8 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import { Button } from "../../../src/components/Component";
-import { Card, Grid, Stack, Tooltip } from "@mui/material";
+import { Button, Card, Grid, Stack, Tooltip } from "@mui/material";
 function FileFolderComments({
   notes,
   addTask,
@@ -42,27 +41,14 @@ function FileFolderComments({
               />
               <Stack flexDirection="row">
                 <Button
-                  color="primary"
+                  id="submitBtn"
+                  sx={{ mt: 0.5 }}
                   onClick={() => {
                     addTask();
                     onNotesSubmit();
                   }}
-                  style={{
-                    marginTop: "5px",
-                    marginBottom: "10px",
-                  }}
                 >
                   Submit
-                </Button>
-                <Button
-                  style={{
-                    height: "31px",
-                    margin: "5px 0px 0px 2px",
-                    background: "#6576FF",
-                    padding: "15px 15px 18px 15px",
-                  }}
-                >
-                  <SearchIcon style={{ color: "white" }} />
                 </Button>
               </Stack>
             </Stack>
@@ -119,7 +105,7 @@ function FileFolderComments({
           })}
         </Grid>
         <DialogActions>
-          <Button color="primary" onClick={handleCloseCommets}>
+          <Button variant="outlined" id="closeBtn" onClick={handleCloseCommets}>
             Close
           </Button>
         </DialogActions>

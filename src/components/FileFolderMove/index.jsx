@@ -29,11 +29,11 @@ export default function FileFolderMove({
   return (
     <React.Fragment>
       <Dialog
+        maxWidth="md"
         open={openMove.status}
         onClose={handleCloseMove}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
-        maxWidth="md"
       >
         <div
           style={{
@@ -44,6 +44,7 @@ export default function FileFolderMove({
         >
           {list?.map((data, index) => (
             <div
+              key={index}
               onClick={() => callApiHeader({ ...data, index })}
               style={{ cursor: "pointer" }}
             >
@@ -72,13 +73,13 @@ export default function FileFolderMove({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {moveData?.map((data) => {
+                    {moveData?.map((data, index) => {
                       return (
                         <TableRow
                           hover
+                          key={index}
                           role="checkbox"
                           tabIndex={-1}
-                          key={data.id}
                           sx={{
                             cursor: "pointer",
                           }}
@@ -208,8 +209,12 @@ export default function FileFolderMove({
           </div>
         </Paper>
         <DialogActions>
-          <Button onClick={handleCloseMove}>Close</Button>
-          <Button onClick={onSubmitUpdatefolder}>Move</Button>
+          <Button variant="outlined" id="closeBtn" onClick={handleCloseMove}>
+            Close
+          </Button>
+          <Button id="submitBtn" onClick={onSubmitUpdatefolder}>
+            Move
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

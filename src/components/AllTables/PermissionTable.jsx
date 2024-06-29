@@ -1,27 +1,19 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
+import { Switch } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import { Tooltip } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
-import SmsIcon from "@mui/icons-material/Sms";
 import TableRow from "@mui/material/TableRow";
+import EditIcon from "@mui/icons-material/Edit";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import ShareIcon from "@mui/icons-material/Share";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ArticleIcon from "@mui/icons-material/Article";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TableContainer from "@mui/material/TableContainer";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import TablePagination from "@mui/material/TablePagination";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import SportsVolleyballRoundedIcon from "@mui/icons-material/SportsVolleyballRounded";
-import EditIcon from "@mui/icons-material/Edit";
-import { Switch } from "@mui/material";
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
@@ -68,26 +60,13 @@ function EnhancedTableHead(props) {
 
 export default function PermissionTable({
   rows,
-  isLogin,
-  callApi,
-  headCells,
-  propertys,
-  openModal,
-  searchTerm,
-  setPropertys,
-  allfolderlist,
-  openFileUpload,
-  onFileDownload,
-  PermissionPolicy,
-  onDownloadfolders,
-  handleClickLinkOpen,
-  handleOpenDeleteFile,
-  handleClickOpenCommets,
-  handleClickVersionOpen,
-  handleClickOpenProperties,
   getSmpt,
+  headCells,
+  searchTerm,
   onEditClick,
+  setPropertys,
   onBlockClick,
+  PermissionPolicy,
 }) {
   const property = PermissionPolicy?.map((data) => {
     setPropertys(data);
@@ -118,7 +97,6 @@ export default function PermissionTable({
     setPage(0);
   };
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage) : 0;
 
   return (
     <Box>
@@ -204,15 +182,13 @@ export default function PermissionTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!getSmpt.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>

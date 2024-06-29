@@ -10,7 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import { visuallyHidden } from "@mui/utils";
-import { Button, Stack, TextField } from "@mui/material";
+import { Button, Grid, Stack, TextField } from "@mui/material";
 import { AutoComplete, DatePicker } from "antd";
 
 function EnhancedTableHead(props) {
@@ -49,18 +49,17 @@ function EnhancedTableHead(props) {
 }
 
 export default function LogTable({
-  allfolderlist,
   rows,
   headCells,
-  handleChangelogs,
   formDataLogs,
+  userDropdowns,
   handlefilter,
+  handleChangelogs,
 }) {
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("calories");
-  const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
+  const [order, setOrder] = React.useState("asc");
+  const [selected, setSelected] = React.useState([]);
+  const [orderBy, setOrderBy] = React.useState("calories");
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
@@ -107,8 +106,6 @@ export default function LogTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
   const options = [
     { value: "All" },
     { value: "Auth" },
@@ -120,97 +117,79 @@ export default function LogTable({
     { value: "Download" },
     { value: "Permission" },
   ];
+
   return (
     <Box>
-      <Stack flexDirection="row" style={{ padding: "10px 0px 5px 0px" }}>
-        <DatePicker
-          placeholder="From"
-          format="DD/MM/YY"
-          customInput={<input type="text" />}
-          style={{ marginRight: "3px" }}
-          onChange={(date) => handleChangelogs(null, date, "selectedFromDate")}
-          value={formDataLogs.selectedFromDate}
-        />
-
-        <DatePicker
-          placeholder="to"
-          format="DD/MM/YY"
-          customInput={
-            <input
-              type="text"
-              style={{
-                margin: "0px 4px 0px 4px",
-                height: "100%",
-              }}
-            />
-          }
-          value={formDataLogs.selectedToDate}
-          onChange={(date) => handleChangelogs(null, date, "selectedToDate")}
-        />
-
-        {/* <Autocomplete
-          size="small"
-          disablePortal
-          id="combo-box-demo"
-          options={[
-            "All",
-            "Auth",
-            "View",
-            "Create",
-            "Upload",
-            "Delete",
-            "Download",
-          ]}
-          sx={{
-            width: 180,
-            ml: 0.4,
-            mr: 1,
-            background: "white",
-            mt: 0.3,
-          }}
-          renderInput={(params) => (
-            <div ref={params.InputProps.ref}>
+      <Grid
+        container
+        flexDirection="row"
+        style={{ margin: "10px 0px 5px 0px" }}
+        spacing={1}
+      >
+        <Grid item>
+          <DatePicker
+            placeholder="From"
+            format="DD/MM/YYYY"
+            customInput={<input type="text" />}
+            onChange={(date) =>
+              handleChangelogs(null, date, "selectedFromDate")
+            }
+            value={formDataLogs.selectedFromDate}
+          />
+        </Grid>
+        <Grid item>
+          <DatePicker
+            placeholder="to"
+            format="DD/MM/YYYY"
+            customInput={
               <input
                 type="text"
-                {...params.inputProps}
-                placeholder="Select Categories"
                 style={{
-                  borderRadius: "6px",
-                  height: "32px",
-                  marginTop: "-1px",
-                  paddingLeft: "8px",
-                  border: "1px solid #ccc",
+                  height: "100%",
                 }}
               />
-            </div>
-          )}
-          onChange={(event, value) =>
-            handleChangelogs(event, value, "selectedCategory")
-          }
-          value={formDataLogs.selectedCategory}
-        /> */}
-        <AutoComplete
-          style={{ width: 200, margin: "2px 0px 0px 4px" }}
-          options={options}
-          placeholder="Select Categories"
-          onChange={(event, value) =>
-            handleChangelogs(event, value, "selectedCategory")
-          }
-          value={formDataLogs.selectedCategory}
-        />
-        <Button
-          variant="contained"
-          onClick={handlefilter}
-          style={{
-            borderRadius: "5px",
-            margin: "2px 0px 0px 8px",
-            height: "31px",
-            outline: "none",
-          }}
-        >
-          View
-        </Button>
-      </Stack>
+            }
+            value={formDataLogs.selectedToDate}
+            onChange={(date) => handleChangelogs(null, date, "selectedToDate")}
+          />
+        </Grid>
+        <Grid item>
+          <AutoComplete
+            style={{ width: 195 }}
+            options={options}
+            placeholder="Select Categories"
+            onChange={(event, value) =>
+              handleChangelogs(event, value, "selectedCategory")
+            }
+            value={formDataLogs.selectedCategory}
+          />
+        </Grid>
+        <Grid item>
+          <AutoComplete
+            style={{ width: 195 }}
+            options={userDropdowns.map((user) => ({ value: user.email }))}
+            placeholder="Select User"
+            onChange={(event, value) =>
+              handleChangelogs(event, value, "selectUser")
+            }
+            value={formDataLogs.selectUser}
+          />
+        </Grid>
+        <Grid item>
+          <Button
+            variant="contained"
+            onClick={handlefilter}
+            style={{
+              borderRadius: "5px",
+              height: "31px",
+              outline: "none",
+              background: "#6577FF",
+            }}
+          >
+            View
+          </Button>
+        </Grid>
+      </Grid>
       <Paper>
         <TableContainer>
           <Table aria-labelledby="tableTitle" size={"small"}>
@@ -222,11 +201,11 @@ export default function LogTable({
             />
             <TableBody>
               {(rowsPerPage > 0
-                ? allfolderlist.slice(
+                ? rows.slice(
                     page * rowsPerPage,
                     page * rowsPerPage + rowsPerPage
                   )
-                : allfolderlist
+                : rows
               ).map((row, index) => {
                 const isItemSelected = isSelected(row.name);
                 const labelId = `enhanced-table-checkbox-${index}`;
@@ -254,7 +233,6 @@ export default function LogTable({
                     tabIndex={-1}
                     key={index}
                     selected={isItemSelected}
-                    sx={{ cursor: "pointer" }}
                   >
                     <TableCell style={{ fontSize: "12px" }}>
                       {convertedTimestamp}
@@ -268,7 +246,7 @@ export default function LogTable({
                         maxWidth: "50px",
                       }}
                     >
-                      {row.user_id}
+                      {row.user_id || row.guest_id}
                     </TableCell>
                     <TableCell
                       component="th"
@@ -295,9 +273,11 @@ export default function LogTable({
                   </TableRow>
                 );
               })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
+              {!rows.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -306,7 +286,7 @@ export default function LogTable({
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

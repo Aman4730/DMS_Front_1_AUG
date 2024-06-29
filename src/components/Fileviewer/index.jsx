@@ -10,6 +10,7 @@ import Content from "../../layout/content/Content";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import DialogTitle from "@mui/material/DialogTitle";
+import { PDFDocument, rgb, degrees } from "pdf-lib";
 import { UserContext } from "../../context/UserContext";
 import DialogActions from "@mui/material/DialogActions";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -30,6 +31,8 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
+import WatermarkModule from "../Watermark";
+import PDFWatermark from "../Watermark/PDFWatermark";
 function Fileviewer() {
   const {
     getnotes,
@@ -58,6 +61,9 @@ function Fileviewer() {
 
   const history = useHistory();
   const location = useLocation();
+  const workspace_type = location?.state?.workspace_type;
+  const commentHide = location?.state?.commentHide;
+  const watermarkViewer = location.state.watermark;
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -100,6 +106,65 @@ function Fileviewer() {
     };
     fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axios.post(
+  //         `${process.env.REACT_APP_API_URL_LOCAL}/filedata`,
+  //         {
+  //           filemongo_id: location.state.filemongo_id,
+  //         }
+  //       );
+  //       const data = response.data.file_data.data;
+  //       const fileType = response.data.newdata.file_type;
+  //       setFileType(fileType);
+  //       if (fileType === "pdf") {
+  //         const arrayBuffer = new Uint8Array(data).buffer;
+  //         const pdf = await PDFDocument.load(arrayBuffer);
+  //         const pages = pdf.getPages();
+  //         const font = await pdf.embedFont("Helvetica-Bold");
+
+  //         pages.forEach((page) => {
+  //           const { width, height } = page.getSize();
+  //           const textSize = 50;
+  //           const textWidth = font.widthOfTextAtSize("ACME", textSize);
+  //           const textHeight = font.heightAtSize(textSize);
+
+  //           const textX = width / 2 - textWidth / 2;
+  //           const textY = height / 2 - textHeight / 2;
+
+  //           page.drawText("ACME", {
+  //             x: textX,
+  //             y: textY,
+  //             size: textSize,
+  //             font: font,
+  //             color: rgb(0.95, 0.1, 0.1),
+  //             opacity: 0.5,
+  //             rotate: degrees(30),
+  //           });
+  //         });
+
+  //         const modifiedPdfBytes = await pdf.save();
+  //         setUrl(
+  //           URL.createObjectURL(
+  //             new Blob([modifiedPdfBytes], { type: "application/pdf" })
+  //           )
+  //         );
+  //       } else {
+  //         const uint8Array = new Uint8Array(data);
+  //         const blob = new Blob([uint8Array], { type: fileType });
+  //         const url = URL.createObjectURL(blob);
+  //         setUrl(url);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [location.state.filemongo_id]);
+
   const onNotesSubmit = () => {
     notification["success"]({
       placement: "top",
@@ -252,7 +317,7 @@ function Fileviewer() {
     });
   };
   const navigate = () => {
-    history.push("/my-workspace");
+    history.push(`/${workspace_type}`);
   };
   const top100Films = propertys;
   return (
@@ -282,25 +347,45 @@ function Fileviewer() {
             </BlockBetween>
           </BlockHead>
         </Stack>
-
-        <Stack flexDirection="row" style={{ width: "fitContent" }}>
-          <div
+        <Grid
+          xs={12}
+          container
+          flexDirection="row"
+          style={{
+            display: "flex",
+            width: "fitContent",
+            justifyContent: "space-around",
+          }}
+        >
+          <Grid
+            item
+            lg={10}
+            sm={9}
+            xs={12}
             style={{
               border: "1px solid black",
-              height: "500px",
-              width: "90%",
+              height: "550px",
+              width: "100%",
             }}
           >
             {url.length ? (
               <>
                 {url && (
-                  <FileViewer
-                    fileType={fileType}
-                    filePath={url}
-                    onError={console.error}
-                    onLoad={() => {}}
-                    quality="hd"
-                  />
+                  <>
+                    {fileType == "pnggg" ? (
+                      <WatermarkModule Img={url} />
+                    ) : fileType == "pdfff" ? (
+                      <PDFWatermark location={location} />
+                    ) : (
+                      <FileViewer
+                        fileType={fileType}
+                        filePath={url}
+                        onError={console.error}
+                        onLoad={() => {}}
+                        quality="hd"
+                      />
+                    )}
+                  </>
                 )}
               </>
             ) : (
@@ -321,118 +406,120 @@ function Fileviewer() {
                 }}
               />
             )}
-          </div>
-          <Stack flexDirection="column">
-            <Stack sx={{ pt: 1, pl: 1 }}>
-              <div style={{ marginBottom: "11px" }}>
-                <RSelect
-                  options={metadata}
-                  defaultValue="Please Select Doctype"
-                  onChange={handleOnClick}
-                />
-              </div>
-              <Grid
-                container
-                rowSpacing={1}
-                columnSpacing={{ xs: 1, sm: 1 }}
-                flexDirection="column"
-              >
-                {addProperties?.map((data, index) => (
-                  <Stack
-                    key={index}
-                    flexDirection="column"
-                    sx={{ p: 0.2, pl: 1 }}
-                  >
-                    {data.fieldtype == "Text" ? (
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          variant="outlined"
-                          type={data.fieldtype}
-                          name={data.fieldname}
-                          label={data.fieldname}
-                          value={formValues[data.fieldname] || ""}
-                          onChange={handleInputChange}
-                          inputProps={{
-                            style: {
-                              height: "20px",
-                            },
-                          }}
-                        />
-                      </Grid>
-                    ) : (
-                      <Grid item xs={12}>
-                        <Autocomplete
-                          disablePortal
-                          size="small"
-                          id="combo-box-demo"
-                          options={top100Films}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Properties"
-                              size="small"
-                            />
-                          )}
-                        />
-                      </Grid>
-                    )}
-                  </Stack>
-                ))}
-              </Grid>
-              <Button
-                color="primary"
-                onClick={addmetapropertie}
-                style={{ width: "41%", marginTop: "4px" }}
-              >
-                Submit
-              </Button>
-            </Stack>
-            <Stack sx={{ pt: 1, pl: 1 }}>
-              <TextField
-                fullWidth
-                id="outlined-multiline-static"
-                label="Comments"
-                multiline
-                rows={4}
-                value={addProperty.notes}
-                onChange={(e) =>
-                  setAddProperty({
-                    ...addProperty,
-                    notes: e.target.value,
-                  })
-                }
-              />
-              <Stack flexDirection="row">
+          </Grid>
+          <Grid item lg={2} sm={3} xs={12}>
+            <Stack flexDirection="column">
+              <Stack sx={{ pt: 1, pl: 1 }}>
+                <div style={{ marginBottom: "11px" }}>
+                  <RSelect
+                    options={metadata}
+                    defaultValue="Please Select Doctype"
+                    onChange={handleOnClick}
+                  />
+                </div>
+                <Grid
+                  container
+                  rowSpacing={1}
+                  columnSpacing={{ xs: 1, sm: 1 }}
+                  flexDirection="column"
+                >
+                  {addProperties?.map((data, index) => (
+                    <Stack
+                      key={index}
+                      flexDirection="column"
+                      sx={{ p: 0.2, pl: 1 }}
+                    >
+                      {data.fieldtype == "Text" ? (
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            variant="outlined"
+                            type={data.fieldtype}
+                            name={data.fieldname}
+                            label={data.fieldname}
+                            value={formValues[data.fieldname] || ""}
+                            onChange={handleInputChange}
+                            inputProps={{
+                              style: {
+                                height: "20px",
+                              },
+                            }}
+                          />
+                        </Grid>
+                      ) : (
+                        <Grid item xs={12}>
+                          <Autocomplete
+                            disablePortal
+                            size="small"
+                            id="combo-box-demo"
+                            options={top100Films}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Properties"
+                                size="small"
+                              />
+                            )}
+                          />
+                        </Grid>
+                      )}
+                    </Stack>
+                  ))}
+                </Grid>
                 <Button
                   color="primary"
-                  onClick={() => {
-                    addTask();
-                    onNotesSubmit();
-                  }}
-                  style={{
-                    marginTop: "5px",
-                    marginBottom: "10px",
-                  }}
+                  onClick={addmetapropertie}
+                  style={{ width: "41%", marginTop: "4px" }}
                 >
                   Submit
                 </Button>
-                <Button
-                  style={{
-                    height: "31px",
-                    margin: "5px 0px 0px 2px",
-                    background: "#6576FF",
-                    padding: "15px 15px 18px 15px",
-                  }}
-                  onClick={handleClickOpen}
-                >
-                  <SearchIcon style={{ color: "white" }} />
-                </Button>
+              </Stack>
+              <Stack sx={{ pt: 1, pl: 1 }}>
+                <TextField
+                  fullWidth
+                  id="outlined-multiline-static"
+                  label="Comments"
+                  multiline
+                  rows={4}
+                  value={addProperty.notes}
+                  onChange={(e) =>
+                    setAddProperty({
+                      ...addProperty,
+                      notes: e.target.value,
+                    })
+                  }
+                />
+                <Stack flexDirection="row">
+                  <Button
+                    color="primary"
+                    onClick={() => {
+                      addTask();
+                      onNotesSubmit();
+                    }}
+                    style={{
+                      marginTop: "5px",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    Submit
+                  </Button>
+                  <Button
+                    style={{
+                      height: "31px",
+                      margin: "5px 0px 0px 2px",
+                      background: "#6576FF",
+                      padding: "15px 15px 18px 15px",
+                    }}
+                    onClick={handleClickOpen}
+                  >
+                    <SearchIcon style={{ color: "white" }} />
+                  </Button>
+                </Stack>
               </Stack>
             </Stack>
-          </Stack>
-        </Stack>
+          </Grid>
+        </Grid>
         <div>
           <Dialog
             open={open}

@@ -12,7 +12,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import ShareIcon from "@mui/icons-material/Share";
+import BlockIcon from "@mui/icons-material/Block";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PreviewIcon from "@mui/icons-material/Preview";
 import ArticleIcon from "@mui/icons-material/Article";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TableContainer from "@mui/material/TableContainer";
@@ -21,7 +23,10 @@ import TablePagination from "@mui/material/TablePagination";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SecurityUpdateSharpIcon from "@mui/icons-material/SecurityUpdateSharp";
+import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 import SportsVolleyballRoundedIcon from "@mui/icons-material/SportsVolleyballRounded";
+import Loading from "../Loading";
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
   const createSortHandler = (property) => (event) => {
@@ -63,17 +68,16 @@ export default function CommonTable({
   isLogin,
   callApi,
   headCells,
-  propertys,
   searchTerm,
-  setPropertys,
   allfolderlist,
-  onEditFileClick,
   onFileDownload,
+  onEditFileClick,
   handleClickMove,
-  PermissionPolicy,
+  workspace_type,
   onDownloadfolders,
   handleClickLinkOpen,
   openEditFolderModal,
+  handleClickShareOpen,
   handleOpenDeleteFile,
   handleOpenPermission,
   onEditPermissionClick,
@@ -82,15 +86,14 @@ export default function CommonTable({
   handleClickVersionOpen,
   handleClickOpenProperties,
 }) {
-  // const property = PermissionPolicy?.map((data) => {
-  //   setPropertys(data);
-  // });
   const history = useHistory();
   const navigate = (id, data, filemongo_id) => {
     history.push("/fileviewer", {
       id: id,
       file: data,
       filemongo_id: filemongo_id,
+      workspace_type: workspace_type,
+      commentHide: "true",
     });
   };
   const [order, setOrder] = React.useState("asc");
@@ -118,9 +121,8 @@ export default function CommonTable({
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   function getFileIconByExtension(filename) {
     switch (filename) {
@@ -146,7 +148,6 @@ export default function CommonTable({
         return "/Image/default.svg";
     }
   }
-
   return (
     <Box>
       <Paper>
@@ -168,6 +169,7 @@ export default function CommonTable({
                     ?.toLowerCase()
                     .includes(searchTerm?.toLowerCase())
                 )
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((data, index) => {
                   const isItemSelected = isSelected(data.name);
                   const originalTimestamp = data.updatedAt;
@@ -181,7 +183,7 @@ export default function CommonTable({
                     hour12: false,
                   };
                   const convertedTimestamp = originalDate.toLocaleString(
-                    "en-US",
+                    "en-GB",
                     options
                   );
                   function formatFileSize(sizeInBytes) {
@@ -200,7 +202,6 @@ export default function CommonTable({
                   const fileSizeInBytes = data?.file_size || data?.folder_size;
                   const formattedSize = formatFileSize(fileSizeInBytes);
 
-                  const permission = data?.permission;
                   return (
                     <TableRow
                       hover
@@ -210,9 +211,16 @@ export default function CommonTable({
                       key={index}
                       selected={isItemSelected}
                       sx={{
-                        cursor: "pointer",
+                        cursor: data.file_type ? "" : "pointer",
                       }}
                     >
+                      {data?.vdr_index ? (
+                        <TableCell style={{ fontSize: "13px" }}>
+                          {data.vdr_index}
+                        </TableCell>
+                      ) : (
+                        ""
+                      )}
                       <TableCell
                         onClick={() => (data.file_type ? "" : callApi(data))}
                         className="tablefont"
@@ -272,6 +280,19 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
+                          {data?.isShared === true && (
+                            <Tooltip
+                              title="Share Cancel"
+                              onClick={() =>
+                                handleClickShareOpen(data?.id, data?.file_type)
+                              }
+                            >
+                              <SettingsBackupRestoreIcon
+                                fontSize="small"
+                                sx={{ mr: 1 }}
+                              />
+                            </Tooltip>
+                          )}
                           <Tooltip
                             title="View"
                             onClick={() => {
@@ -279,7 +300,7 @@ export default function CommonTable({
                                 navigate(
                                   data.id,
                                   data?.file_name,
-                                  data.filemongo_id
+                                  data?.filemongo_id,
                                 );
                               } else {
                                 callApi(data);
@@ -288,11 +309,12 @@ export default function CommonTable({
                           >
                             <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
+                       
                           <Tooltip
                             title="Edit"
                             onClick={() => {
                               if (data.file_type) {
-                                onEditFileClick(data.id);
+                                onEditFileClick(data.id, data?.file_type);
                               } else {
                                 openEditFolderModal(data?.id);
                               }
@@ -306,36 +328,51 @@ export default function CommonTable({
                               if (data.file_type) {
                                 onFileDownload(
                                   data.filemongo_id,
-                                  data.file_name
+                                  data.file_name,
+                                  data.file_size,
+                                  data.file_type
                                 );
                               } else {
-                                onDownloadfolders(data.id, data.folder_name);
+                                onDownloadfolders(
+                                  data.id,
+                                  data.folder_name,
+                                  data.folder_size,
+                                  data.file_type
+                                );
                               }
                             }}
                           >
                             <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
-                          <Tooltip
-                            title="Move"
-                            onClick={() => handleClickMove(data)}
-                          >
-                            <DriveFileMoveIcon
-                              fontSize="small"
-                              sx={{ mr: 1 }}
-                            />
-                          </Tooltip>
-                          <Tooltip
-                            title="Share"
-                            onClick={() =>
-                              handleClickLinkOpen(
-                                data.id,
-                                data.file_type,
-                                data?.file_name || data.folder_name
-                              )
-                            }
-                          >
-                            <ShareIcon sx={{ mr: 1 }} fontSize="small" />
-                          </Tooltip>
+                          {workspace_type == "my-workspace" ? (
+                            <Tooltip
+                              title="Move"
+                              onClick={() => handleClickMove(data)}
+                            >
+                              <DriveFileMoveIcon
+                                fontSize="small"
+                                sx={{ mr: 1 }}
+                              />
+                            </Tooltip>
+                          ) : (
+                            ""
+                          )}
+                          {workspace_type == "my-workspace" ? (
+                            <Tooltip
+                              title="Share"
+                              onClick={() =>
+                                handleClickLinkOpen(
+                                  data.id,
+                                  data.file_type,
+                                  data?.file_name || data.folder_name
+                                )
+                              }
+                            >
+                              <ShareIcon sx={{ mr: 1 }} fontSize="small" />
+                            </Tooltip>
+                          ) : (
+                            ""
+                          )}
                           <Tooltip
                             title="Delete"
                             onClick={() =>
@@ -404,6 +441,19 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
+                          {data?.isShared === true && (
+                            <Tooltip
+                              title="Share Cancel"
+                              onClick={() =>
+                                handleClickShareOpen(data?.id, data?.file_type)
+                              }
+                            >
+                              <SettingsBackupRestoreIcon
+                                fontSize="small"
+                                sx={{ mr: 1 }}
+                              />
+                            </Tooltip>
+                          )}
                           {data?.permission?.view == true ||
                           workspacePermissionWs1?.view == true ? (
                             <Tooltip
@@ -425,7 +475,6 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
-
                           {data.permission?.rename == true ||
                           workspacePermissionWs1?.rename == true ? (
                             <Tooltip
@@ -451,10 +500,16 @@ export default function CommonTable({
                                 if (data.file_type) {
                                   onFileDownload(
                                     data.filemongo_id,
-                                    data.file_name
+                                    data.file_name,
+                                    data.file_size,
+                                    data.file_type
                                   );
                                 } else {
-                                  onDownloadfolders(data.id, data.folder_name);
+                                  onDownloadfolders(
+                                    data.id,
+                                    data.folder_name,
+                                    data.folder_size
+                                  );
                                 }
                               }}
                             >
@@ -466,8 +521,9 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
-                          {data.permission?.move == true ||
-                          workspacePermissionWs1?.move == true ? (
+                          {workspace_type === "my-workspace" &&
+                          (data.permission?.move === true ||
+                            workspacePermissionWs1?.move === true) ? (
                             <Tooltip
                               title="Move"
                               onClick={() => handleClickMove(data)}
@@ -480,8 +536,9 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
-                          {data?.permission?.share == true ||
-                          workspacePermissionWs1?.share == true ? (
+                          {workspace_type === "my-workspace" &&
+                          (data?.permission?.share === true ||
+                            workspacePermissionWs1?.share === true) ? (
                             <Tooltip
                               title="Share"
                               onClick={() =>
@@ -497,6 +554,7 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
+
                           {data?.permission?.delete_per == true ||
                           workspacePermissionWs1?.delete_per == true ? (
                             <Tooltip
@@ -532,16 +590,20 @@ export default function CommonTable({
                           ) : (
                             ""
                           )}
-                          {data?.permission?.rights == true ||
-                          workspacePermissionWs1?.rights == true ? (
+                          {workspace_type === "my-workspace" &&
+                          (data?.permission?.rights === true ||
+                            workspacePermissionWs1?.rights === true) ? (
                             <Tooltip
                               title="Rights"
                               onClick={() => {
                                 if (data?.permission?.id) {
-                                  onEditPermissionClick({
-                                    id: data?.id,
-                                    permission_id: data?.permission?.id,
-                                  });
+                                  onEditPermissionClick(
+                                    data?.id,
+                                    data?.permission?.id,
+                                    data?.file_name,
+                                    data?.folder_name,
+                                    data?.file_type
+                                  );
                                 } else {
                                   handleOpenPermission(
                                     data?.id,
@@ -565,13 +627,12 @@ export default function CommonTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
+
+              {!allfolderlist.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>

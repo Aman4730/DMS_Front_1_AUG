@@ -8,6 +8,7 @@ import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import PolicyModal from "../../components/PolicyModal";
 import { UserContext } from "../../context/UserContext";
+import PolicyTable from "../../components/AllTables/PolicyTable";
 import {
   Icon,
   Block,
@@ -18,7 +19,6 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../../../src/components/Component";
-import PolicyTable from "../../components/AllTables/PolicyTable";
 const Policies = () => {
   const {
     getpolicy,
@@ -67,12 +67,24 @@ const Policies = () => {
     minimum_download: "",
     no_of_days: "",
     no_of_versions: "",
+    startDate: null,
+    endDate: null,
+    watermark_text: "",
+    watermark_fontSize: "",
   });
+  //datepicker
+  const handleDateChange = (date, dateType) => {
+    setAddPolicies((prevState) => ({
+      ...prevState,
+      [dateType]: date,
+    }));
+  };
   const [checkboxValues, setCheckboxValues] = useState({
     versions: false,
     recycle_bin: false,
+    watermarkCheckbox: false,
+    watermarkPrintId_timestamp: false,
   });
-
   const handleCheckboxChange = (event) => {
     const { name, checked } = event.target;
     setCheckboxValues((prevValues) => ({
@@ -105,11 +117,33 @@ const Policies = () => {
       data: "",
     });
   };
+  // const handleAutocompleteChange = (id, value) => {
+  //   setAddPolicies((prevFormData) => ({
+  //     ...prevFormData,
+  //     [id]: value,
+  //   }));
+  // };
+  // const handlemultiSelectChange = (event) => {
+  //   const {
+  //     target: { value },
+  //   } = event;
+  //   handleAutocompleteChange("selected_user", typeof value === 'string' ? value.split(',') : value);
+  // };
   const handleAutocompleteChange = (id, value) => {
     setAddPolicies((prevFormData) => ({
       ...prevFormData,
       [id]: value,
     }));
+  };
+
+  const handlemultiSelectChange = (id) => (event) => {
+    const {
+      target: { value },
+    } = event;
+    handleAutocompleteChange(
+      id,
+      typeof value === "string" ? value.split(",") : value
+    );
   };
   // ==========================================================UseEffect
   useEffect(() => {
@@ -126,6 +160,15 @@ const Policies = () => {
     getTableDropdown();
   }, []);
   // ==========================================================getApis
+  let allUserNamesArr = [];
+  tableDropdown?.forEach((row) => {
+    row?.selected_users.forEach((user) => {
+      allUserNamesArr.push(user);
+    });
+  });
+  const filterUserDropdown = userDropdowns.filter(
+    (email) => !allUserNamesArr.includes(email)
+  );
   const getUserRselect = () => {
     userDropdownU(
       {},
@@ -136,6 +179,7 @@ const Policies = () => {
       () => {}
     );
   };
+
   const getRolesDropdown = () => {
     getGroupsDropdown(
       {},
@@ -177,14 +221,38 @@ const Policies = () => {
       minimum_download: "",
       recycle_bin: "",
       version: "",
+      startDate: null,
+      endDate: null,
+      watermark_text: "",
+      watermark_fontSize: "",
     });
     setCheckboxValues({
       versions: false,
       recycle_bin: false,
+      watermarkCheckbox: false,
+      watermarkPrintId_timestamp: false,
     });
     setEditExtension([]);
     setEditedId(0);
   };
+  const startTimestamp = addPolicies?.startDate;
+  const endTimestamp = addPolicies.endDate;
+  const startDate = new Date(startTimestamp);
+  const endDate = new Date(endTimestamp);
+
+  const options = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  };
+
+  const formattedStartDate = startDate
+    .toLocaleString("en-US", options)
+    .replace(/\//g, "-");
+  const formattedEndDate = endDate
+    .toLocaleString("en-US", options)
+    .replace(/\//g, "-");
+
   const onFormSubmit = () => {
     if (editId) {
       let submittedData = {
@@ -198,6 +266,8 @@ const Policies = () => {
         minimum_alphabet: addPolicies.minimum_alphabet,
         minimum_special: addPolicies.minimum_special,
         incorrect_password: addPolicies.incorrect_password,
+        watermark_text: addPolicies.watermark_text,
+        watermark_font: addPolicies.watermark_fontSize,
         file_extension: editExtension,
         minimum_days: addPolicies.minimum_days,
         maximum_days: addPolicies.maximum_days,
@@ -208,7 +278,11 @@ const Policies = () => {
         no_of_days: addPolicies.no_of_days,
         no_of_versions: addPolicies.no_of_versions,
         versions: checkboxValues.versions,
+        watermark: checkboxValues.watermarkCheckbox,
+        print_userid_timestamp: checkboxValues.watermarkPrintId_timestamp,
         recycle_bin: checkboxValues.recycle_bin,
+        start_date: addPolicies?.startDate === null ? null : formattedStartDate,
+        end_date: addPolicies?.endDate === null ? null : formattedEndDate,
       };
       add_Policies(
         submittedData,
@@ -242,6 +316,8 @@ const Policies = () => {
         minimum_alphabet: addPolicies.minimum_alphabet,
         minimum_characters: addPolicies.minimum_characters,
         incorrect_password: addPolicies.incorrect_password,
+        watermark_text: addPolicies.watermark_text,
+        watermark_font: addPolicies.watermark_fontSize,
         file_extension: editExtension,
         subject: addPolicies.subject,
         message: addPolicies.message,
@@ -249,8 +325,12 @@ const Policies = () => {
         minimum_download: addPolicies.minimum_download,
         versions: checkboxValues.versions,
         recycle_bin: checkboxValues.recycle_bin,
+        watermark: checkboxValues.watermarkCheckbox,
+        print_userid_timestamp: checkboxValues.watermarkPrintId_timestamp,
         no_of_days: addPolicies.no_of_days,
         no_of_versions: addPolicies.no_of_versions,
+        start_date: addPolicies?.startDate === null ? null : formattedStartDate,
+        end_date: addPolicies?.endDate === null ? null : formattedEndDate,
       };
       add_Policies(
         submittedData,
@@ -275,36 +355,38 @@ const Policies = () => {
   const onEditClick = (id) => {
     tableDropdown.map((item) => {
       if (item.id == id) {
+        const startDate = new Date(item.start_date);
+        const endDate = new Date(item.end_date);
         setAddPolicies({
           id: id,
           policy_name: item.policy_name,
           policy_type: item.policy_type,
           selected_user: item.selected_users,
           selected_group: item.selected_group,
-
           minimum_characters: item.minimum_character,
           minimum_numeric: item.minimum_numeric,
           minimum_alphabet: item.minimum_Alphabets,
           minimum_special: item.minimum_special_character,
           incorrect_password: item.inncorrect_password_attend,
-
           file_extension: item.properties_name,
-
           minimum_days: item.minimum_maximum_days[0],
           maximum_days: item.minimum_maximum_days[1],
-
           subject: item.subject,
           message: item.message,
-
+          startDate: startDate,
+          endDate: endDate,
           minimum_upload: item.Bandwidth_min_max[0],
           minimum_download: item.Bandwidth_min_max[1],
-
           no_of_days: item.no_of_days,
           no_of_versions: item.no_of_versions,
+          watermark_text: item.watermark_text,
+          watermark_fontSize: item.watermark_font,
         });
         setCheckboxValues({
           versions: JSON.parse(item.versions),
           recycle_bin: JSON.parse(item.recycle_bin),
+          watermarkCheckbox: JSON.parse(item.watermark),
+          watermarkPrintId_timestamp: JSON.parse(item.print_userid_timestamp),
         });
         setOpen({ ...open, status: true });
         setEditedId(id);
@@ -367,6 +449,7 @@ const Policies = () => {
     setEditedTask("");
   };
   // ==========================================================tableHeader
+
   const tableHeader = [
     {
       id: "Policy Name",
@@ -419,41 +502,48 @@ const Policies = () => {
       />
       <PolicyModal
         type="form"
+        title4="Email"
         todoList="true"
+        title8="Versions"
+        title5="BandWidth"
+        title7="Recycle Bin"
+        title3="Link Expiry"
+        title2="File Extension"
+        title1="Password Settings"
+        title={editId ? "Update Policy" : "Add Policy"}
+        tasks={tasks}
+        editId={editId}
         addTask={addTask}
         open={open.status}
-        tasks={tasks}
-        handleInputChange={handleInputChange}
-        editedTask={editedTask}
-        editingIndex={editingIndex}
         saveEdit={saveEdit}
-        removeTask={removeTask}
-        startEditing={startEditing}
+        editedTask={editedTask}
         cancelEdit={cancelEdit}
-        buttonSuccessTitle={editId ? "Update Policy" : "Add Policy"}
+        removeTask={removeTask}
         onClickaddTask={addTask}
-        title={editId ? "Update Policy" : "Add Policy"}
-        title1="Password Settings"
-        title2="File Extension"
-        title3="Link Expiry"
-        title4="Email"
-        title5="BandWidth"
-        title6="Permission"
-        title7="Recycle Bin"
-        title8="Versions"
-        editId={editId}
-        groupsDropdown={groupsDropdown}
-        userDropdowns={userDropdowns}
         addPolicies={addPolicies}
-        setAddPolicies={setAddPolicies}
-        checkboxValues={checkboxValues}
-        onFormSubmit={onFormSubmit}
-        handleShareData={handleShareData}
-        handleCheckboxChange={handleCheckboxChange}
-        handleAutocompleteChange={handleAutocompleteChange}
         handleClose={handleClose}
-        PropertyName={(e) => setAddProperty(e.target.value)}
+        startEditing={startEditing}
+        editingIndex={editingIndex}
+        onFormSubmit={onFormSubmit}
+        handleDateChange={handleDateChange}
         editExtension={editExtension}
+        userDropdowns={userDropdowns}
+        setAddPolicies={setAddPolicies}
+        groupsDropdown={groupsDropdown}
+        checkboxValues={checkboxValues}
+        handleShareData={handleShareData}
+        handleInputChange={handleInputChange}
+        handleCheckboxChange={handleCheckboxChange}
+        handlemultiSelectChange={handlemultiSelectChange}
+        version={[{ label: "Enable", name: "versions" }]}
+        handleAutocompleteChange={handleAutocompleteChange}
+        PropertyName={(e) => setAddProperty(e.target.value)}
+        recyclebin={[{ label: "Enable", name: "recycle_bin" }]}
+        watermarkPrintId_timestamp={[
+          { label: "Enable", name: "watermarkPrintId_timestamp" },
+        ]}
+        watermarkCheckbox={[{ label: "Enable", name: "watermarkCheckbox" }]}
+        buttonSuccessTitle={editId ? "Update" : "Submit"}
         Policies={[
           {
             type: "text",
@@ -518,7 +608,7 @@ const Policies = () => {
           {
             type: "number",
             name: "minimum_upload",
-            placeholder: "Min Upload(Mbps)",
+            placeholder: "Max Upload(Mbps)",
           },
           {
             type: "number",
@@ -526,7 +616,6 @@ const Policies = () => {
             placeholder: "Max Download(Mbps)",
           },
         ]}
-        recyclebin={[{ label: "Enable", name: "recycle_bin" }]}
         recyclebinfield={[
           {
             type: "number",
@@ -534,7 +623,18 @@ const Policies = () => {
             placeholder: "No. Of Days",
           },
         ]}
-        version={[{ label: "Enable", name: "versions" }]}
+        watermarktext={[
+          {
+            type: "text",
+            name: "watermark_text",
+            placeholder: "Watermark Text",
+          },
+          {
+            type: "number",
+            name: "watermark_fontSize",
+            placeholder: "Font Size",
+          },
+        ]}
         versionfield={[
           {
             type: "number",

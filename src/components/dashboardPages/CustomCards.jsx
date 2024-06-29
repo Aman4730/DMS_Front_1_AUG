@@ -1,6 +1,6 @@
 import "./style.css";
 import React from "react";
-import { Card, Stack } from "@mui/material";
+import { Card, Stack, Grid } from "@mui/material";
 
 const CustomCards = ({ counts }) => {
   let arr = [
@@ -17,6 +17,13 @@ const CustomCards = ({ counts }) => {
       name: "Teamspace",
       icon: "ni ni-share-fill",
       counts: counts.TeamSpace,
+    },
+    {
+      data: "Custom Card",
+      color: "#AF7AC5",
+      name: "Dataroom",
+      icon: "ni ni-slack",
+      counts: counts.dataRoom,
     },
     {
       data: "Custom Card",
@@ -42,50 +49,20 @@ const CustomCards = ({ counts }) => {
   ];
 
   return (
-    <>
-      <Stack
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          textAlign: "left",
-          flexWrap: "wrap",
-        }}
-        sx={{ pl: 1 }}
-      >
-        {arr.map((data) => (
-          <Card
-            key={data.name}
-            sx={{
-              mb: 1,
-              ml: 1,
-              width: "100%",
-              maxWidth: "19%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              overflow: "hidden",
-              flexDirection: !data.column ? "row" : "column",
-              textAlign: "left",
-              "@media screen and (max-width: 1200px)": {
-                maxWidth: "30%",
-              },
-              "@media screen and (max-width: 768px)": {
-                maxWidth: "45%",
-              },
-            }}
-          >
+    <Grid item xs={12} container spacing={1}>
+      {arr.map((data) => (
+        <Grid item lg={2} sm={4} xs={6} key={data.name}>
+          <Card className="customCard">
             <Stack
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "row",
-                textAlign: "left",
-              }}
+              direction="row"
+              alignItems="center"
+              sx={{ textAlign: "left" }}
             >
               <div
                 className="verticleLine"
                 style={{
                   border: `4px solid ${data.color}`,
+                  height: "65px",
                 }}
               ></div>
               <h4 style={{ margin: "5px 0px 0px 16px" }}>{data.counts || 0}</h4>
@@ -100,9 +77,9 @@ const CustomCards = ({ counts }) => {
               }}
             ></i>
           </Card>
-        ))}
-      </Stack>
-    </>
+        </Grid>
+      ))}
+    </Grid>
   );
 };
 

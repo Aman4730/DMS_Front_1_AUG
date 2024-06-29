@@ -142,10 +142,22 @@ const RecycleBin = () => {
       label: "File Name",
     },
     {
+      id: "Deleted By",
+      numeric: false,
+      disablePadding: true,
+      label: "Deleted By",
+    },
+    {
       id: "Deleted Time",
       numeric: false,
       disablePadding: true,
       label: "Deleted Time",
+    },
+    {
+      id: "Expiry In",
+      numeric: false,
+      disablePadding: true,
+      label: "Expiry In",
     },
     {
       id: "Size",

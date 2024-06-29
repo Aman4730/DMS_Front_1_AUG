@@ -28,7 +28,6 @@ const setCustomerAuthToken = (token) => {
     Authorization: localStorage.getItem("customerToken"),
   };
 };
-
 function AxiosPost(key, body, handleSuccess, handleError, config = {}) {
   // if (key != 'loginWIthOTP') {
   if (key == "updateCustomerBySelf") {

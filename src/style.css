@@ -1,9 +1,25 @@
 @media screen and (min-width: 200px) and (max-width: 500px) {
-    #form {
-        display: flex;
-        flex-direction: column;
-    }
-.MuiInputBase-root{
+  #form {
+    display: flex;
+    flex-direction: column;
+  }
+  .MuiInputBase-root {
     width: 300px !important;
+  }
 }
+#closeBtn {
+  margin-left: 5px;
+  height: 35px;
+  width: 80px;
+  outline: none;
+  border-color: #6577FF;
+  color:#6577FF;
+}
+
+#submitBtn {
+  height: 35px;
+  width: 80px;
+  outline: none;
+  background: #6577FF;
+  color: white;
 }

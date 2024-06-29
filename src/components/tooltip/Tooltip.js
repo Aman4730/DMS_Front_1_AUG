@@ -7,7 +7,6 @@ const TooltipComponent = ({ iconClass, icon, id, direction, text, containerClass
     <React.Fragment>
       {props.tag ? (
         <props.tag className={containerClassName} id={id}>
-          {" "}
           <Icon className={`${iconClass ? iconClass : ""}`} name={icon}></Icon>
         </props.tag>
       ) : (

@@ -1,31 +1,55 @@
 import * as React from "react";
+// import { DatePicker } from "antd";
 import Dialog from "@mui/material/Dialog";
+import { Cancel } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
 import TextField from "@mui/material/TextField";
 import DialogTitle from "@mui/material/DialogTitle";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import { Button, Icon, RSelect } from "../Component";
 import {
-  Autocomplete,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
   Grid,
   Stack,
   Tooltip,
+  Checkbox,
   Typography,
-} from "@mui/material";
-import {
-  List,
-  ListItem,
+  FormControl,
+  Autocomplete,
+  FormControlLabel,
+  Button,
+  Select,
+  InputLabel,
+  MenuItem,
   ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
 } from "@mui/material";
-import { Cancel, Delete, Edit } from "@mui/icons-material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import DatePicker from "react-datepicker";
 
+import "react-datepicker/dist/react-datepicker.css";
+import SelectBox from "../SelectBox";
+const names = [
+  "Oliver Hansen",
+  "Van Henry",
+  "April Tucker",
+  "Ralph Hubbard",
+  "Omar Alexander",
+  "Carlos Abbott",
+  "Miriam Wagner",
+  "Bradley Wilkerson",
+  "Virginia Andrews",
+  "Kelly Snyder",
+];
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 export default function PolicyModal({
   open,
   title,
@@ -34,15 +58,13 @@ export default function PolicyModal({
   title3,
   title4,
   title5,
-  title6,
   title7,
   title8,
-  editId,
   email,
+  version,
   addTask,
   Policies,
   password,
-  version,
   BandWidth,
   recyclebin,
   linkSharing,
@@ -51,23 +73,25 @@ export default function PolicyModal({
   onFormSubmit,
   userDropdowns,
   editExtension,
+  watermarktext,
   groupsDropdown,
   setAddPolicies,
   checkboxValues,
-  onClickaddTask,
   recyclebinfield,
   handleShareData,
+  handleDateChange,
+  watermarkCheckbox,
   handleCheckboxChange,
-  handleAutocompleteChange,
+  handlemultiSelectChange,
+  watermarkPrintId_timestamp,
   type = "normal",
   saveEdit,
   editedTask,
-  editingIndex,
-  handleInputChange,
-  removeTask,
-  startEditing,
   cancelEdit,
-  tasks,
+  removeTask,
+  editingIndex,
+  startEditing,
+  handleInputChange,
   buttonSuccessTitle = "Okay",
   buttonCancelTitle = "Cancel",
   handleClose = () => alert("Please add handle cancel function"),
@@ -77,6 +101,16 @@ export default function PolicyModal({
     { type: "file", name: "Default", placeholder: "Default Placeholder" },
   ],
 }) {
+  const [startDate, setStartDate] = React.useState("");
+  const [endDate, setEndDate] = React.useState("");
+  const [personName, setPersonName] = React.useState([]);
+
+  const handleChange1 = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setPersonName(typeof value === "string" ? value.split(",") : value);
+  };
   return (
     <div>
       <Dialog open={open} onClose={handleClose} fullWidth>
@@ -89,14 +123,14 @@ export default function PolicyModal({
                   container
                   spacing={1}
                   sx={{ mt: 0.1 }}
-                  style={{ width: "550px", height: "auto" }} // Changed height to auto
+                  style={{ width: "550px", height: "auto" }}
                 >
                   {/* Policies */}
                   <Grid item xs={6}>
                     <Autocomplete
                       fullWidth
                       size="small"
-                      options={["MyWorkspace", "TeamSpace"]}
+                      options={["My Workspace", "TeamSpace", "Data Room"]}
                       renderInput={(params) => (
                         <TextField {...params} label="Type" />
                       )}
@@ -130,46 +164,26 @@ export default function PolicyModal({
                     </Grid>
                   ))}
                   <Grid item xs={6}>
-                    <Autocomplete
-                      multiple
-                      fullWidth
-                      size="small"
-                      id="tags-outlined"
-                      options={userDropdowns || ""}
-                      getOptionLabel={(option) => option}
-                      filterSelectedOptions
-                      renderInput={(params) => (
-                        <TextField {...params} label="Selected Users" />
-                      )}
-                      value={addPolicies?.selected_user}
-                      onChange={(event, value) =>
-                        handleAutocompleteChange("selected_user", value)
-                      }
-                      style={{ maxHeight: 70, overflowY: "auto" }}
+                    <SelectBox
+                      id="selected_user"
+                      label="Select User"
+                      items={userDropdowns}
+                      handleChange={handlemultiSelectChange}
+                      selectedItems={addPolicies?.selected_user}
                     />
                   </Grid>
                   <Grid item xs={6}>
-                    <Autocomplete
-                      multiple
-                      fullWidth
-                      size="small"
-                      id="tags-outlined"
-                      filterSelectedOptions
-                      options={groupsDropdown || ""}
-                      getOptionLabel={(option) => option}
-                      renderInput={(params) => (
-                        <TextField {...params} label="Select Groups" />
-                      )}
-                      sx={{ mb: 1 }}
-                      value={addPolicies?.selected_group}
-                      onChange={(event, value) =>
-                        handleAutocompleteChange("selected_group", value)
-                      }
+                    <SelectBox
+                      id="selected_group"
+                      label="Select Group"
+                      items={groupsDropdown}
+                      handleChange={handlemultiSelectChange}
+                      selectedItems={addPolicies?.selected_group}
                     />
                   </Grid>
                 </Grid>
                 {addPolicies.policy_type == "TeamSpace" ? (
-                  <>
+                  <React.Fragment>
                     {/* Password Setting */}
                     <Grid item xs={10} sx={{ mb: -2 }}>
                       <DialogTitle sx={{ ml: -3, mt: -2.5 }} fontSize="14px">
@@ -177,7 +191,7 @@ export default function PolicyModal({
                       </DialogTitle>
                     </Grid>
                     {inputList?.map((data, index) => (
-                      <>
+                      <React.Fragment>
                         <Grid item xs={4} key={index}>
                           <TextField
                             fullWidth
@@ -196,11 +210,11 @@ export default function PolicyModal({
                             }}
                           />
                         </Grid>
-                      </>
+                      </React.Fragment>
                     ))}
-                    {password?.map((data) => (
+                    {password?.map((data, index) => (
                       <>
-                        <Grid item xs={4} key={data.name}>
+                        <Grid item xs={4} key={index}>
                           <TextField
                             fullWidth
                             size="small"
@@ -305,9 +319,9 @@ export default function PolicyModal({
                         {title3}
                       </DialogTitle>
                     </Grid>
-                    {linkSharing?.map((data) => (
+                    {linkSharing?.map((data, index) => (
                       <>
-                        <Grid item xs={4} key={data.name}>
+                        <Grid item xs={4} key={index}>
                           <TextField
                             fullWidth
                             size="small"
@@ -333,9 +347,9 @@ export default function PolicyModal({
                         {title4}
                       </DialogTitle>
                     </Grid>
-                    {email?.map((data) => (
+                    {email?.map((data, index) => (
                       <>
-                        <Grid item xs={4} key={data.name}>
+                        <Grid item xs={4} key={index}>
                           <TextField
                             fullWidth
                             size="small"
@@ -361,9 +375,9 @@ export default function PolicyModal({
                         {title5}
                       </DialogTitle>
                     </Grid>
-                    {BandWidth?.map((data) => (
+                    {BandWidth?.map((data, index) => (
                       <>
-                        <Grid item xs={4} key={data.name}>
+                        <Grid item xs={4} key={index}>
                           <TextField
                             fullWidth
                             size="small"
@@ -383,14 +397,15 @@ export default function PolicyModal({
                         </Grid>
                       </>
                     ))}
+                    {/* Recycle Bin */}
                     <Grid item xs={10} sx={{ mb: -2 }}>
                       <DialogTitle sx={{ ml: -3 }} fontSize="14px">
                         {title7}
                       </DialogTitle>
                     </Grid>
-                    {recyclebin?.map((data) => (
+                    {recyclebin?.map((data, index) => (
                       <>
-                        <Grid item key={data.label}>
+                        <Grid item key={index}>
                           <FormControlLabel
                             control={
                               <Checkbox
@@ -415,9 +430,9 @@ export default function PolicyModal({
                     ))}
                     {checkboxValues?.recycle_bin == true ? (
                       <>
-                        {recyclebinfield?.map((data) => (
+                        {recyclebinfield?.map((data, index) => (
                           <>
-                            <Grid item xs={4} key={data.name}>
+                            <Grid item xs={4} key={index}>
                               <TextField
                                 fullWidth
                                 size="small"
@@ -446,10 +461,9 @@ export default function PolicyModal({
                         {title8}
                       </DialogTitle>
                     </Grid>
-
-                    {version?.map((data) => (
+                    {version?.map((data, index) => (
                       <>
-                        <Grid item key={data.label}>
+                        <Grid item key={index}>
                           <FormControlLabel
                             control={
                               <Checkbox
@@ -474,9 +488,9 @@ export default function PolicyModal({
                     ))}
                     {checkboxValues.versions == true ? (
                       <>
-                        {versionfield?.map((data) => (
+                        {versionfield?.map((data, index) => (
                           <>
-                            <Grid item xs={4} key={data.name}>
+                            <Grid item xs={4} key={index}>
                               <TextField
                                 fullWidth
                                 size="small"
@@ -500,13 +514,111 @@ export default function PolicyModal({
                     ) : (
                       ""
                     )}
-                  </>
+                    {/* Watermark */}
+                    <Grid item xs={10} sx={{ mb: -3.5 }}>
+                      <DialogTitle sx={{ ml: -3 }} fontSize="14px">
+                        WaterMark
+                      </DialogTitle>
+                    </Grid>
+                    {watermarkCheckbox?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item key={index}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                name={data.name}
+                                checked={checkboxValues[data.name]}
+                                onChange={handleCheckboxChange}
+                              />
+                            }
+                            label={
+                              <Typography
+                                variant="body2"
+                                style={{ fontSize: "15px" }}
+                              >
+                                {data.label}
+                              </Typography>
+                            }
+                            sx={{ pl: 0.4, mb: -4 }}
+                            style={data.style}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                    {checkboxValues?.watermarkCheckbox == true ? (
+                      <React.Fragment>
+                        <Grid item xs={7.1}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type="text"
+                            name="watermark_text"
+                            variant="outlined"
+                            value={addPolicies.watermark_text}
+                            label="WaterMark Text"
+                            onChange={handleShareData}
+                            // defaultValue={addPolicies.watermark_text}
+                            inputProps={{
+                              style: {
+                                paddingTop: "7px",
+                              },
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={2.3}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type="number"
+                            name="watermark_fontSize"
+                            variant="outlined"
+                            value={addPolicies.watermark_fontSize}
+                            label="Font Size"
+                            onChange={handleShareData}
+                            // defaultValue={addPolicies.watermark_fontSize}
+                            inputProps={{
+                              style: {
+                                paddingTop: "7px",
+                              },
+                            }}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ) : (
+                      ""
+                    )}
+                    {watermarkPrintId_timestamp?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item key={index}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                name={data.name}
+                                checked={checkboxValues[data.name]}
+                                onChange={handleCheckboxChange}
+                              />
+                            }
+                            label={
+                              <Typography
+                                variant="body2"
+                                style={{ fontSize: "15px" }}
+                              >
+                                Print User Id & TimeStamp
+                              </Typography>
+                            }
+                            sx={{ pl: 0.4, mb: -4 }}
+                            style={data.style}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
                 ) : (
                   ""
                 )}
                 {/* ------------------------------------------------ */}
-                {addPolicies.policy_type == "MyWorkspace" ? (
-                  <>
+                {addPolicies.policy_type == "My Workspace" ? (
+                  <React.Fragment>
                     {/* File Extension */}
                     <Grid item xs={10} sx={{ mb: -2 }}>
                       <DialogTitle sx={{ ml: -3, mt: -2.5 }} fontSize="14px">
@@ -592,9 +704,339 @@ export default function PolicyModal({
                         {title5}
                       </DialogTitle>
                     </Grid>
-                    {BandWidth?.map((data) => (
+                    {BandWidth?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item xs={4} key={index}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type={data.type}
+                            name={data.name}
+                            variant="outlined"
+                            value={addPolicies.name}
+                            label={data.placeholder}
+                            onChange={handleShareData}
+                            defaultValue={addPolicies[data.name]}
+                            inputProps={{
+                              style: {
+                                paddingTop: "5px",
+                              },
+                            }}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                    {/* recyclebin */}
+                    <Grid item xs={10} sx={{ mb: -3.5 }}>
+                      <DialogTitle sx={{ ml: -3 }} fontSize="14px">
+                        {title7}
+                      </DialogTitle>
+                    </Grid>
+                    {recyclebin?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item key={index}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                name={data.name}
+                                checked={checkboxValues[data.name]}
+                                onChange={handleCheckboxChange}
+                              />
+                            }
+                            label={
+                              <Typography
+                                variant="body2"
+                                style={{ fontSize: "15px" }}
+                              >
+                                {data.label}
+                              </Typography>
+                            }
+                            sx={{ pl: 0.4, mb: -4 }}
+                            style={data.style}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                    {checkboxValues?.recycle_bin == true ? (
+                      <React.Fragment>
+                        {recyclebinfield?.map((data, index) => (
+                          <React.Fragment>
+                            <Grid item xs={4} key={index}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type={data.type}
+                                name={data.name}
+                                variant="outlined"
+                                value={addPolicies.name}
+                                label={data.placeholder}
+                                onChange={handleShareData}
+                                defaultValue={addPolicies[data.name]}
+                                inputProps={{
+                                  style: {
+                                    paddingTop: "7px",
+                                  },
+                                }}
+                              />
+                            </Grid>
+                          </React.Fragment>
+                        ))}
+                      </React.Fragment>
+                    ) : (
+                      ""
+                    )}
+
+                    {/* version */}
+                    <Grid item xs={10} sx={{ mb: -3.5 }}>
+                      <DialogTitle sx={{ ml: -3 }} fontSize="14px">
+                        {title8}
+                      </DialogTitle>
+                    </Grid>
+                    {version?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item key={index}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                name={data.name}
+                                checked={checkboxValues[data.name]}
+                                onChange={handleCheckboxChange}
+                              />
+                            }
+                            label={
+                              <Typography
+                                variant="body2"
+                                style={{ fontSize: "15px" }}
+                              >
+                                {data.label}
+                              </Typography>
+                            }
+                            sx={{ pl: 0.4, mb: -4 }}
+                            style={data.style}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                    {checkboxValues?.versions == true ? (
+                      <React.Fragment>
+                        {versionfield?.map((data, index) => (
+                          <React.Fragment>
+                            <Grid item xs={4} key={index}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type={data.type}
+                                name={data.name}
+                                variant="outlined"
+                                value={addPolicies.name}
+                                label={data.placeholder}
+                                onChange={handleShareData}
+                                defaultValue={addPolicies[data.name]}
+                                inputProps={{
+                                  style: {
+                                    paddingTop: "5px",
+                                  },
+                                }}
+                              />
+                            </Grid>
+                          </React.Fragment>
+                        ))}
+                      </React.Fragment>
+                    ) : (
+                      ""
+                    )}
+                    {/* Watermark */}
+                    <Grid item xs={10} sx={{ mb: -3.5 }}>
+                      <DialogTitle sx={{ ml: -3 }} fontSize="14px">
+                        WaterMark
+                      </DialogTitle>
+                    </Grid>
+                    {watermarkCheckbox?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item key={index}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                name={data.name}
+                                checked={checkboxValues[data.name]}
+                                onChange={handleCheckboxChange}
+                              />
+                            }
+                            label={
+                              <Typography
+                                variant="body2"
+                                style={{ fontSize: "15px" }}
+                              >
+                                {data.label}
+                              </Typography>
+                            }
+                            sx={{ pl: 0.4, mb: -4 }}
+                            style={data.style}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                    {checkboxValues?.watermarkCheckbox == true ? (
+                      <React.Fragment>
+                        <Grid item xs={7.1}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type="text"
+                            name="watermark_text"
+                            variant="outlined"
+                            value={addPolicies.watermark_text}
+                            label="WaterMark Text"
+                            onChange={handleShareData}
+                            // defaultValue={addPolicies.watermark_text}
+                            inputProps={{
+                              style: {
+                                paddingTop: "7px",
+                              },
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={2.3}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type="number"
+                            name="watermark_fontSize"
+                            variant="outlined"
+                            value={addPolicies.watermark_fontSize}
+                            label="Font Size"
+                            onChange={handleShareData}
+                            // defaultValue={addPolicies.watermark_fontSize}
+                            inputProps={{
+                              style: {
+                                paddingTop: "7px",
+                              },
+                            }}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ) : (
+                      ""
+                    )}
+                    {watermarkPrintId_timestamp?.map((data, index) => (
+                      <React.Fragment>
+                        <Grid item key={index}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                name={data.name}
+                                checked={checkboxValues[data.name]}
+                                onChange={handleCheckboxChange}
+                              />
+                            }
+                            label={
+                              <Typography
+                                variant="body2"
+                                style={{ fontSize: "15px" }}
+                              >
+                                Print User Id & TimeStamp
+                              </Typography>
+                            }
+                            sx={{ pl: 0.4, mb: -4 }}
+                            style={data.style}
+                          />
+                        </Grid>
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                ) : (
+                  ""
+                )}
+                {addPolicies.policy_type == "Data Room" ? (
+                  <React.Fragment>
+                    {/* File Extension */}
+                    <Grid item xs={10} sx={{ mb: -2 }}>
+                      <DialogTitle sx={{ ml: -3, mt: -2.5 }} fontSize="14px">
+                        {title2}
+                      </DialogTitle>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={12}
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                      }}
+                    >
+                      <TextField
+                        fullWidth
+                        size="small"
+                        type="text"
+                        value={editedTask}
+                        onChange={handleInputChange}
+                        placeholder={
+                          editingIndex === null
+                            ? "Enter File Extension"
+                            : "Edit File Extension"
+                        }
+                        variant="outlined"
+                        sx={{ mr: 0.5 }}
+                      />
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={
+                          editingIndex === null
+                            ? addTask
+                            : () => saveEdit(editingIndex)
+                        }
+                        style={{ marginRight: "3px" }}
+                      >
+                        {editingIndex === null ? "Add" : "Edit"}
+                      </Button>
+                      {editingIndex !== null && (
+                        <Button
+                          variant="contained"
+                          color="secondary"
+                          onClick={cancelEdit}
+                        >
+                          <Cancel />
+                        </Button>
+                      )}
+                    </Grid>
+                    <Grid
+                      container
+                      spacing={2}
+                      border="1px solid grey"
+                      ml={1.2}
+                      mt={1}
+                    >
+                      {editExtension.map((task, index) => (
+                        <Grid item xs={2.9} key={index} flexDirection="row">
+                          <Stack flexDirection="row">
+                            {task}
+                            <Tooltip
+                              title="Edit"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => startEditing(index, task)}
+                            >
+                              <EditIcon sx={{ mr: 1 }} fontSize="small" />
+                            </Tooltip>
+                            <Tooltip
+                              title="Delete"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => removeTask(index)}
+                            >
+                              <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
+                            </Tooltip>
+                          </Stack>
+                        </Grid>
+                      ))}
+                    </Grid>
+                    {/* BandWidth */}
+                    <Grid item xs={10} sx={{ mb: -2 }}>
+                      <DialogTitle sx={{ ml: -3, mt: -2.5 }} fontSize="14px">
+                        {title5}
+                      </DialogTitle>
+                    </Grid>
+                    {BandWidth?.map((data, index) => (
                       <>
-                        <Grid item xs={4} key={data.name}>
+                        <Grid item xs={4} key={index}>
                           <TextField
                             fullWidth
                             size="small"
@@ -614,15 +1056,36 @@ export default function PolicyModal({
                         </Grid>
                       </>
                     ))}
+                    <Grid item xs={10} sx={{ mb: -2 }}>
+                      <DialogTitle sx={{ ml: -3, mt: -2.5 }} fontSize="14px">
+                        Select Date
+                      </DialogTitle>
+                    </Grid>
+                    <Grid item xs={4.3}>
+                      <DatePicker
+                        selected={addPolicies.startDate}
+                        dateFormat="yyyy/MM/dd"
+                        placeholderText="Start Date"
+                        onChange={(date) => handleDateChange(date, "startDate")}
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <DatePicker
+                        selected={addPolicies.endDate}
+                        dateFormat="yyyy/MM/dd"
+                        placeholderText="End Date"
+                        onChange={(date) => handleDateChange(date, "endDate")}
+                      />
+                    </Grid>
                     {/* recyclebin */}
                     <Grid item xs={10} sx={{ mb: -3.5 }}>
                       <DialogTitle sx={{ ml: -3 }} fontSize="14px">
                         {title7}
                       </DialogTitle>
                     </Grid>
-                    {recyclebin?.map((data) => (
+                    {recyclebin?.map((data, index) => (
                       <>
-                        <Grid item key={data.label}>
+                        <Grid item key={index}>
                           <FormControlLabel
                             control={
                               <Checkbox
@@ -647,9 +1110,9 @@ export default function PolicyModal({
                     ))}
                     {checkboxValues?.recycle_bin == true ? (
                       <>
-                        {recyclebinfield?.map((data) => (
+                        {recyclebinfield?.map((data, index) => (
                           <>
-                            <Grid item xs={4} key={data.name}>
+                            <Grid item xs={4} key={index}>
                               <TextField
                                 fullWidth
                                 size="small"
@@ -679,9 +1142,9 @@ export default function PolicyModal({
                         {title8}
                       </DialogTitle>
                     </Grid>
-                    {version?.map((data) => (
+                    {version?.map((data, index) => (
                       <>
-                        <Grid item key={data.label}>
+                        <Grid item key={index}>
                           <FormControlLabel
                             control={
                               <Checkbox
@@ -706,9 +1169,9 @@ export default function PolicyModal({
                     ))}
                     {checkboxValues?.versions == true ? (
                       <>
-                        {versionfield?.map((data) => (
+                        {versionfield?.map((data, index) => (
                           <>
-                            <Grid item xs={4} key={data.name}>
+                            <Grid item xs={4} key={index}>
                               <TextField
                                 fullWidth
                                 size="small"
@@ -732,7 +1195,7 @@ export default function PolicyModal({
                     ) : (
                       ""
                     )}
-                  </>
+                  </React.Fragment>
                 ) : (
                   ""
                 )}
@@ -740,11 +1203,13 @@ export default function PolicyModal({
             </FormControl>
           )}
         </DialogContent>
-        <DialogActions sx={{ display: "block", marginLeft: "15px" }}>
-          <Button color="primary" onClick={onFormSubmit}>
+        <DialogActions>
+          <Button id="closeBtn" variant="outlined" onClick={handleClose}>
+            {buttonCancelTitle}
+          </Button>
+          <Button id="submitBtn" onClick={onFormSubmit}>
             {buttonSuccessTitle}
           </Button>
-          <Button onClick={handleClose}>{buttonCancelTitle}</Button>
         </DialogActions>
       </Dialog>
     </div>

@@ -129,6 +129,8 @@ import RecycleBin from "../pages/ACME/RecycleBin";
 import SystemInfo from "../pages/ACME/SystemInfo";
 import Logout from "../pages/ACME/Logout";
 import Permissions from "../pages/ACME/Permissions";
+import DataRoom from "../pages/ACME/DataRoom";
+import UserPermission from "../pages/ACME/UserPermission";
 const Pages = () => {
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -166,7 +168,6 @@ const Pages = () => {
   // }
   // hideEndpoints();
   function hideEndpointsOnLoad() {
-    // Get the current URL
     const currentURL = window.location.href;
 
     const endpointsToHide = [
@@ -174,7 +175,7 @@ const Pages = () => {
       "/teamSpace",
       "/GlobalSearch",
       "/recyclebin",
-      "/logs",
+      // "/logs",
       "/user-list",
       "/groups",
       "/smtp",
@@ -187,6 +188,7 @@ const Pages = () => {
       "/fileviewer",
       "/systemInfo",
       "/permissions",
+      "/dataRoom",
     ];
 
     endpointsToHide.forEach((endpoint) => {
@@ -341,7 +343,16 @@ const Pages = () => {
           path={`${process.env.PUBLIC_URL}/cabinet`}
           component={Cabinet}
         ></Route>
-
+        <Route
+          exact
+          path={`${process.env.PUBLIC_URL}/dataRoom`}
+          component={DataRoom}
+        ></Route>
+        <Route
+          exact
+          path={`${process.env.PUBLIC_URL}/userpermission`}
+          component={UserPermission}
+        ></Route>
         <Route
           exact
           path={`${process.env.PUBLIC_URL}/smtp`}

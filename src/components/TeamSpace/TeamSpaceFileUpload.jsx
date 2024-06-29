@@ -12,20 +12,19 @@ import {
   Autocomplete,
 } from "@mui/material";
 import "./TeamSpaceFileUpload.css";
-
 export default function TeamSpaceFileUpload({
   open,
   close,
   loading,
-  handleOkay,
   editFileId,
   formValues,
   Properties,
+  handleOkay,
   selectedFile,
   fileNameInput,
   handleFileChange,
-  matchedWorkspace,
   handleChangeFile,
+  matchedWorkspace,
   handleInputChange,
   handleCloseFileModal,
   handleDoctypeAutocomplete,
@@ -53,9 +52,7 @@ export default function TeamSpaceFileUpload({
   }
   const fileSizeInBytes = selectedFile?.size;
   const formattedSize = formatFileSize(fileSizeInBytes);
-
   const metadata = matchedWorkspace?.map((data) => data?.doctype);
-
   return (
     <>
       <Backdrop sx={{ color: "#fff", zIndex: 1 }} open={open}>
@@ -86,9 +83,9 @@ export default function TeamSpaceFileUpload({
                   fullWidth
                   size="small"
                   id="tags-outlined"
+                  filterSelectedOptions
                   options={metadata || ""}
                   getOptionLabel={(option) => option}
-                  filterSelectedOptions
                   renderInput={(params) => (
                     <TextField {...params} label="Selected DocType" />
                   )}
@@ -204,7 +201,6 @@ export default function TeamSpaceFileUpload({
                     variant="contained"
                     onClick={handleOkay}
                     style={{
-                      marginLeft: "5px",
                       height: "35px",
                       outline: "none",
                     }}

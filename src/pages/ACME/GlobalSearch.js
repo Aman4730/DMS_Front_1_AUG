@@ -3,9 +3,9 @@ import axios from "axios";
 import { notification } from "antd";
 import Head from "../../layout/head/Head";
 import ModalPop from "../../components/Modal";
+import { Stack, Typography } from "@mui/material";
 import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
-import { Stack, Typography } from "@mui/material";
 import { AuthContext } from "../../context/AuthContext";
 import { UserContext } from "../../context/UserContext";
 import CreateLinkModel from "../../components/CreateLinkModel";
@@ -317,12 +317,32 @@ const GlobalSearch = () => {
     axios
       .post(apiUrl, formData)
       .then((response) => {
+        if (response?.data?.status == 200) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: "Data Fetch Successfully",
+            style: {
+              height: 60,
+            },
+          });
+        }
         resetFormS();
         setSearchDataTable(response.data);
         // Handle the response data here
       })
       .catch((error) => {
-        console.error("Error:", error);
+        console.error("Error:", error.response.status);
+        if (error?.response?.status == 404) {
+          notification["warning"]({
+            placement: "top",
+            description: "",
+            message: error.response.data.message,
+            style: {
+              height: 60,
+            },
+          });
+        }
         // Handle the error here
       });
   };
@@ -424,7 +444,7 @@ const GlobalSearch = () => {
             shareLink={shareLink}
           />
           <GlobalSearchTable
-            rows={folderList}
+            rows={searchDataTable}
             isLogin={isLogin}
             propertys={propertys}
             headCells={tableHeader}
@@ -441,7 +461,6 @@ const GlobalSearch = () => {
             workspace={workspace}
             handleChange={handleChangeS}
             handleSearch={onHandleSearch}
-            allfolderlist={searchDataTable}
           />
         </Stack>
       </Content>

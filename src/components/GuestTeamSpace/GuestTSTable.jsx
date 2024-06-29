@@ -21,21 +21,21 @@ import TablePagination from "@mui/material/TablePagination";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SportsVolleyballRoundedIcon from "@mui/icons-material/SportsVolleyballRounded";
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
-
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
   return (
     <TableHead>
       <TableRow>
-        {headCells.map((headCell) => (
+        {headCells.map((headCell, index) => (
           <TableCell
-            key={headCell?.id}
+            key={index}
             align={headCell.numeric ? "right" : "left"}
             padding={"normal"}
-            sortDirection={orderBy === headCell?.id ? order : false}
+            sortDirection={orderBy === headCell.id ? order : false}
             style={{ backgroundColor: "#FFFFCC" }}
           >
             <TableSortLabel
@@ -60,30 +60,32 @@ function EnhancedTableHead(props) {
 
 export default function GuestTSTable({
   rows,
-  isLogin,
   callApi,
   headCells,
-  propertys,
-  openModal,
   searchTerm,
-  setPropertys,
   allfolderlist,
-  openFileUpload,
+  onEditFileClick,
   onFileDownload,
+  handleClickMove,
+  defaultPermission,
   onDownloadfolders,
-  PermissionPolicy,
   handleClickLinkOpen,
+  openEditFolderModal,
   handleOpenDeleteFile,
+  handleOpenPermission,
+  onEditPermissionClick,
+  handleClickOpenCommets,
+  handleClickVersionOpen,
+  handleClickOpenProperties,
 }) {
-  const property = PermissionPolicy?.map((data) => {
-    setPropertys(data);
-  });
   const history = useHistory();
   const navigate = (id, data, filemongo_id) => {
     history.push("/fileviewer", {
       id: id,
       file: data,
       filemongo_id: filemongo_id,
+      workspace_type: "guestTeamSpace",
+      commentHide: defaultPermission?.comment,
     });
   };
   const [order, setOrder] = React.useState("asc");
@@ -112,8 +114,6 @@ export default function GuestTSTable({
     setPage(0);
   };
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   function getFileIconByExtension(filename) {
     switch (filename) {
@@ -139,9 +139,6 @@ export default function GuestTSTable({
         return "/Image/default.svg";
     }
   }
-  let permission = localStorage.getItem("permission");
-  let permissionObject = JSON.parse(permission);
-  console.log(permissionObject, "djkfsdg");
   return (
     <Box>
       <Paper>
@@ -157,394 +154,265 @@ export default function GuestTSTable({
               headCells={headCells}
             />
             <TableBody>
-              {allfolderlist?.map((data, index) => {
-                const isItemSelected = isSelected(data?.name);
-                const labelId = `enhanced-table-checkbox-${index}`;
-                const originalTimestamp = data?.updatedAt;
-                const originalDate = new Date(originalTimestamp);
-                const options = {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                };
-                const convertedTimestamp = originalDate.toLocaleString(
-                  "en-US",
-                  options
-                );
+              {allfolderlist
+                ?.filter((item) =>
+                  (item.file_name || item.folder_name)
+                    ?.toLowerCase()
+                    .includes(searchTerm?.toLowerCase())
+                )
+                .map((data, index) => {
+                  const isItemSelected = isSelected(data.name);
+                  const originalExpiryTimestamp = data?.expiry_date || "";
+                  const originalUpdateTimestamp = data?.updatedAt;
+                  const expiryDate = new Date(originalExpiryTimestamp);
+                  const updateDate = new Date(originalUpdateTimestamp);
+                  const options = {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  };
 
-                function formatFileSize(sizeInBytes) {
-                  if (sizeInBytes < 1024) {
-                    return sizeInBytes + " B";
-                  } else if (sizeInBytes < 1024 * 1024) {
-                    return (sizeInBytes / 1024).toFixed(2) + " KB";
-                  } else if (sizeInBytes < 1024 * 1024 * 1024) {
-                    return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
-                  } else {
-                    return (
-                      (sizeInBytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
-                    );
+                  const formattedExpiryDate = expiryDate.toLocaleDateString(
+                    "en-GB",
+                    options
+                  );
+                  const formattedUpdateDate = updateDate.toLocaleDateString(
+                    "en-GB",
+                    options
+                  );
+
+                  function formatFileSize(sizeInBytes) {
+                    if (sizeInBytes < 1024) {
+                      return sizeInBytes + " B";
+                    } else if (sizeInBytes < 1024 * 1024) {
+                      return (sizeInBytes / 1024).toFixed(2) + " KB";
+                    } else if (sizeInBytes < 1024 * 1024 * 1024) {
+                      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
+                    } else {
+                      return (
+                        (sizeInBytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
+                      );
+                    }
                   }
-                }
-                const fileSizeInBytes = data?.file_size || data?.folder_size;
-                const formattedSize = formatFileSize(fileSizeInBytes);
-                // if (
-                //   (((data?.name == "view") == true) ===
-                //     permissionObject?.view) ==
-                //     true ||
-                //   (((data?.name == "share") == true) ===
-                //     permissionObject?.share) ==
-                //     true ||
-                //   (((data?.name == "move") == true) ===
-                //     permissionObject?.move) ==
-                //     true ||
-                //   (((data?.name == "rights") == true) ===
-                //     permissionObject?.rights) ==
-                //     true ||
-                //   (((data?.name == "rename") == true) ===
-                //     permissionObject?.rename) ==
-                //     true ||
-                //   (((data?.name == "upload_folder") == true) ===
-                //     permissionObject?.upload_folder) ==
-                //     true ||
-                //   (((data?.name == "create_folder") == true) ===
-                //     permissionObject?.create_folder) ==
-                //     true ||
-                //   (((data?.name == "upload_file") == true) ===
-                //     permissionObject?.upload_file) ==
-                //     true ||
-                //   (((data?.name == "delete") == true) ===
-                //     permissionObject?.delete_per) ==
-                //     true ||
-                //   (((data?.name == "download") == true) ===
-                //     permissionObject?.download_per) ==
-                //     true ||
-                //   (((data?.name == "comment") == true) ===
-                //     permissionObject?.comments) ==
-                //     true ||
-                //   (((data?.name == "properties") == true) ===
-                //     permissionObject?.properties) ==
-                //     true
-                // )
-                // const parentFolderPermissions = {
-                //   read: true,
-                //   write: true,
-                //   execute: true,
-                // };
-                // setPermissions(rootFolder, parentFolderPermissions);
-                // function setPermissions(parentFolder) {
-                //   parentFolder.permissions = true;
-
-                //   if (
-                //     parentFolder.children &&
-                //     parentFolder.children.length > 0
-                //   ) {
-                //     parentFolder.children.forEach((child) => {
-                //       setPermissions(child, permissions);
-                //     });
-                //   }
-
-                //   if (parentFolder.files && parentFolder.files.length > 0) {
-                //     parentFolder.files.forEach((file) => {
-                //       file.permissions = permissions;
-                //     });
-                //   }
-                // }
-
-                // const rootFolder = {
-                //   name: "Root",
-                //   permissions: null,
-                //   children: [
-                //     {
-                //       name: "Folder A",
-                //       permissions: null,
-                //       children: [
-                //         {
-                //           name: "Subfolder A1",
-                //           permissions: null,
-                //           children: [],
-                //           files: [
-                //             {
-                //               name: "File1.txt",
-                //               permissions: null,
-                //             },
-                //             {
-                //               name: "File2.txt",
-                //               permissions: null,
-                //             },
-                //           ],
-                //         },
-                //       ],
-                //       files: [],
-                //     },
-                //     {
-                //       name: "Folder B",
-                //       permissions: null,
-                //       children: [],
-                //       files: [
-                //         {
-                //           name: "File3.txt",
-                //           permissions: null,
-                //         },
-                //       ],
-                //     },
-                //   ],
-                //   files: [],
-                // };
-                return (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={data?.id}
-                    selected={isItemSelected}
-                    sx={{
-                      cursor: "pointer",
-                    }}
-                  >
-                    <TableCell
-                      onClick={() => callApi(data)}
-                      className="tablefont"
-                      style={{
-                        fontSize: "13px",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        maxWidth: "300px",
-                      }}
-                    >
-                      <img
-                        src={
-                          data?.file_name
-                            ? getFileIconByExtension(data.file_type)
-                            : data?.folder_name
-                            ? "/Image/folder.png"
-                            : ""
-                        }
-                        alt="File Icon"
-                        height="22px"
-                        style={{ marginRight: "5px", marginBottom: "2px" }}
-                      />
-                      {data?.file_name || data?.folder_name}
-                    </TableCell>
-                    <TableCell style={{ fontSize: "13px" }}>
-                      {convertedTimestamp}
-                    </TableCell>
-                    <TableCell style={{ fontSize: "13px" }}>
-                      {data?.shared_by}
-                    </TableCell>
-                    <TableCell
-                      style={{
-                        fontSize: "13px",
-                      }}
-                    >
-                      {formattedSize}
-                    </TableCell>
-                    <TableCell
-                      style={{
+                  const fileSizeInBytes = data?.file_size || data?.folder_size;
+                  const formattedSize = formatFileSize(fileSizeInBytes);
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={index}
+                      selected={isItemSelected}
+                      sx={{
                         cursor: "pointer",
-                        fontSize: "13px",
                       }}
-                      align="right"
                     >
-                      {data.view == "true" ? (
-                        <Tooltip
-                          title="View"
-                          onClick={() => {
-                            navigate(
-                              data?.id,
-                              data?.file_name,
-                              data?.filemongo_id
-                            );
-                          }}
-                        >
-                          <VisibilityIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.rename == "true" ? (
-                        <Tooltip title="Edit">
-                          <EditIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.download == "true" ? (
-                        <Tooltip
-                          title="Download"
-                          onClick={() => {
-                            if (data.file_type) {
-                              onFileDownload(
-                                data?.filemongo_id,
-                                data?.file_name
-                              );
-                            } else {
-                              onDownloadfolders(data?.id);
-                            }
-                          }}
-                        >
-                          <FileDownloadIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.move == "true" ? (
-                        <Tooltip title="Move">
-                          <DriveFileMoveIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.share == "true" ? (
-                        <Tooltip
-                          title="Share"
-                          onClick={() => handleClickLinkOpen(data?.id)}
-                        >
-                          <ShareIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.delete_action == "true" ? (
-                        <Tooltip
-                          title="Delete"
-                          onClick={() =>
-                            handleOpenDeleteFile(
-                              data?.id,
-                              data?.file_type,
-                              data?.filemongo_id
-                            )
+                      <TableCell
+                        onClick={() => (data.file_type ? "" : callApi(data))}
+                        className="tablefont"
+                        style={{
+                          fontSize: "13px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "300px",
+                        }}
+                      >
+                        <img
+                          src={
+                            data?.file_name
+                              ? getFileIconByExtension(data.file_type)
+                              : data?.folder_name
+                              ? "/Image/folder.png"
+                              : ""
                           }
-                        >
-                          <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.comment == "true" ? (
-                        <Tooltip title="Comments">
-                          <SmsIcon fontSize="small" sx={{ mr: 1 }} />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.properties == "true" ? (
-                        <Tooltip title="Properties">
-                          <ArticleIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                      {data.rights == "true" ? (
-                        <Tooltip title="Rights" style={{ marginRight: "35px" }}>
-                          <AdminPanelSettingsIcon fontSize="small" />
-                        </Tooltip>
-                      ) : (
-                        ""
-                      )}
-                    </TableCell>
-                    {/* <TableCell
-                      style={{
-                        cursor: "pointer",
-                        fontSize: "13px",
-                      }}
-                      align="right"
-                    >
-                      {data?.view === "true" && (
-                        <Tooltip
-                          title="View"
-                          onClick={() => {
-                            navigate(
-                              data?.id,
-                              data?.file_name,
-                              data?.filemongo_id
-                            );
-                          }}
-                        >
-                          <VisibilityIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.rename === "true" && (
-                        <Tooltip title="Edit">
-                          <EditIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.download_per === "true" && (
-                        <Tooltip
-                          title="Download"
-                          onClick={() => {
-                            if (data.file_type) {
-                              onFileDownload(
-                                data?.filemongo_id,
-                                data?.file_name
-                              );
-                            } else {
-                              onDownloadfolders(data?.id);
+                          alt="File Icon"
+                          height="22px"
+                          style={{ marginRight: "5px", marginBottom: "2px" }}
+                        />
+                        {data?.file_name || data.folder_name}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "13px" }}>
+                        {formattedUpdateDate}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "13px" }}>
+                        {formattedExpiryDate == "Invalid Date"
+                          ? "No Expiry"
+                          : formattedExpiryDate}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "13px" }}>
+                        {data?.shared_by || "Not Shared"}
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "13px",
+                        }}
+                      >
+                        {formattedSize}
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          cursor: "pointer",
+                          fontSize: "13px",
+                        }}
+                        align="right"
+                      >
+                        {data.file_type && data.versions == true ? (
+                          <Tooltip
+                            title="Version"
+                            onClick={() => handleClickVersionOpen(data)}
+                          >
+                            <SportsVolleyballRoundedIcon
+                              fontSize="small"
+                              sx={{ mr: 1 }}
+                            />
+                          </Tooltip>
+                        ) : (
+                          ""
+                        )}
+                        {(data.view === "true" ||
+                          defaultPermission?.view === "true") && (
+                          <Tooltip
+                            title="View"
+                            onClick={() => {
+                              if (data.file_type) {
+                                navigate(
+                                  data.id,
+                                  data?.file_name,
+                                  data.filemongo_id
+                                );
+                              } else {
+                                callApi(data);
+                              }
+                            }}
+                          >
+                            <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
+                          </Tooltip>
+                        )}
+                        {(data.rename === "true" ||
+                          defaultPermission?.rename === "true") && (
+                          <Tooltip
+                            title="Edit"
+                            onClick={() => {
+                              if (data.file_type) {
+                                onEditFileClick(data.id);
+                              } else {
+                                openEditFolderModal(data?.id);
+                              }
+                            }}
+                          >
+                            <EditIcon sx={{ mr: 1 }} fontSize="small" />
+                          </Tooltip>
+                        )}
+                        {(data.download === "true" ||
+                          defaultPermission?.download === "true") && (
+                          <Tooltip
+                            title="Download"
+                            onClick={() => {
+                              if (data.file_type) {
+                                onFileDownload(
+                                  data.filemongo_id,
+                                  data.file_name
+                                );
+                              } else {
+                                onDownloadfolders(data.id, data.folder_name);
+                              }
+                            }}
+                          >
+                            <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} />
+                          </Tooltip>
+                        )}
+                        {(data.move === "true" ||
+                          defaultPermission?.move === "true") && (
+                          <Tooltip
+                            title="Move"
+                            onClick={() => handleClickMove(data)}
+                          >
+                            <DriveFileMoveIcon
+                              fontSize="small"
+                              sx={{ mr: 1 }}
+                            />
+                          </Tooltip>
+                        )}
+                        {(data.share === "true" ||
+                          defaultPermission?.share === "true") && (
+                          <Tooltip
+                            title="Share"
+                            onClick={() =>
+                              handleClickLinkOpen(
+                                data.id,
+                                data.file_type,
+                                data?.file_name || data.folder_name,
+                                data?.expiry_date 
+                              )
                             }
-                          }}
-                        >
-                          <FileDownloadIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.move === "true" && (
-                        <Tooltip title="Move">
-                          <DriveFileMoveIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.share === "true" && (
-                        <Tooltip
-                          title="Share"
-                          onClick={() => handleClickLinkOpen(data?.id)}
-                        >
-                          <ShareIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.delete_per === "true" && (
-                        <Tooltip
-                          title="Delete"
-                          onClick={() =>
-                            handleOpenDeleteFile(
-                              data?.id,
-                              data?.file_type,
-                              data?.filemongo_id
-                            )
-                          }
-                        >
-                          <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.comments === "true" && (
-                        <Tooltip title="Comments">
-                          <SmsIcon fontSize="small" sx={{ mr: 1 }} />
-                        </Tooltip>
-                      )}
-                      {data?.properties === "true" && (
-                        <Tooltip title="Properties">
-                          <ArticleIcon sx={{ mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      )}
-                      {data?.rights === "true" && (
-                        <Tooltip title="Rights" style={{ marginRight: "35px" }}>
-                          <AdminPanelSettingsIcon fontSize="small" />
-                        </Tooltip>
-                      )}
-                    </TableCell> */}
-                  </TableRow>
-                );
-              })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                          >
+                            <ShareIcon sx={{ mr: 1 }} fontSize="small" />
+                          </Tooltip>
+                        )}
+                        {(data.delete_action === "true" ||
+                          defaultPermission?.delete_action === "true") && (
+                          <Tooltip
+                            title="Delete"
+                            onClick={() =>
+                              handleOpenDeleteFile(data.id, data.file_type)
+                            }
+                          >
+                            <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
+                          </Tooltip>
+                        )}
+                        {(data.comment === "true" ||
+                          defaultPermission?.comment === "true") && (
+                          <Tooltip
+                            title="Comments"
+                            onClick={() => handleClickOpenCommets(data?.id)}
+                          >
+                            <SmsIcon fontSize="small" sx={{ mr: 1 }} />
+                          </Tooltip>
+                        )}
+                        {(data.properties === "true" ||
+                          defaultPermission?.properties === "true") && (
+                          <Tooltip
+                            title="Properties"
+                            onClick={() => handleClickOpenProperties(data)}
+                          >
+                            <ArticleIcon fontSize="small" sx={{ mr: 1 }} />
+                          </Tooltip>
+                        )}
+                        {(data.rights === "true" ||
+                          defaultPermission?.rights === "true") && (
+                          <Tooltip
+                            title="Rights"
+                            onClick={() => {
+                              if (data?.permission?.id) {
+                                onEditPermissionClick(
+                                  data?.id,
+                                  data?.permission?.id,
+                                  data?.file_name,
+                                  data?.folder_name,
+                                  data?.file_type
+                                );
+                              } else {
+                                handleOpenPermission(
+                                  data?.id,
+                                  data?.file_type,
+                                  data?.file_name,
+                                  data?.folder_name
+                                );
+                              }
+                            }}
+                          >
+                            <AdminPanelSettingsIcon
+                              fontSize="small"
+                              sx={{ mr: 1 }}
+                            />
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         </TableContainer>

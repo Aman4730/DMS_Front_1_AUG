@@ -1,12 +1,6 @@
 import React from "react";
-import { TextField } from "@mui/material";
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  FormControl,
-  DialogActions,
-} from "@mui/material";
+import { Button, TextField } from "@mui/material";
+import { Dialog, DialogTitle, FormControl, DialogActions } from "@mui/material";
 const ModalPop = ({
   open,
   data,
@@ -55,20 +49,10 @@ const ModalPop = ({
       )}
 
       <DialogActions>
-        <Button
-          onClick={handleClose}
-          style={{
-            outline: "none",
-          }}
-        >
+        <Button onClick={handleClose} variant="outlined" id="closeBtn">
           {buttonCancelTitle}
         </Button>
-        <Button
-          onClick={() => handleOkay(data, file_type)}
-          style={{
-            outline: "none",
-          }}
-        >
+        <Button onClick={() => handleOkay(data, file_type)} id="submitBtn">
           {buttonSuccessTitle}
         </Button>
       </DialogActions>

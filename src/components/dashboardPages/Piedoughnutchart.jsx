@@ -1,119 +1,117 @@
-import ReactApexChart from "react-apexcharts";
 import React, { useState, useEffect } from "react";
+import ReactApexChart from "react-apexcharts";
 import { Card, Grid, Stack, Typography } from "@mui/material";
 
 const PieDoughnutChart = ({ extension }) => {
   const [chartData, setChartData] = useState({
     series: [],
-    datasets: [
-      {
-        backgroundColor: [],
-        hoverBackgroundColor: [],
-      },
-    ],
     options: {
       chart: {
         type: "donut",
       },
-
       responsive: [
         {
           breakpoint: 480,
           options: {
-            chart: {
-              width: 200,
-            },
             legend: {
-              position: "bottom",
+              position: "right",
             },
           },
         },
       ],
       labels: [],
+      colors: [],
+      dataLabels: {
+        style: {
+          colors: ["#00070C"],
+          fontWeight: "normal",
+          fontSize: "12px",
+        },
+      },
     },
   });
+
   useEffect(() => {
     if (extension && Object.keys(extension).length > 0) {
       const labels = Object.keys(extension);
-      const labels1 = labels.map((key) => extension[key]);
-
-      setChartData({
-        series: labels1,
+      const series = labels.map((key) => extension[key]);
+      const colors = generateColors(labels.length);
+      setChartData((prevData) => ({
+        ...prevData,
+        series: series,
         options: {
-          chart: {
-            type: "donut",
-          },
-
-          dataLabels: {
-            style: {
-              colors: ["#00070C"],
-              fontWeight: "normal",
-              fontSize: "12px",
-            },
-          },
-          responsive: [
-            {
-              breakpoint: 480,
-              options: {
-                chart: {
-                  width: 200,
-                },
-                legend: {
-                  position: "bottom",
-                },
-              },
-            },
-          ],
+          ...prevData.options,
           labels: labels,
-          // labels: labels.map((label) => `${label}: ${extension[label]}`),
+          colors: colors,
         },
-      });
+      }));
     }
   }, [extension]);
 
+  const generateColors = (numColors) => {
+    const colors = [
+      "#CD6155",
+      "#AF7AC5",
+      "#5499C7",
+      "#48C9B0",
+      "#52BE80",
+      "#EB984E",
+      "#CACFD2",
+      "#99A3A4",
+      "#5D6D7E",
+    ];
+    for (let i = 0; i < numColors; i++) {
+      const color = `hsl(${Math.floor(Math.random() * 360)}, 100%, 70%)`;
+      colors.push(color);
+    }
+    return colors;
+  };
+
   return (
     <div id="chart">
-      <Stack>
-        <Grid sx={{ flexGrow: 1 }} container spacing={2}>
-          <Grid item xs={12}>
-            <Card
-              sx={{
-                mb: 1,
-                mr: 1,
-                p: 1,
-                ml: 2,
-                // pr: 2,
-                borderRadius: "5px",
-              }}
-            >
-              <div>
-                <h6>File Extensions</h6>
-                <div style={{ height: "219px" }}>
-                  {extension && Object.keys(extension).length > 0 ? (
-                    <ReactApexChart
-                      options={chartData.options}
-                      series={chartData.series}
-                      type="donut"
-                      width={320}
-                    />
-                  ) : (
-                    <Typography
-                      style={{
-                        height: 53,
-                        width: 350,
-                        paddingTop: "80px",
-                      }}
-                      align="center"
-                    >
-                      No extension available
-                    </Typography>
-                  )}
-                </div>
+      <Grid container>
+        <Grid item lg={12} sm={12} xs={12}>
+          <Card
+            sx={{
+              p: 2,
+              borderRadius: "7px",
+              height: "40.7vh",
+            }}
+          >
+            <div>
+              <h6>File Extensions</h6>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {extension && Object.keys(extension).length > 0 ? (
+                  <ReactApexChart
+                    options={chartData.options}
+                    series={chartData.series}
+                    type="donut"
+                    height={348}
+                    width={348}
+                  />
+                ) : (
+                  <Typography
+                    style={{
+                      height: 53,
+                      width: 350,
+                      paddingTop: "80px",
+                    }}
+                    align="center"
+                  >
+                    No extension available
+                  </Typography>
+                )}
               </div>
-            </Card>
-          </Grid>
+            </div>
+          </Card>
         </Grid>
-      </Stack>
+      </Grid>
     </div>
   );
 };

@@ -1,30 +1,30 @@
 import React from "react";
+import { Button } from "../Component";
+import { TextField } from "@mui/material";
 import {
-  Autocomplete,
-  Button,
   Dialog,
-  DialogActions,
   DialogTitle,
   FormControl,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
 } from "@mui/material";
-import { TextField } from "@mui/material";
 const GuestTSFolderCreate = ({
-  open,
-  handleClose = () => alert("Please add handle cancel function"),
-  title,
-  handleOkay = () => alert("Please add handle success function"),
-  data,
-  addNew,
   id,
+  open,
+  title,
   input,
+  addNew,
+  editFolderId,
   type = "normal",
+  folderNameInput,
   buttonSuccessTitle = "Okay",
   buttonCancelTitle = "Cancel",
+  handleClose = () => alert("Please add handle cancel function"),
+  handleChange = () => alert("Please add handle change function"),
   inputList = [
     { type: "file", name: "Default", placeholder: "Default Placeholder" },
   ],
-  handleChange = () => alert("Please add handle change function"),
-  folderNameInput,
 }) => {
   return (
     <Dialog
@@ -32,35 +32,37 @@ const GuestTSFolderCreate = ({
       onClose={handleClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
-      style={{ backgroundColor: "rgba(255,0,0,0,0.2)" }}
     >
-      <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
-      {type == "form" && (
-        <FormControl
-          sx={{
-            pr: 3,
-            pl: 3,
-          }}
-        >
-          {inputList?.map((data, index) => (
-            <TextField
-              fullWidth
-              key={index}
-              type={data.type}
-              variant="outlined"
-              onChange={handleChange}
-              name={data.name}
-              size="small"
-              value={folderNameInput.name}
-              label={data.placeholder}
-            />
-          ))}
-        </FormControl>
-      )}
-
+      <DialogTitle id="responsive-dialog-title">
+        {editFolderId ? "Update Folder" : "Create Folder"}
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {type == "form" && (
+            <FormControl>
+              {inputList?.map((data, index) => (
+                <TextField
+                  fullWidth
+                  key={index}
+                  size="small"
+                  sx={{ mt: 1 }}
+                  type={data.type}
+                  name={data.name}
+                  variant="outlined"
+                  onChange={handleChange}
+                  label={data.placeholder}
+                  value={folderNameInput.name}
+                />
+              ))}
+            </FormControl>
+          )}
+        </DialogContentText>
+      </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>{buttonCancelTitle}</Button>
-        <Button onClick={() => addNew(id, input)}>{buttonSuccessTitle}</Button>
+        <Button color="primary" size="md" onClick={() => addNew(id, input)}>
+          {editFolderId ? "Update" : "Create"}
+        </Button>
       </DialogActions>
     </Dialog>
   );

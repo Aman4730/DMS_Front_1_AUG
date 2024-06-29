@@ -25,6 +25,40 @@ export default function WorkspceForm({
         <Card sx={{ p: 2, mb: 1 }}>
           <Grid container spacing={1} id="form">
             <Grid item xs={3}>
+              <Autocomplete
+                fullWidth
+                size="small"
+                id="tags-outlined"
+                sx={{ mt: 1 }}
+                options={cabinetList || []}
+                getOptionLabel={(option) => option}
+                filterSelectedOptions
+                renderInput={(params) => (
+                  <TextField {...params} label="Selected Cabinet" />
+                )}
+                value={formData?.selected_cabinet}
+                onChange={(event, value) =>
+                  handleAutocompleteChange("selected_cabinet", value)
+                }
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <Autocomplete
+                fullWidth
+                size="small"
+                id="workspace_type"
+                sx={{ mt: 1 }}
+                options={["My Workspace", "TeamSpace", "Data Room"]}
+                renderInput={(params) => (
+                  <TextField {...params} label="Workspace Type" />
+                )}
+                value={formData?.workspace_type}
+                onChange={(event, value) =>
+                  handleAutocompleteChange("workspace_type", value)
+                }
+              />
+            </Grid>
+            <Grid item xs={3}>
               <TextField
                 fullWidth
                 size="small"
@@ -46,40 +80,6 @@ export default function WorkspceForm({
                 label="Enter Quota(Gb)"
                 value={formData?.enter_quota}
                 onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={3}>
-              <Autocomplete
-                fullWidth
-                size="small"
-                id="workspace_type"
-                sx={{ mt: 1 }}
-                options={["My Workspace", "TeamSpace"]}
-                renderInput={(params) => (
-                  <TextField {...params} label="Workspace Type" />
-                )}
-                value={formData?.workspace_type}
-                onChange={(event, value) =>
-                  handleAutocompleteChange("workspace_type", value)
-                }
-              />
-            </Grid>
-            <Grid item xs={3}>
-              <Autocomplete
-                fullWidth
-                size="small"
-                id="tags-outlined"
-                sx={{ mt: 1 }}
-                options={cabinetList || []}
-                getOptionLabel={(option) => option}
-                filterSelectedOptions
-                renderInput={(params) => (
-                  <TextField {...params} label="Selected Cabinet" />
-                )}
-                value={formData?.selected_cabinet}
-                onChange={(event, value) =>
-                  handleAutocompleteChange("selected_cabinet", value)
-                }
               />
             </Grid>
             <Grid item xs={3}>
@@ -118,7 +118,7 @@ export default function WorkspceForm({
                 }
               />
             </Grid>
-            <Grid item xs={6} justifyContent="flex-end" container>
+            <Grid item xs={2} justifyContent="flex-end" container>
               <Grid item>
                 <Button
                   variant="contained"

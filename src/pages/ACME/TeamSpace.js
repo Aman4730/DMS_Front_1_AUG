@@ -1,35 +1,32 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { notification } from "antd";
 import Head from "../../layout/head/Head";
+import { format, addDays } from "date-fns";
 import ModalPop from "../../components/Modal";
 import Content from "../../layout/content/Content";
+import { PDFDocument, rgb, degrees } from "pdf-lib";
 import "react-datepicker/dist/react-datepicker.css";
 import { LinearProgress, Stack } from "@mui/material";
 import { UserContext } from "../../context/UserContext";
-import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
 import CreateLinkModel from "../../components/CreateLinkModel";
+import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
 import FileVersion from "../../components/FileVersion/index.jsx";
 import FileFolderMove from "../../components/FileFolderMove/index.jsx";
+import LinearProgressBar from "../../components/ProgressBar/index.jsx";
+import FileUpload from "../../components/FileUploadModal/FileUpload.jsx";
 import TeamSpaceTable from "../../components/AllTables/TeamSpaceTable.jsx";
 import TeamSpaceHeader from "../../components/TeamSpace/TeamSpaceHeader.jsx";
 import FileFolderComments from "../../components/FileFolderComments/index.jsx";
 import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
-import TeamSpaceFileUpload from "../../components/TeamSpace/TeamSpaceFileUpload.jsx";
 import TeamSpaceFolderCreate from "../../components/TeamSpace/TeamSpaceFolderCreate.jsx";
-const WS1 = () => {
+const TeamSpace = () => {
   useEffect(() => {
-    getAllfoldernames({
-      workspace_id: retrievedWorkspaceId,
-      workspace_name: workSpaceData.workspace_name,
-    }),
-      getdoclistuploadfile();
-    getWorkspaces();
     getUserRselect();
-    getGroupDropdown();
     getmetatypelist();
+    getGroupDropdown();
+    getdoclistuploadfile();
   }, []);
-
   const {
     isLogin,
     getnotes,
@@ -45,13 +42,15 @@ const WS1 = () => {
     workSpaceData,
     getallversions,
     add_permission,
+    sharingcancel,
+    getquotadetails,
     addcreatefolder,
     add_updatefolder,
     getGroupsDropdown,
-    getfoldernameslist,
+    getteamspace,
     add_metaproperties,
+    getWorkspacePermission,
   } = useContext(UserContext);
-
   const [sm, updateSm] = useState(false);
   const [userData, setUserData] = contextData;
   const [fileDesc, setFileDesc] = useState("");
@@ -60,12 +59,15 @@ const WS1 = () => {
   const [formValues, setFormValues] = useState({});
   const [allMoveFile, setAllMoveFile] = useState([]);
   const [docListUpload, setDocListupload] = useState([]);
+  const [workspaceType, setWorkspaceType] = useState("");
   const [addProperties, setAddProperties] = useState([]);
   const [userDropdowns, setUserDropdowns] = useState([]);
   const [allfolderlist, setAllfolderlist] = useState([]);
   const [groupsDropdown, setGroupsDropdown] = useState([]);
   const [permissionUserList, setPermissionUserList] = useState([]);
+  const [getAllfolderPermission, setGetAllfolderPermission] = useState({});
   const [workspacePermissionWs1, setWorkspacePermissionWs1] = useState({});
+
   const [currentFolderData, setCurrentFolderData] = useState({
     folder_name: "",
     levels: 0,
@@ -142,7 +144,7 @@ const WS1 = () => {
       workspace_id: workSpaceData.workspace_id,
     }
   ) => {
-    getfoldernameslist(
+    getteamspace(
       data,
       (apiRes) => {
         setAllMoveFile(apiRes?.data?.folders);
@@ -153,23 +155,23 @@ const WS1 = () => {
       }
     );
   };
+
+  // ------------------------------------------------getApis End
+
   useEffect(() => {
     getWorkspaces();
   }, []);
-  useEffect(() => {
-    workspacePermission();
-  }, [workspace?.length]);
-  const workspacePermission = () => {
-    workspace?.map((data) => {
-      if (data.workspace_name == workSpaceData?.workspace_name) {
-        setWorkspacePermissionWs1(data.workspacePermission);
-      }
-    });
-  };
-
   // useEffect(() => {
-  //   getfoldernameslist();
-  // }, []);
+  //   workspacePermission();
+  // }, [workspace?.length]);
+  // const workspacePermission = () => {
+  //   workspace?.map((data) => {
+  //     if (data.workspace_name == workSpaceData?.workspace_name) {
+  //       setWorkspacePermissionWs1(data.workspacePermission);
+  //     }
+  //   });
+  // };
+
   const [individualPer, setIndividualPer] = useState({});
   useEffect(() => {
     individualPermission();
@@ -181,7 +183,6 @@ const WS1 = () => {
       }
     });
   };
-
   const teamSpace = isLogin?.teamspace;
   const moveData =
     workspace
@@ -194,7 +195,6 @@ const WS1 = () => {
     ?.filter((data) => data.workspace_name === workSpaceData?.workspace_name)
     .map((data) => data);
 
-  // ------------------------------------------------getApis End
   // ------------------------------------------------Doc Type Start
   const [doctypeName, setDoctypeName] = useState("");
   const handleDoctypeAutocomplete = (doctype) => {
@@ -356,6 +356,7 @@ const WS1 = () => {
     }
   };
   const onEditFolderClick = (id) => {
+    setUploadStatus("selected");
     allfolderlist.map((item) => {
       if (item?.id == id) {
         setFolderNameInput((prevFormData) => ({
@@ -379,6 +380,7 @@ const WS1 = () => {
   const [fileName, setFileName] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editFileId, setEditFileId] = useState(0);
+  const [filetypeEdit, setFiletypeEdit] = useState("");
   const [openFileModal, setOpenFileModal] = useState(false);
   const [fileNameInput, setFileNameInput] = useState({
     name: "",
@@ -392,8 +394,10 @@ const WS1 = () => {
     setOpenFileModal(true);
   };
   const handleCloseFileModal = () => {
-    setOpenFileModal(false);
+    setProgress(0);
     resetFileForm();
+    setUploadStatus("select");
+    setOpenFileModal(false);
   };
   const handleChangeFile = (event) => {
     const { name, value } = event.target;
@@ -404,38 +408,70 @@ const WS1 = () => {
       };
     });
   };
-  const onEditFileClick = (id) => {
+  const onEditFileClick = (id, file_type) => {
+    setUploadStatus("selected");
     allfolderlist.map((item) => {
       if (item?.id == id) {
+        const fileNameWithoutExtension = item.file_name
+          .split(".")
+          .slice(0, -1)
+          .join(".");
         setFileNameInput((prevFormData) => ({
           ...prevFormData,
-          name: item.file_name,
+          name: fileNameWithoutExtension,
           file_description: item.file_description,
         }));
-        setDoctypeName(item.doctype);
       }
     });
     setEditFileId(id);
+    setFiletypeEdit(file_type);
     handleOpenFileModal();
   };
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-    }));
+  // const handleInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormValues((prevValues) => ({
+  //     ...prevValues,
+  //     [name]: value,
+  //   }));
+  // };
+  const handleInputChange = (e, fieldName) => {
+    const value = e?.target ? e.target.value : e;
+    setFormValues({
+      ...formValues,
+      [fieldName]: value,
+    });
+  };
+
+  //fileupload new
+  const inputRef = useRef();
+  const [progress, setProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState("select");
+  const onChooseFile = () => {
+    inputRef.current.click();
+  };
+  const clearFileInput = () => {
+    inputRef.current.value = "";
+    setFile(null);
+    setProgress(0);
+    setUploadStatus("select");
   };
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
+    setUploadStatus("selected");
   };
+
   const handleSubmit = async (event) => {
+    if (uploadStatus === "done") {
+      clearFileInput();
+      return;
+    }
     event.preventDefault();
     if (editFileId) {
       const data = {
         file_id: editFileId,
         doctype: doctypeName,
         Feilds_Name: formValues,
-        new_file_name: fileNameInput?.name,
+        new_file_name: `${fileNameInput?.name}.${filetypeEdit}`,
         fileDesc: fileNameInput?.file_description,
       };
       add_updatefolder(
@@ -464,7 +500,7 @@ const WS1 = () => {
       );
     } else {
       try {
-        setLoading(true);
+        setUploadStatus("uploading");
         const data = {
           workspace_id: workSpaceData.workspace_id,
           workspace_name: workSpaceData.workspace_name,
@@ -481,7 +517,7 @@ const WS1 = () => {
         formData.append("file", file);
         formData.append("data", JSON.stringify(data));
         const quary = [[file.size], [workSpaceData.workspace_name]];
-        const file_type = file.name?.split(".")[1];
+        const file_type = file.name?.split(".").pop();
         const response = await axios.post(
           `${
             process.env.REACT_APP_API_URL_LOCAL
@@ -491,8 +527,16 @@ const WS1 = () => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            onUploadProgress: (progressEvent) => {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setProgress(percentCompleted);
+            },
           }
         );
+        setUploadStatus("done");
+        setDoctypeName("");
         setFileName(response.data);
         if (response.status == 200) {
           notification["success"]({
@@ -503,8 +547,6 @@ const WS1 = () => {
               height: 60,
             },
           });
-          setLoading(false);
-          handleCloseFileModal();
           let newData = {
             parent_id: currentFolderData?.id,
             levels: currentFolderData?.levels + 1,
@@ -514,20 +556,20 @@ const WS1 = () => {
           getAllfoldernames(newData);
         }
       } catch (error) {
+        setUploadStatus("select");
         if (error?.response?.status == 400) {
           notification["warning"]({
             placement: "top",
             description: "",
             message: error.response.data.message,
-            style: {
-              height: 60,
-            },
           });
         }
-        setLoading(false);
+        handleCloseFileModal();
+        // setLoading(false);
       }
     }
   };
+
   const CancelFileUpload = () => {
     handleCloseFileModal();
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/cancelfileupload`;
@@ -544,29 +586,65 @@ const WS1 = () => {
               height: 60,
             },
           });
+          setLoading(false);
         }
       })
       .catch((error) => {
         console.log(error);
       });
   };
+  const [userquota, setUserquota] = useState([]);
+  useEffect(() => {
+    getQuotaDetails();
+  }, []);
+
+  const getQuotaDetails = () => {
+    getquotadetails(
+      {},
+      (apiRes) => {
+        const fetchedUserQuota = apiRes.data.user_list;
+        fetchedUserQuota?.forEach((data) => {
+          if (data.user_email === isLogin?.email) {
+            let leftquota = data.max_quota - data.used_quota;
+            setUserquota(leftquota);
+          }
+        });
+      },
+      (apiErr) => {
+        console.error("Error fetching quota details:", apiErr);
+      }
+    );
+  };
   const resetFileForm = () => {
+    setFile("");
+    setEditFileId(0);
+    setFormValues({});
+    setDoctypeName("");
+    setAddProperties([]);
     setFileNameInput({
       name: "",
       file_description: "",
     });
-    setEditFileId(0);
-    setFile("");
-    setFormValues({});
-    setDoctypeName("");
   };
   // ------------------------------------------------file upload
-  // ------------------------------------------------file Download
-  const onDownloadfolders = (filemongo_id, folder_name) => {
+  // ------------------------------------------------file folder Download
+  const [progressBar, setProgressBar] = useState(0);
+  const onDownloadfolders = (filemongo_id, folder_name, folder_size) => {
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfolders`;
     const requestData = { folder_id: filemongo_id };
     axios
-      .post(apiUrl, requestData, { responseType: "arraybuffer" })
+      .post(apiUrl, requestData, {
+        responseType: "arraybuffer",
+        onDownloadProgress: (progressEvent) => {
+          const loaded = progressEvent.loaded;
+          const totalBytes = folder_size;
+          let progress = 0;
+          if (totalBytes > 0 && loaded > 0) {
+            progress = Math.round((loaded / totalBytes) * 100);
+          }
+          setProgressBar(progress);
+        },
+      })
       .then((response) => {
         notification["success"]({
           placement: "top",
@@ -576,6 +654,7 @@ const WS1 = () => {
             height: 60,
           },
         });
+        setProgressBar(0);
         const blob = new Blob([response.data], { type: "application/zip" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
@@ -590,15 +669,25 @@ const WS1 = () => {
         console.error("Error downloading the folder:", error);
       });
   };
-  const onFileDownload = (filemongo_id, file_name) => {
+  const onFileDownload = (filemongo_id, file_name, file_size, file_type) => {
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfile`;
     const requestData = { filemongo_id: filemongo_id };
 
     axios
       .post(apiUrl, requestData, {
         responseType: "blob",
+        onDownloadProgress: (progressEvent) => {
+          const loaded = progressEvent.loaded;
+          const totalBytes = file_size;
+          let progress = 0;
+          if (totalBytes > 0 && loaded > 0) {
+            progress = Math.round((loaded / totalBytes) * 100);
+          }
+          setProgressBar(progress);
+        },
       })
-      .then((response) => {
+      .then(async (response) => {
+        setProgressBar(0);
         notification["success"]({
           placement: "top",
           description: "",
@@ -607,38 +696,65 @@ const WS1 = () => {
             height: 60,
           },
         });
-        const blob = new Blob([response.data]);
-        const fileName = file_name;
-        // Use the split() method to separate the name and extension
-        const parts = fileName.split(".");
-        const name = parts[0];
-        const extension = parts[1];
 
-        // Create a temporary URL for the Blob
-        const url = URL.createObjectURL(blob);
-        // Create a link element
-        const link = document.createElement("a");
-        link.href = url;
+        if (file_type === "pdf") {
+          const arrayBuffer = await response.data.arrayBuffer();
+          const pdfDoc = await PDFDocument.load(arrayBuffer);
+          const pages = pdfDoc.getPages();
+          pages.forEach((page) => {
+            const { width, height } = page.getSize();
+            page.drawText("ACME", {
+              x: width / 2 - 50,
+              y: height / 2,
+              size: 50,
+              color: rgb(0.5, 0.5, 0.5),
+              opacity: 0.5,
+              rotate: degrees(30),
+            });
+          });
 
-        // Replace 'your_file_name.extension' with the desired file name and extension
-        link.download = `${name}.${extension}`;
-        // Append the link to the DOM and trigger the download
-        document.body.appendChild(link);
-        link.click();
-
-        // Clean up the temporary URL and link
-        URL.revokeObjectURL(url);
-        link.remove();
+          const pdfBytes = await pdfDoc.save();
+          const blob = new Blob([pdfBytes], { type: "application/pdf" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = file_name;
+          document.body.appendChild(link);
+          link.click();
+          URL.revokeObjectURL(url);
+          link.remove();
+        } else {
+          const blob = response.data;
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = file_name;
+          document.body.appendChild(link);
+          link.click();
+          URL.revokeObjectURL(url);
+          link.remove();
+        }
       })
       .catch((error) => {
         console.error("Error downloading the file:", error);
+        notification["error"]({
+          placement: "top",
+          description: "Failed to download the file.",
+          message: "Download Error",
+        });
       });
   };
+  // ------------------------------------------------file folder Download
 
+  // ------------------------------------------------Start Share Link Modal
+  const [error, setError] = useState(false);
   const [shareId, setShareId] = useState({});
+  const [password, setPassword] = useState("");
+  const [minDate, setMinDate] = useState(null);
+  const [maxDate, setMaxDate] = useState(null);
   const [shareLink, setShareLink] = useState([]);
   const [openLink, setOpenLink] = useState(false);
-  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [shareFormData, setShareFormData] = useState({
     Email: "",
@@ -662,6 +778,8 @@ const WS1 = () => {
     rights: false,
     comment: false,
     properties: false,
+    view_watermark: false,
+    download_watermark: false,
   });
   const handleClickLinkOpen = (id, file_type, name) => {
     setShareId({ id: id, file_type: file_type, name: name });
@@ -672,8 +790,58 @@ const WS1 = () => {
     setOpenLink(false);
     resetCheckboxState();
   };
+  //min and max dates
+  useEffect(() => {
+    if (isLogin.user_type === "User" && PermissionPolicy.length > 0) {
+      const PolicyMinDays = PermissionPolicy[0]?.minimum_maximum_days[0];
+      const PolicyMaxDays = PermissionPolicy[0]?.minimum_maximum_days[1];
+      const today = new Date();
+      const min = format(addDays(today, PolicyMinDays), "yyyy-MM-dd");
+      const max = format(addDays(today, PolicyMaxDays), "yyyy-MM-dd");
+      setMinDate(min);
+      setMaxDate(max);
+    }
+  }, [isLogin, PermissionPolicy]);
   const handleDateChange = (date) => {
     setSelectedDate(date);
+  };
+  const handlePasswordChange = (event) => {
+    const newPassword = event.target.value;
+    let hasError = false;
+    let errorMessage = "";
+    if (isLogin.user_type === "User") {
+      const {
+        minimum_character,
+        minimum_numeric,
+        minimum_Alphabets,
+        minimum_special_character,
+      } = PermissionPolicy[0];
+      if (newPassword?.length < minimum_character) {
+        hasError = true;
+        errorMessage = `Password must be at least ${minimum_character} characters long.`;
+      } else {
+        const numericCount = (newPassword.match(/\d/g) || "").length;
+        const alphabetsCount = (newPassword.match(/[a-zA-Z]/g) || "").length;
+        const specialCount = (newPassword.match(/[^a-zA-Z0-9]/g) || "").length;
+
+        if (minimum_numeric && numericCount < minimum_numeric) {
+          hasError = true;
+          errorMessage = `Password must contain at least ${minimum_numeric} numeric character(s).`;
+        } else if (minimum_Alphabets && alphabetsCount < minimum_Alphabets) {
+          hasError = true;
+          errorMessage = `Password must contain at least ${minimum_Alphabets} alphabet character(s).`;
+        } else if (
+          minimum_special_character &&
+          specialCount < minimum_special_character
+        ) {
+          hasError = true;
+          errorMessage = `Password must contain at least ${minimum_special_character} special character(s).`;
+        }
+      }
+      setError(hasError);
+      setErrorMessage(errorMessage);
+    }
+    setPassword(newPassword);
   };
   const handleShareData = (e) => {
     const { name, value } = e.target;
@@ -689,22 +857,17 @@ const WS1 = () => {
       [name]: checked,
     }));
   };
-  const handleFileClose = () => {
-    resetFileForm();
-    setLoading(false);
-  };
-  const handleSubmitShareData = () => {
-    onFetchlink();
-  };
   const onFetchlink = () => {
-    handleLinkClose();
+    setLoading(true);
     let data = {
       id: shareId.id,
-      link_expiry: selectedDate,
+      link_expiry: selectedDate || minDate,
       user_type: shareFormData.Type,
       email: shareFormData?.Email,
       file_type: shareId.file_type || "",
       workspace_name: shareFormData.workspace_name,
+      sharedfrom: "TeamSpace",
+      shared_workspace_id: workSpaceData.workspace_id,
       name: shareId.name,
       message: shareFormData.Message,
       subject: shareFormData.Subject,
@@ -715,6 +878,8 @@ const WS1 = () => {
       rename: checkboxValues.rename,
       upload_folder: checkboxValues.upload_folder,
       create_folder: checkboxValues.create_folder,
+      view_watermark: checkboxValues.view_watermark,
+      download_watermark: checkboxValues.download_watermark,
       upload_file: checkboxValues.upload_file,
       delete_action: checkboxValues.delete,
       download: checkboxValues.download,
@@ -726,33 +891,30 @@ const WS1 = () => {
     getfetchlink(
       data,
       (apiRes) => {
+        setLoading(false);
+        handleLinkClose();
         setShareLink(apiRes?.data);
-        // Show success notification
         notification["success"]({
           placement: "top",
           description: "",
-          message: "Link Shared Successfully...",
+          message: apiRes?.data.message,
           style: {
             height: 60,
           },
         });
       },
       (apiErr) => {
-        // For example, you can show an error notification if needed
         notification["error"]({
           placement: "top",
-          description: "An error occurred while sharing the link.",
-          message: "Error",
-          style: {
-            height: 60,
-          },
+          description: "",
+          message: apiErr?.response?.data?.message,
         });
+        setLoading(false);
       }
     );
   };
   // ------------------------------------------------End Share Link Modal
   // ------------------------------------------------Reset Form Start
-
   const resetState = () => {
     setShareFormData({
       Email: "",
@@ -761,7 +923,6 @@ const WS1 = () => {
       Subject: "",
     });
   };
-
   const resetCheckboxState = () => {
     setCheckboxValues({
       view: false,
@@ -776,6 +937,8 @@ const WS1 = () => {
       rights: false,
       comment: false,
       properties: false,
+      view_watermark: false,
+      download_watermark: false,
     });
   };
   // ------------------------------------------------Reset Form End
@@ -793,7 +956,13 @@ const WS1 = () => {
       id: "Update Date/Time",
       numeric: false,
       disablePadding: true,
-      label: "Update D/T",
+      label: "Update_D/T",
+    },
+    {
+      id: "expiry_date",
+      numeric: false,
+      disablePadding: true,
+      label: "Expiry_Date",
     },
     {
       id: "Shared By",
@@ -818,7 +987,7 @@ const WS1 = () => {
       numeric: false,
       disablePadding: true,
       label: "Actions",
-      style: { marginLeft: "230px" },
+      style: { marginLeft: "130px" },
     },
   ];
   // ------------------------------------------------Folder Routing
@@ -866,6 +1035,7 @@ const WS1 = () => {
       workspace_name: data?.workspace_name,
       workspace_id: data?.workspace_id,
     };
+    setWorkspaceType(data.workspace_type);
     getAllfoldernames(apiData);
     setCurrentFolderData(data);
   };
@@ -1094,23 +1264,20 @@ const WS1 = () => {
   };
   // ---------------------------------move
   // ---------------------------------Ws1 Rights
-
   const checkboxData = [
-    { label: "View", name: "view", style: { marginLeft: "-8.8px" } },
-    { label: "Move", name: "move", style: { marginLeft: "11px" } },
-    { label: "Share", name: "share", style: { marginLeft: "35px" } },
-    { label: "Rights", name: "rights", style: { marginLeft: "29px" } },
+    { label: "View", name: "view" },
+    { label: "Move", name: "move" },
+    { label: "Share", name: "share" },
+    { label: "Rights", name: "rights" },
     { label: "Rename", name: "rename" },
-    { label: "Delete", name: "delete", style: { marginLeft: "-10px" } },
+    { label: "Delete", name: "delete" },
     {
       label: "Comments",
       name: "comment",
-      style: { marginLeft: "30px" },
     },
     {
       label: "Download",
       name: "download",
-      style: { marginLeft: "-6px" },
     },
     {
       label: "Properties",
@@ -1119,18 +1286,23 @@ const WS1 = () => {
     {
       label: "Upload Folder",
       name: "upload_folder",
-      style: { marginLeft: "-25px" },
     },
     {
       label: "Create Folder",
       name: "create_folder",
-      style: { marginLeft: "-22px" },
     },
 
     {
       label: "Upload File",
       name: "upload_file",
-      style: { marginLeft: "-22px" },
+    },
+    {
+      label: "View W",
+      name: "view_watermark",
+    },
+    {
+      label: "Download W",
+      name: "download_watermark",
     },
   ];
   const [PermissionEditedId, setPermissionEditedId] = useState(0);
@@ -1152,13 +1324,29 @@ const WS1 = () => {
     rights: false,
     comment: false,
     properties: false,
+    view_watermark: false,
+    download_watermark: false,
   });
-
   const handleAutocompleteChange = (id, value) => {
     setPermissionForm((prevFormData) => ({
       ...prevFormData,
       [id]: value,
     }));
+  };
+  useEffect(() => {
+    getEditWorkspacePermission();
+  }, [permissionForm.selected_users, permissionForm.selected_group]);
+  const getEditWorkspacePermission = (value) => {
+    let data = {
+      folder_id: 238,
+      email: permissionForm?.selected_users,
+      group: permissionForm?.selected_group,
+    };
+    getWorkspacePermission(
+      data,
+      (apiRes) => {},
+      (apiErr) => {}
+    );
   };
   const handleOpenPermission = (id, file_type, file_name, folder_name) => {
     setOpenDialog({
@@ -1192,6 +1380,8 @@ const WS1 = () => {
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
+          upload_folder: checkboxValues.upload_folder,
+          create_folder: checkboxValues.create_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
@@ -1213,6 +1403,8 @@ const WS1 = () => {
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
+          upload_folder: checkboxValues.upload_folder,
+          create_folder: checkboxValues.create_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
@@ -1261,6 +1453,8 @@ const WS1 = () => {
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
+          upload_folder: checkboxValues.upload_folder,
+          create_folder: checkboxValues.create_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
@@ -1281,6 +1475,8 @@ const WS1 = () => {
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
+          upload_folder: checkboxValues.upload_folder,
+          create_folder: checkboxValues.create_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
@@ -1360,11 +1556,11 @@ const WS1 = () => {
       { label: "View", name: "view" },
       { label: "Move", name: "move" },
       { label: "Share", name: "share" },
+      { label: "Rename", name: "rename" },
       {
         label: "Rights",
         name: "rights",
       },
-      { label: "Rename", name: "rename" },
       {
         label: "Delete",
         name: "delete",
@@ -1394,6 +1590,14 @@ const WS1 = () => {
         label: "Upload File",
         name: "upload_file",
       },
+      {
+        label: "View W",
+        name: "view_watermark",
+      },
+      {
+        label: "Donaload W",
+        name: "download_watermark",
+      },
     ],
     buttonLabels: {
       agree: "Grant Access",
@@ -1421,13 +1625,83 @@ const WS1 = () => {
       selected_users: [],
     });
   };
+  useEffect(() => {
+    workspacePermission();
+    getallfolderPermission();
+  }, [workspace.length, workSpaceData, shareId.id, PermissionEditedId.id]);
 
+  const workspacePermission = () => {
+    workspace?.forEach((data) => {
+      if (data.workspace_name === workSpaceData?.workspace_name) {
+        setWorkspacePermissionWs1(data.workspacePermission);
+      }
+    });
+  };
+  const getallfolderPermission = () => {
+    allfolderlist?.forEach((data) => {
+      if (
+        (data.workspace_name === workSpaceData?.workspace_name &&
+          data.id === shareId.id) ||
+        data.id === PermissionEditedId.id
+      ) {
+        setGetAllfolderPermission(data.permission);
+      }
+    });
+  };
   // ---------------------------------Ws1 Rights
+  // ---------------------------------sharingcancel
+  const [openShare, setOpenShare] = React.useState({
+    status: false,
+    data: {},
+  });
+  const handleClickShareOpen = (id, file_type) => {
+    setOpenShare({
+      status: true,
+      data: { id, file_type },
+    });
+  };
+  const handleCloseShare = () => {
+    setOpenShare({
+      status: false,
+      data: "",
+    });
+  };
+  const onSharingcancel = (id, file_type) => {
+    let data;
+    if (file_type) {
+      data = { file_id: id };
+    } else {
+      data = { folder_id: id };
+    }
+    sharingcancel(
+      data,
+      (apiRes) => {
+        notification["success"]({
+          placement: "top",
+          description: "",
+          message: "All Sharing Cancel Successfully",
+          style: {
+            height: 60,
+          },
+        });
+        handleCloseShare();
+        let newData = {
+          parent_id: currentFolderData?.id,
+          levels: currentFolderData?.levels + 1,
+          workspace_name: workSpaceData?.workspace_name,
+          workspace_id: JSON.stringify(workSpaceData.workspace_id),
+        };
+        getAllfoldernames(newData);
+      },
+      (apiErr) => {}
+    );
+  };
+  // ---------------------------------sharingcancel
   return (
-    <>
+    <React.Fragment>
       <Head title="TeamSpace - Regular"></Head>
       <Content>
-        <Stack style={{ marginTop: "-58px" }}>
+        <Stack style={{ marginTop: "-28px" }}>
           {loading ? (
             <LinearProgress
               color="primary"
@@ -1450,6 +1724,19 @@ const WS1 = () => {
           ) : (
             ""
           )}
+          {progressBar !== 0 && (
+            <div
+              style={{
+                width: "100%",
+                position: "absolute",
+                zIndex: 100,
+                top: 1,
+                left: 0,
+              }}
+            >
+              <LinearProgressBar progress={progressBar} />
+            </div>
+          )}
           <ModalPop
             open={openDelete.status}
             handleClose={handleCloseDelete}
@@ -1461,6 +1748,14 @@ const WS1 = () => {
             }
             data={openDelete?.data?.id}
             file_type={openDelete.data.file_type}
+          />
+          <ModalPop
+            open={openShare.status}
+            handleOkay={onSharingcancel}
+            data={openShare?.data?.id}
+            handleClose={handleCloseShare}
+            file_type={openShare.data.file_type}
+            title="Sharing Cancel? You Sure!"
           />
           <FileFolderProperties
             list={list}
@@ -1479,8 +1774,9 @@ const WS1 = () => {
             openDialog={openDialog.status}
             groupsDropdown={groupsDropdown}
             workspacePermissionWs1={workspacePermissionWs1}
+            getAllfolderPermission={getAllfolderPermission}
             handleClickPermission={onSubmitAddPermission}
-            handleCheckboxChange={handleCheckboxWs1}
+            handleCheckboxWs1={handleCheckboxWs1}
             handleClosePermission={handleClosePermission}
             handleAutocompleteChange={handleAutocompleteChange}
           />
@@ -1517,48 +1813,64 @@ const WS1 = () => {
           />
           <CreateLinkModel
             error={error}
+            minDate={minDate}
+            maxDate={maxDate}
+            isLogin={isLogin}
             moveData={moveData}
             openLink={openLink}
+            password={password}
+            validity="true"
+            guestFromshow="true"
             workspace={workspace}
+            shareLink={shareLink}
             teamSpace={teamSpace}
-            userDropdowns={userDropdowns}
+            errorMessage={errorMessage}
             selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
+            userDropdowns={userDropdowns}
+            accesscheckbox={checkboxData}
             shareFormData={shareFormData}
             checkboxValues={checkboxValues}
+            PermissionPolicy={PermissionPolicy}
+            setSelectedDate={setSelectedDate}
             handleShareData={handleShareData}
             handleLinkClose={handleLinkClose}
             handleDateChange={handleDateChange}
+            handleSubmitShareData={onFetchlink}
+            workspacePermissionWs1={workspacePermissionWs1}
+            getAllfolderPermission={getAllfolderPermission}
+            handlePasswordChange={handlePasswordChange}
             handleCheckboxChange={handleCheckboxChange}
-            handleSubmitShareData={handleSubmitShareData}
-            shareLink={shareLink}
-            accesscheckbox={checkboxData}
           />
-          <TeamSpaceFileUpload
-            open={openFileModal}
-            editFileId={editFileId}
+          <FileUpload
             loading={loading}
-            fileNameInput={fileNameInput}
-            handleChangeFile={handleChangeFile}
-            matchedWorkspace={matchedWorkspace}
             selectedFile={file}
-            handleDoctypeAutocomplete={handleDoctypeAutocomplete}
+            userquota={userquota}
             fileName={fileName}
+            open={openFileModal}
+            formValues={formValues}
+            editFileId={editFileId}
             close={CancelFileUpload}
             handleOkay={handleSubmit}
             Properties={addProperties}
             docListUpload={docListUpload}
+            fileNameInput={fileNameInput}
+            handleChangeFile={handleChangeFile}
+            matchedWorkspace={matchedWorkspace}
             handleFileChange={handleFileChange}
+            handleInputChange={handleInputChange}
             handleCloseFileModal={handleCloseFileModal}
+            inputRef={inputRef}
+            onChooseFile={onChooseFile}
+            progress={progress}
+            doctypeName={doctypeName}
+            uploadStatus={uploadStatus}
+            clearFileInput={clearFileInput}
+            handleDoctypeAutocomplete={handleDoctypeAutocomplete}
             fileDesc={(e) => {
               setFileDesc(e.target.value);
             }}
-            handleInputChange={handleInputChange}
-            formValues={formValues}
           />
           <TeamSpaceHeader
-            openFolderModal={handleOpenFolderModal}
-            openModal1={() => setFileModal({ ...fileModal, status: true })}
             sm={sm}
             list={list}
             isLogin={isLogin}
@@ -1570,25 +1882,26 @@ const WS1 = () => {
             setSearchTerm={setSearchTerm}
             callApiHeader={callApiHeader}
             openFileUpload={handleOpenFileModal}
+            openFolderModal={handleOpenFolderModal}
             workspacePermissionWs1={workspacePermissionWs1}
+            openModal1={() => setFileModal({ ...fileModal, status: true })}
           />
           <TeamSpaceFolderCreate
-            open={openFolderModal}
-            handleClose={handleCloseFolderModal}
-            title="Create Folder"
-            buttonSuccessTitle="Create"
             id={id}
+            type="form"
+            input={input}
+            title="Create Folder"
+            open={openFolderModal}
+            buttonSuccessTitle="Create"
             addNew={onFolderFormSubmit}
             editFolderId={editFolderId}
-            input={input}
-            type="form"
+            handleChange={handleChangeFolder}
+            folderNameInput={folderNameInput}
+            handleClose={handleCloseFolderModal}
             inputList={[
               { type: "text", name: "name", placeholder: "Enter Folder Name" },
             ]}
-            handleChange={handleChangeFolder}
-            folderNameInput={folderNameInput}
           />
-
           <TeamSpaceTable
             rows={folderList}
             callApi={callApi}
@@ -1599,23 +1912,24 @@ const WS1 = () => {
             setPropertys={setPropertys}
             allfolderlist={allfolderlist}
             onFileDownload={onFileDownload}
+            onEditFileClick={onEditFileClick}
             handleClickMove={handleClickMove}
             PermissionPolicy={PermissionPolicy}
             onDownloadfolders={onDownloadfolders}
             handleOpenDeleteFile={handleClickOpen}
+            openEditFolderModal={onEditFolderClick}
             handleClickLinkOpen={handleClickLinkOpen}
+            handleClickShareOpen={handleClickShareOpen}
             handleOpenPermission={handleOpenPermission}
             onEditPermissionClick={onEditPermissionClick}
             workspacePermissionWs1={workspacePermissionWs1}
             handleClickVersionOpen={handleClickVersionOpen}
             handleClickOpenCommets={handleClickOpenCommets}
             handleClickOpenProperties={handleClickOpenProperties}
-            openEditFolderModal={onEditFolderClick}
-            onEditFileClick={onEditFileClick}
           />
         </Stack>
       </Content>
-    </>
+    </React.Fragment>
   );
 };
-export default WS1;
+export default TeamSpace;

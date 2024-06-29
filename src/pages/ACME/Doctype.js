@@ -3,60 +3,46 @@ import { notification } from "antd";
 import { useForm } from "react-hook-form";
 import Head from "../../layout/head/Head";
 import ModalPop from "../../components/Modal";
+import { Stack, Typography } from "@mui/material";
 import Content from "../../layout/content/Content";
 import SearchBar from "../../components/SearchBar";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
-import { Stack, Typography } from "@mui/material";
 import { FormGroup, Modal, ModalBody, Form } from "reactstrap";
+import DoctypeTable from "../../components/AllTables/DoctypeTable";
 import {
-  BlockBetween,
+  Col,
+  Icon,
+  Button,
   BlockDes,
   BlockHead,
+  BlockBetween,
   BlockHeadContent,
-  Icon,
-  Col,
-  Button,
 } from "../../components/Component";
-import DoctypeTable from "../../components/AllTables/DoctypeTable";
 const Workspace = () => {
   const {
-    contextData,
-    getWorkspace,
-    add_doctype,
     getdoclist,
+    contextData,
+    add_doctype,
+    getWorkspace,
     doctypeblock,
     deletedoctype,
   } = useContext(UserContext);
-  const { setAuthToken } = useContext(AuthContext);
-  const [userData, setUserData] = contextData;
   const [sm, updateSm] = useState(false);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [onSearch, setonSearch] = useState(true);
-  const [onSearchText, setSearchText] = useState("");
   const [editId, setEditedId] = useState();
+  const [docList, setDocList] = useState([]);
+  const [userData, setUserData] = contextData;
+  const [totalDoctype, setTotalDoctype] = useState(0);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [formData, setFormData] = useState({
+    Doctype: "",
+  });
   const [modal, setModal] = useState({
     edit: false,
     add: false,
     permission: false,
   });
-  const [formData, setFormData] = useState({
-    Doctype: "",
-  });
-  const [permisssionData, setPermissionData] = useState({
-    permission_upload: "",
-    permission_view: "",
-    permission_createfolder: "",
-    permission_delete: "",
-    permission_download: "",
-    permission_share: "",
-    permission_rename: "",
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemPerPage, setItemPerPage] = useState(5);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [totalDoctype, setTotalDoctype] = useState(0);
   const [open, setOpen] = useState({
     status: false,
     data: "",
@@ -73,7 +59,6 @@ const Workspace = () => {
       data: "",
     });
   };
-  const [deleteId, setDeleteId] = useState(false);
   useEffect(() => {
     let newData;
     newData = userData.map((item) => {
@@ -82,9 +67,7 @@ const Workspace = () => {
     });
     setUserData([...newData]);
   }, []);
-  useEffect(() => {
-    getTotalWorkspace();
-  }, [currentPage]);
+
   useEffect(() => {
     getTotalWorkspace();
     getdoctypelist();
@@ -92,24 +75,23 @@ const Workspace = () => {
 
   const getTotalWorkspace = () => {
     getWorkspace(
-      { pageNumber: currentPage, pageSize: itemPerPage, search: onSearchText },
+      {},
       (apiRes) => {
-        setTotalUsers(apiRes.data.count);
         if (apiRes.status == 200) {
           setUserData(apiRes.data.data);
-          setPermissionData({});
         }
       },
-      (apiErr) => {}
+      (apiErr) => {
+        console.log(apiErr)
+      }
     );
   };
-  const [docList, setDocList] = useState([]);
   const getdoctypelist = () => {
     getdoclist(
       {},
       (apiRes) => {
-        setDocList(apiRes.data);
-        setTotalDoctype(apiRes.data.length);
+        setDocList(apiRes?.data?.workspaceAuths);
+        setTotalDoctype(apiRes?.data?.length);
       },
       (apiErr) => {
         console.log(apiErr);
@@ -144,14 +126,9 @@ const Workspace = () => {
                 height: 60,
               },
             });
-          }
-          const code = 200;
-          if (code == 200) {
             resetForm();
-            setModal({ edit: false }, { add: false });
-            getTotalWorkspace();
+            onFormCancel();
           }
-          setAuthToken(token);
         },
         (apiErr) => {}
       );
@@ -184,32 +161,26 @@ const Workspace = () => {
       id,
       user_status,
     };
-    notification["success"]({
-      placement: "topRight",
-      description: "",
-      style: {
-        height: 60,
-      },
-      message: user_status ? "Doctye Active" : "Doctye Inactive",
-    });
-
     doctypeblock(
       statusCheck,
       (apiRes) => {
-        if (200 == 200) {
-          statusCheck = {};
-          resetForm();
-          setModal({ edit: false }, { add: false });
-          getUsers();
+        if (apiRes.status == 200) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: apiRes.data.message,
+            style: {
+              height: 60,
+            },
+          });
+          getdoctypelist();
         }
-        setAuthToken(token);
       },
       (apiErr) => {}
     );
   };
   const onDeleteClick = (id) => {
     handleClose();
-    setDeleteId(true);
     let deleteId = { id: id };
     deletedoctype(
       deleteId,
@@ -223,14 +194,8 @@ const Workspace = () => {
               height: 60,
             },
           });
+          getdoctypelist();
         }
-        const code = 200;
-        if (code == 200) {
-          resetForm();
-          setModal({ edit: false }, { add: false });
-          getTotalGroups();
-        }
-        setAuthToken(token);
       },
       (apiErr) => {}
     );
@@ -314,11 +279,11 @@ const Workspace = () => {
           </BlockHead>
         </Stack>
         <DoctypeTable
+          rows={docList}
           headCells={tableHeader}
-          allfolderlist={docList}
-          handleClickOpen={handleClickOpen}
-          onBlockClick={onBlockClick}
           searchTerm={searchTerm}
+          onBlockClick={onBlockClick}
+          handleClickOpen={handleClickOpen}
         />
         <Modal
           isOpen={modal.add}

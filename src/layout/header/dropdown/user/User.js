@@ -6,6 +6,7 @@ import { UserContext } from "../../../../context/UserContext";
 import { LinkList } from "../../../../components/links/Links";
 import UserAvatar from "../../../../components/user/UserAvatar";
 import { DropdownToggle, DropdownMenu, Dropdown } from "reactstrap";
+import { notification } from "antd";
 
 const User = () => {
   const { isLogin, logout, setIsLogin } = useContext(UserContext);
@@ -14,25 +15,26 @@ const User = () => {
   const { userAuthContextData, logOut, GuestLogOUt } = useContext(AuthContext);
   const [userData] = userAuthContextData;
   const { userName } = userData;
-  // useEffect(() => {
-  //   const logoutTimer = setTimeout(() => {
-  //     logOut();
-  //     notification["success"]({
-  //       placement: "top",
-  //       description: "",
-  //       message: "Idle Session Timeout. Please Login.",
-  //       style: {
-  //         marginTop: "43px",
-  //         height: "60px",
-  //       },
-  //     });
-  //   }, 180000);
-  //   return () => {
-  //     alert("Idle Session Timeout. Please Login. ");
+  useEffect(() => {
+    const oneWeekInMilliseconds = 6 * 24 * 60 * 60 * 1000;
+    const logoutTimer = setTimeout(() => {
+      logOut();
+      notification["success"]({
+        placement: "top",
+        description:
+          "Your session has been idle for too long. Please log in again.",
+        message: "Idle Session Timeout. Please Login.",
+        style: {
+          marginTop: "43px",
+          height: "60px",
+        },
+      });
+    }, oneWeekInMilliseconds);
+    return () => {
+      clearTimeout(logoutTimer);
+    };
+  }, [logOut, notification]);
 
-  //     clearTimeout(logoutTimer);
-  //   };
-  // }, []);
   const OnLogOut = () => {
     if (userData.type == "guest") {
       GuestLogOUt();
@@ -49,6 +51,8 @@ const User = () => {
     );
     window.location = "/";
   };
+  const name = isLogin?.name;
+  const frameName = name?.substring(0, 2)?.toUpperCase();
   return (
     <Dropdown isOpen={open} className="user-dropdown" toggle={toggle}>
       <DropdownToggle
@@ -73,7 +77,7 @@ const User = () => {
         <div className="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
           <div className="user-card sm">
             <div className="user-avatar">
-              <span>{userName ? findUpper(userName) : ""}</span>
+              <span>{frameName || ""}</span>
             </div>
             <div className="user-info">
               <span className="lead-text">{isLogin.name || "Guest"}</span>

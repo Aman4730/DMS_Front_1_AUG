@@ -21,6 +21,12 @@ export const AuthContextProvider = (props) => {
     if (isLogin?.user_type == "Admin") {
       setAuthMenu([
         {
+          icon: "eye-fill",
+          text: "Global Search",
+          active: true,
+          link: "/GlobalSearch",
+        },
+        {
           icon: "trash-fill",
           text: "Recycle bin",
           active: true,
@@ -37,10 +43,16 @@ export const AuthContextProvider = (props) => {
               active: true,
               link: "/logs",
             },
+            {
+              icon: "list-thumb-fill",
+              text: "User Permission",
+              active: true,
+              link: "/userpermission",
+            },
           ],
         },
         {
-          icon: "slack-hash",
+          icon: "setting-fill",
           text: "Admin",
           active: true,
           subMenu: [

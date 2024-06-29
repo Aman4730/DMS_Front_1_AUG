@@ -36,12 +36,9 @@ const Docmetadata = () => {
     getproperties,
     blockMetaStatus,
   } = useContext(UserContext);
-  const { setAuthToken } = useContext(AuthContext);
   const [userData, setUserData] = contextData;
   const [sm, updateSm] = useState(false);
   const [editId, setEditedId] = useState();
-  const [metadata, setMetadata] = useState("");
-  const [totalUsers, setTotalUsers] = useState(0);
   const [totalmeta, setTotalMeta] = useState(0);
   const [docList, setDocList] = useState([]);
   const [metaList, setMetaList] = useState([]);
@@ -60,6 +57,7 @@ const Docmetadata = () => {
   const handleCloseForm = () => {
     resetForm();
     setOpenForm(false);
+    getmetatypelist();
   };
   const handleChange = (event) => {
     const { id, value } = event.target;
@@ -140,7 +138,7 @@ const Docmetadata = () => {
     getdoclist(
       {},
       (apiRes) => {
-        const data = apiRes?.data;
+        const data = apiRes?.data?.workspaceAuths;
         setDocList(data?.map((doctype) => doctype?.doctype_name));
       },
       (apiErr) => {
@@ -190,9 +188,7 @@ const Docmetadata = () => {
     });
     setUserData([...newData]);
   }, []);
-  useEffect(() => {
-    getTotalWorkspace();
-  }, []);
+
   useEffect(() => {
     getTotalWorkspace();
     getmetatypelist();
@@ -203,7 +199,6 @@ const Docmetadata = () => {
     getWorkspace(
       {},
       (apiRes) => {
-        setTotalUsers(apiRes.data.count);
         if (apiRes.status == 200) {
           setUserData(apiRes.data.data);
           setPermissionData({});
@@ -360,7 +355,7 @@ const Docmetadata = () => {
           }
         },
         (apiErr) => {
-          if (apiErr.response.status == 400) {
+          if (apiErr.response.status == 404) {
             notification["success"]({
               placement: "top",
               description: "",
@@ -393,7 +388,15 @@ const Docmetadata = () => {
           getmetatypelist();
         }
       },
-      (apiErr) => {}
+      (apiErr) => {
+        if (apiErr.response.status == 400) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: apiErr.response.data.message,
+          });
+        }
+      }
     );
   };
 
@@ -533,9 +536,9 @@ const Docmetadata = () => {
           handleAutocompleteChange={handleAutocompleteChange}
         />
         <DocmetaTable
+          rows={metaList}
           searchTerm={searchTerm}
           headCells={tableHeader}
-          allfolderlist={metaList}
           onBlockClick={onBlockClick}
           onProperties={onProperties}
           handleClickOpen={handleClickOpen}

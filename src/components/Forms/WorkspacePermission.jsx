@@ -32,7 +32,7 @@ export default function WorkspacePermission({
           <Grid container>
             {permissionArray?.map((data) => {
               return (
-                <Grid item key={data.label} xs={3}>
+                <Grid item key={data.label} lg={3} sm={3} xs={6}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -50,7 +50,7 @@ export default function WorkspacePermission({
                         {data.label}
                       </Typography>
                     }
-                    sx={{ pl: 0.4 }}
+                    sx={{width:"100%",mb:-1.3}}
                     style={data.style}
                   />
                 </Grid>

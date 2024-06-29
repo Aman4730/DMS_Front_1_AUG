@@ -1,32 +1,30 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Stack, Typography } from "@mui/material";
+import { notification } from "antd";
 import Head from "../../layout/head/Head";
+import { Stack, Typography } from "@mui/material";
 import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import LogTable from "../../components/Logs/LogTable";
 import { UserContext } from "../../context/UserContext";
 import { AuthContext } from "../../context/AuthContext";
-import {
-  BlockBetween,
-  BlockHead,
-  BlockHeadContent,
-} from "../../components/Component";
-// import ip from "ip";
 
-//import publicIp from "public-ip";
 const WS1 = () => {
-  const { addfolderlogs, getloggs } = useContext(UserContext);
   const { setAuthToken } = useContext(AuthContext);
-
+  const { addfolderlogs, getloggs, userDropdownU } = useContext(UserContext);
+  useEffect(() => {
+    getUserRselect();
+    getCurrentMonthLog();
+  }, []);
   // --------------------------------------logs
-  const [folderList, setFolderList] = useState([{ name: "test", class: "56" }]);
+  const [logsDataList, setLogsDataList] = useState([]);
+  const [userDropdowns, setUserDropdowns] = useState([]);
+  const [currentMonthLog, setCurrentMonthLog] = useState([]);
   const [formDataLogs, setFormDataLogs] = useState({
+    selectUser: "",
     selectedCategory: "",
     selectedFromDate: null,
     selectedToDate: null,
   });
-  const [logsDataList, setLogsDataList] = useState([]);
-
   const handleChangelogs = (event, value, fieldName) => {
     setFormDataLogs((prevData) => ({
       ...prevData,
@@ -41,48 +39,70 @@ const WS1 = () => {
     });
   };
 
-  // ------------------------------------------------postApis Start
-  const [ipAddress, setIpAddress] = useState("");
-  // useEffect(() => {
-  //   const fetchIpAddress = async () => {
-  //     try {
-  //       const response = await fetch("https://api.ipify.org?format=json");
-  //       const data = await response.json();
-  //       setIpAddress(data.ip);
-  //     } catch (error) {
-  //     }
-  //   };
-  //   fetchIpAddress();
-  // }, []);
+  const selectedStartDate = formDataLogs?.selectedFromDate?.$d;
+  const selectedeEndDate = formDataLogs?.selectedToDate?.$d;
+  let formattedStartDate, formattedEndDate;
+  if (selectedStartDate || selectedeEndDate) {
+    const formatDateString = (date) => {
+      const dateObject = new Date(date);
+      return dateObject.toLocaleDateString("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    };
+    formattedStartDate = formatDateString(selectedStartDate);
+    formattedEndDate = formatDateString(selectedeEndDate);
+  } else {
+    console.log("Invalid dates selected.");
+  }
 
+  // ------------------------------------------------postApis Start
   const onFormSubmit = async () => {
     let data = {
-      id_address: ipAddress,
       category: formDataLogs?.selectedCategory?.value,
-      start_date: formDataLogs?.selectedFromDate?.$d,
-      end_date: formDataLogs?.selectedToDate?.$d,
+      user_email: formDataLogs?.selectUser?.value,
     };
+    if (formattedStartDate && formattedStartDate !== "Invalid Date") {
+      data.start_date = formattedStartDate;
+    }
+    if (formattedEndDate && formattedEndDate !== "Invalid Date") {
+      data.end_date = formattedEndDate;
+    }
     addfolderlogs(
       data,
       (apiRes) => {
-        resetForm();
-        setLogsDataList(apiRes?.data?.obj);
-        handleClose();
-        setAuthToken(token);
+        if (apiRes.status === 200) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: "Data Fetch Successfully",
+            style: {
+              height: 60,
+            },
+          });
+          setLogsDataList(apiRes?.data?.obj);
+          resetForm();
+          handleClose();
+        }
       },
-      (apiErr) => {}
+      (apiErr) => {
+        if (apiErr?.response?.status === 400) {
+          notification["warning"]({
+            placement: "top",
+            description: "",
+            message: apiErr?.response?.data?.error,
+            style: {
+              height: 60,
+            },
+          });
+        }
+      }
     );
   };
-  const [currentMonthLog, setCurrentMonthLog] = useState([]);
   const getCurrentMonthLog = async () => {
-    let data = {
-      id_address: ipAddress,
-      category: formDataLogs?.selectedCategory?.value,
-      start_date: formDataLogs?.selectedFromDate?.$d,
-      end_date: formDataLogs?.selectedToDate?.$d,
-    };
     getloggs(
-      data,
+      {},
 
       (apiRes) => {
         setCurrentMonthLog(apiRes.data.data);
@@ -90,9 +110,17 @@ const WS1 = () => {
       (apiErr) => {}
     );
   };
-  useEffect(() => {
-    getCurrentMonthLog();
-  }, []);
+  const getUserRselect = () => {
+    userDropdownU(
+      {},
+      (apiRes) => {
+        const data = apiRes?.data?.data;
+        setUserDropdowns(data);
+      },
+      (apiErr) => {}
+    );
+  };
+
   const tableData = logsDataList.length > 0 ? logsDataList : currentMonthLog;
   // ------------------------------------------------postApis End
   const tableHeader = [
@@ -128,71 +156,26 @@ const WS1 = () => {
     },
   ];
 
-  function callIp() {
-    // Function to extract IP address from the RTCSessionDescription object
-    function extractIP(sdp) {
-      const regex = /(\d+\.\d+\.\d+\.\d+)/;
-      const result = regex.exec(sdp);
-      return result && result.length > 0 ? result[0] : "Unknown";
-    }
-
-    return new Promise((resolve, reject) => {
-      // Create a peer connection object
-      const pc = new RTCPeerConnection();
-
-      // Create a data channel (optional)
-      const dc = pc.createDataChannel("ipAddressChannel");
-
-      // Create an offer and set local description
-      pc.createOffer()
-        .then((offer) => pc.setLocalDescription(offer))
-        .then(() => {
-          // Access the SDP description
-          const sdp = pc.localDescription.sdp;
-          // Extract the IP address
-          const ipAddress = extractIP(sdp);
-          resolve(ipAddress);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-  }
-
-  // Usage example
-  callIp()
-    .then((ip) => {
-      setIpAddress(ip);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
   return (
     <>
       <Head title="Logs - Regular"></Head>
       <Content>
         <Stack style={{ marginTop: "-28px" }}>
-          <BlockHead size="sm">
-            <BlockBetween>
-              <BlockHeadContent>
-                <Typography
-                  style={{
-                    fontSize: "24.5px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Logs
-                </Typography>
-              </BlockHeadContent>
-            </BlockBetween>
-          </BlockHead>
+          <Typography
+            style={{
+              fontSize: "24.5px",
+              fontWeight: "bold",
+            }}
+          >
+            Logs
+          </Typography>
           <LogTable
-            handleChangelogs={handleChangelogs}
+            rows={tableData}
+            headCells={tableHeader}
             handlefilter={onFormSubmit}
             formDataLogs={formDataLogs}
-            rows={folderList}
-            headCells={tableHeader}
-            allfolderlist={tableData}
+            userDropdowns={userDropdowns}
+            handleChangelogs={handleChangelogs}
             selectLogs={(e, v) => setSelectLog(v)}
           />
         </Stack>

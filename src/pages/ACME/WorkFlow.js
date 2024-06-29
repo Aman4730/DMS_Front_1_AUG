@@ -1,15 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import { notification } from "antd";
 import { Stack } from "@mui/material";
-import { useForm } from "react-hook-form";
 import Head from "../../layout/head/Head";
-import { Modal, ModalBody } from "reactstrap";
 import ModalPop from "../../components/Modal";
 import SearchBar from "../../components/SearchBar";
 import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
-import { AuthContext } from "../../context/AuthContext";
 import WorkFlowForm from "../../components/Forms/WorkFlowForm";
 import {
   Block,
@@ -24,45 +21,62 @@ import {
 import WorkFlowTable from "../../components/AllTables/WorkFlowTable";
 const WorkFlow = () => {
   const {
-    contextData,
+    getGroups,
     getworkflow,
     getWorkspace,
     userDropdownU,
     deleteworkflow,
+    cabinetDropdown,
     add_createworkflow,
   } = useContext(UserContext);
   const [sm, updateSm] = useState(false);
   const [editId, setEditedId] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [cabinetList, setcabinetList] = useState([]);
   const [openForm, setOpenForm] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [userDropdowns, setUserDropdowns] = useState([]);
+  const [groupDropdowns, setGroupDropdowns] = useState([]);
   const [getWorkspaces, setGetWorkspaces] = useState([]);
   const [tableDropdown, setTableDropdown] = useState([]);
-  const [modal, setModal] = useState({
-    edit: false,
-    add: false,
-  });
-  const [open, setOpen] = React.useState({
-    status: false,
-    data: "",
+
+  const [addPolicies, setAddPolicies] = useState({
+    policy_name: "",
+    selected_group: null,
+    workspace_name: null,
+    selected_user: [],
+    selected_cabinet: null,
+    workspace_type: null,
   });
   const [deleteModal, setDeleteModal] = React.useState({
     status: false,
     data: "",
   });
-  const [addPolicies, setAddPolicies] = useState({
-    policy_name: "",
-    group_admin: "",
-    workspace_name: "",
-    selected_user: [],
-  });
   const [checkboxValues, setCheckboxValues] = useState({
     l1: false,
     l2: false,
   });
+  useEffect(() => {
+    getTableData();
+    getUserRselect();
+    getGroupsDropdown();
+    getCabinetDropdown();
+    getWorkSpaceDropdown();
+  }, []);
   const handleClickOpenForm = () => {
     setOpenForm(true);
+  };
+  const handleClickOpen = (id) => {
+    setDeleteModal({
+      status: true,
+      data: id,
+    });
+  };
+  const handleCloseDelete = () => {
+    setDeleteModal({
+      status: false,
+      data: "",
+    });
   };
   const handleCloseForm = () => {
     resetForm();
@@ -88,24 +102,7 @@ const WorkFlow = () => {
       [name]: checked,
     }));
   };
-  const handleClickOpen = (id) => {
-    setDeleteModal({
-      status: true,
-      data: id,
-    });
-  };
-  const handleCloseDelete = () => {
-    setDeleteModal({
-      status: false,
-      data: "",
-    });
-  };
-  useEffect(() => {
-    getTableData();
-    getUserRselect();
-    getRolesDropdown();
-  }, []);
-
+  // --------------------------------getApis
   const getUserRselect = () => {
     userDropdownU(
       {},
@@ -116,12 +113,12 @@ const WorkFlow = () => {
       (apiErr) => {}
     );
   };
-  const getRolesDropdown = () => {
+  const getWorkSpaceDropdown = () => {
     getWorkspace(
       {},
       (apiRes) => {
         const data = apiRes?.data.data;
-        setGetWorkspaces(data?.map((workspace) => workspace?.workspace_name));
+        setGetWorkspaces(data);
       },
       (apiErr) => {}
     );
@@ -136,16 +133,31 @@ const WorkFlow = () => {
       (apiErr) => {}
     );
   };
-  // function to reset the form
-  const resetForm = () => {
-    setAddPolicies({
-      policy_name: "",
-      group_admin: "",
-      selected_user: [],
-      workspace_name: "",
-    });
-    setEditedId(0);
+  const getCabinetDropdown = () => {
+    cabinetDropdown(
+      {},
+      (apiRes) => {
+        const data = apiRes?.data.data;
+        setcabinetList(data?.map((cabinet) => cabinet?.cabinet_name));
+      },
+      (apiErr) => {}
+    );
   };
+  const getGroupsDropdown = () => {
+    getGroups(
+      {},
+      (apiRes) => {
+        const data = apiRes?.data?.data;
+        setGroupDropdowns(data);
+      },
+      (apiErr) => {}
+    );
+  };
+
+  // --------------------------------getApis
+  const matchedWorkspace = getWorkspaces?.filter(
+    (data) => data.workspace_type === addPolicies?.workspace_type
+  );
   // submit function to add a new item
   const onFormSubmit = () => {
     if (editId) {
@@ -153,8 +165,11 @@ const WorkFlow = () => {
         id: editId,
         policy_name: addPolicies.policy_name,
         user_email: addPolicies.selected_user,
-        group_admin: addPolicies.group_admin,
-        workspace_name: addPolicies.workspace_name,
+        group_admin: addPolicies.selected_group,
+        workspace_name: addPolicies.workspace_name?.name,
+        cabinet_name: addPolicies.selected_cabinet,
+        workspace_type: addPolicies.workspace_type,
+        workspace_id: addPolicies?.workspace_name?.id,
         l_1: checkboxValues.l1,
         l_2: checkboxValues.l2,
       };
@@ -202,8 +217,11 @@ const WorkFlow = () => {
       let submittedData = {
         policy_name: addPolicies.policy_name,
         user_email: addPolicies.selected_user,
-        group_admin: addPolicies.group_admin,
-        workspace_name: addPolicies.workspace_name,
+        group_admin: addPolicies.selected_group,
+        workspace_name: addPolicies.workspace_name?.name,
+        cabinet_name: addPolicies.selected_cabinet,
+        workspace_type: addPolicies.workspace_type,
+        workspace_id: addPolicies?.workspace_name?.id,
         l_1: checkboxValues.l1,
         l_2: checkboxValues.l2,
       };
@@ -234,8 +252,6 @@ const WorkFlow = () => {
                 height: 60,
               },
             });
-            getTableData();
-            handleCloseForm();
           }
         }
       );
@@ -249,10 +265,18 @@ const WorkFlow = () => {
           id: id,
           policy_name: item.policy_name,
           selected_user: item.user_email,
-          group_admin: item.group_admin,
-          workspace_name: item.workspace_name,
-          l_1: item.l1,
-          l_2: item.l2,
+          workspace_name:
+            {
+              id: item.workspace_id,
+              name: item.workspace_name,
+            } || "",
+          selected_group: item.group_admin,
+          selected_cabinet: item.cabinet_name,
+          workspace_type: item.workspace_type,
+        });
+        setCheckboxValues({
+          l1: JSON.parse(item.l_1),
+          l2: JSON.parse(item.l_2),
         });
         setEditedId(id);
       }
@@ -291,6 +315,23 @@ const WorkFlow = () => {
       }
     );
   };
+  // function to reset the form
+  const resetForm = () => {
+    setAddPolicies({
+      policy_name: "",
+      group_admin: "",
+      workspace_name: null,
+      selected_user: [],
+      selected_cabinet: null,
+      workspace_type: null,
+    });
+    setCheckboxValues({
+      l1: false,
+      l2: false,
+    });
+    setEditedId(0);
+  };
+  //table header
   const tableHeader = [
     {
       id: "Policy Name",
@@ -324,28 +365,10 @@ const WorkFlow = () => {
       style: { marginLeft: "18px" },
     },
   ];
-  // todolist
-  let [addProperty, setAddProperty] = useState("");
-  let [todos, setTodos] = useState([]);
-  const addTask = () => {
-    setAddProperty("");
-    setTodos([...todos, addProperty]);
-  };
-  const removeHandler = (id) => {
-    let newTodos = todos.filter((ele, index) => index != id);
-    setTodos(newTodos);
-  };
-  const editHandler = (id) => {
-    setAddProperty(todos.filter((val, index) => index === id));
-    removeHandler(id);
-  };
   const access = [
     { label: "L1", name: "l1" },
     { label: "L2", name: "l2" },
   ];
-  const { errors, register, handleSubmit, watch, triggerValidation } =
-    useForm();
-
   return (
     <React.Fragment>
       {/* modal */}
@@ -399,13 +422,18 @@ const WorkFlow = () => {
         <Block>
           <WorkFlowForm
             editId={editId}
+            access={access}
             openForm={openForm}
             addPolicies={addPolicies}
+            cabinetList={cabinetList}
             handleChange={handleChange}
             onFormSubmit={onFormSubmit}
-            getWorkspaces={getWorkspaces}
             userDropdowns={userDropdowns}
+            checkboxValues={checkboxValues}
+            groupDropdowns={groupDropdowns}
+            getWorkspaces={matchedWorkspace}
             handleCloseForm={handleCloseForm}
+            handleCheckboxChange={handleCheckboxChange}
             handleAutocompleteChange={handleAutocompleteChange}
           />
           <WorkFlowTable

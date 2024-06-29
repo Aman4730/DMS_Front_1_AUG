@@ -1,26 +1,22 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { notification } from "antd";
 import Head from "../../layout/head/Head";
+import GuestTSTable from "./GuestTSTable.jsx";
 import ModalPop from "../../components/Modal";
+import GuestTSHeader from "./GuestTSHeader.jsx";
 import Content from "../../layout/content/Content";
 import "react-datepicker/dist/react-datepicker.css";
 import { LinearProgress, Stack } from "@mui/material";
-import WS1Header from "../../components/WS1Header.jsx";
 import { UserContext } from "../../context/UserContext";
-import CommonTable from "../AllTables/index.jsx";
-import CreateLinkModel from "../../components/CreateLinkModel";
+import GuestTSFileUpload from "./GuestTSFileUpload.jsx";
+import GuestTSFolderCreate from "./GuestTSFolderCreate.jsx";
 import Ws1_Rights from "../../components/Forms/Ws1_Rights.jsx";
 import FileVersion from "../../components/FileVersion/index.jsx";
-import FileUpload from "../../components/FileUploadModal/FileUpload";
-import Foldercreate from "../../components/Foldercreate/Foldercreate";
 import FileFolderMove from "../../components/FileFolderMove/index.jsx";
+import GuestShareing from "../../components/GuestTeamSpace/GuestShareing.jsx";
 import FileFolderComments from "../../components/FileFolderComments/index.jsx";
 import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
-import GuestTSHeader from "./GuestTSHeader";
-import GuestTSFileUpload from "./GuestTSFileUpload";
-import GuestTSFolderCreate from "./GuestTSFolderCreate";
-import GuestTSTable from "./GuestTSTable";
 const GuestTeamSpace = () => {
   useEffect(() => {
     getAllfoldernames({
@@ -28,7 +24,6 @@ const GuestTeamSpace = () => {
       workspace_name: workSpaceData.workspace_name,
     }),
       getdoclistuploadfile();
-    getWorkspaces();
     getUserRselect();
     getGroupDropdown();
     getmetatypelist();
@@ -39,12 +34,10 @@ const GuestTeamSpace = () => {
     getdoclist,
     deletefile,
     deleteNotes,
-    getGuestdata,
     CommonNotes,
     contextData,
     getmetalist,
     getfetchlink,
-    getWorkspace,
     userDropdownU,
     workSpaceData,
     getallversions,
@@ -66,10 +59,12 @@ const GuestTeamSpace = () => {
   const [addProperties, setAddProperties] = useState([]);
   const [userDropdowns, setUserDropdowns] = useState([]);
   const [allfolderlist, setAllfolderlist] = useState([]);
+  const [guestTableData, setGuestTableData] = useState({});
   const [groupsDropdown, setGroupsDropdown] = useState([]);
+  const [defaultPermission, setDefaultPermission] = useState({});
   const [permissionUserList, setPermissionUserList] = useState([]);
+  const [getAllfolderPermission, setGetAllfolderPermission] = useState({});
   const [workspacePermissionWs1, setWorkspacePermissionWs1] = useState({});
-
   const [permissionForm, setPermissionForm] = useState({
     selected_group: [],
     selected_users: [],
@@ -102,17 +97,7 @@ const GuestTeamSpace = () => {
       }
     );
   };
-  const getWorkspaces = () => {
-    getWorkspace(
-      {},
-      (apiRes) => {
-        setWorkspace(apiRes?.data?.data);
-      },
-      (apiErr) => {
-        console.log(apiErr);
-      }
-    );
-  };
+
   const getmetatypelist = () => {
     getmetalist(
       {},
@@ -145,6 +130,7 @@ const GuestTeamSpace = () => {
     );
   };
   let token = localStorage.getItem("token") || "";
+
   const getAllfoldernames = (apiData) => {
     let data = {
       parent_id: apiData?.parent_id,
@@ -176,7 +162,8 @@ const GuestTeamSpace = () => {
   };
   const getEditWorkspacePermission = (value) => {
     let data = {
-      selected_users: value,
+      folder_id: 238,
+      email: value,
     };
     getWorkspacePermission(
       data,
@@ -184,19 +171,8 @@ const GuestTeamSpace = () => {
       (apiErr) => {}
     );
   };
-
   // ------------------------------------------------getApis End
-  useEffect(() => {
-    getWorkspaces();
-  }, []);
-  useEffect(() => {
-    workspacePermission();
-  }, [workspace?.length]);
-  const workspacePermission = () => {
-    allfolderlist?.map((data) => {
-      setWorkspacePermissionWs1(data);
-    });
-  };
+
   const [individualPer, setIndividualPer] = useState({});
   useEffect(() => {
     individualPermission();
@@ -219,6 +195,7 @@ const GuestTeamSpace = () => {
   const matchedWorkspace = metaList
     ?.filter((data) => data.workspace_name === workSpaceData?.workspace_name)
     .map((data) => data);
+
   // ------------------------------------------------Doc Type Start
   const [doctypeName, setDoctypeName] = useState("");
   const handleDoctypeAutocomplete = (doctype) => {
@@ -271,7 +248,7 @@ const GuestTeamSpace = () => {
           notification["success"]({
             placement: "top",
             description: "",
-            message: "Deleted Successfully...",
+            message: apiRes?.data.message,
             style: {
               height: 60,
             },
@@ -343,11 +320,10 @@ const GuestTeamSpace = () => {
       );
     } else {
       let data = {
-        workspace_id: JSON.stringify(workSpaceData.workspace_id),
-        workspace_name: workSpaceData.workspace_name,
-        workspace_type: "Guest",
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        workspace_id: guestTableData?.workspace_id,
+        workspace_name: guestTableData?.workspace_name,
+        workspace_type: guestTableData?.workspace_type,
+        policies_id: guestTableData?.policies_id,
         folder_name: folderNameInput.name,
         levels: currentFolderData.levels,
         parent_id: currentFolderData.parent_id,
@@ -451,8 +427,59 @@ const GuestTeamSpace = () => {
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
+  // const handleSubmit = async (event) => {
+  //   event?.preventDefault();
+  //   setLoading(true);
+  //   const data = {
+  //     workspace_id: guestTableData?.workspace_id,
+  //     workspace_name: guestTableData?.workspace_name,
+  //     folder_id: currentFolderData.id || null,
+  //     policies_id: guestTableData?.policies_id,
+  //     doctype: doctypeName,
+  //     fileDesc: fileNameInput?.file_description,
+  //     file_Size: file.size,
+  //     Feilds_Name: formValues,
+  //     workspace_type: guestTableData?.workspace_type,
+  //   };
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("data", JSON.stringify(data));
+  //   const workspace_type = guestTableData?.workspace_type;
+  //   const quary = [[file.size], [guestTableData.workspace_name]];
+  //   const file_type = file.name?.split(".")[1];
+  //   const response = await axios.post(
+  //     `${process.env.REACT_APP_API_URL_LOCAL}/uploadcreate?q=${quary}&fileExtension=${file_type}&workspace_type=${workspace_type}`,
+  //     formData,
+  //     {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     }
+  //   );
+  //   setDoctypeName("");
+  //   setFileName(response.data);
+  //   if (response.status == 200) {
+  //     notification["success"]({
+  //       placement: "top",
+  //       description: "",
+  //       message: response.data.message,
+  //       style: {
+  //         height: 60,
+  //       },
+  //     });
+  //     setLoading(false);
+  //     handleCloseFileModal();
+  //     let newData = {
+  //       parent_id: currentFolderData?.id,
+  //       levels: currentFolderData?.levels + 1,
+  //       workspace_id: JSON.stringify(workSpaceData.workspace_id),
+  //       workspace_name: workSpaceData?.workspace_name,
+  //     };
+  //     getAllfoldernames(newData);
+  //   }
+  // };
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     if (editFileId) {
       const data = {
         file_id: editFileId,
@@ -489,26 +516,24 @@ const GuestTeamSpace = () => {
       try {
         setLoading(true);
         const data = {
-          workspace_id: workSpaceData.workspace_id,
-          workspace_name: workSpaceData.workspace_name,
+          workspace_id: guestTableData?.workspace_id,
+          workspace_name: guestTableData?.workspace_name,
           folder_id: currentFolderData.id || null,
-          policies_id:
-            isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+          policies_id: guestTableData?.policies_id,
           doctype: doctypeName,
           fileDesc: fileNameInput?.file_description,
           file_Size: file.size,
           Feilds_Name: formValues,
-          workspace_type: "Guest",
+          workspace_type: guestTableData?.workspace_type,
         };
         const formData = new FormData();
         formData.append("file", file);
         formData.append("data", JSON.stringify(data));
-        const quary = [[file.size], [workSpaceData.workspace_name]];
+        const workspace_type = guestTableData?.workspace_type?.trim();
+        const query = `${file.size},${guestTableData?.workspace_name}`;
         const file_type = file.name?.split(".")[1];
         const response = await axios.post(
-          `${
-            process.env.REACT_APP_API_URL_LOCAL
-          }/uploadcreate?q=${quary}&fileExtension=${file_type}&workspace_type=${"Guest"}`,
+          `${process.env.REACT_APP_API_URL_LOCAL}/uploadcreate?q=${query}&fileExtension=${file_type}&workspace_type=${workspace_type}`,
           formData,
           {
             headers: {
@@ -516,7 +541,7 @@ const GuestTeamSpace = () => {
             },
           }
         );
-        setDoctypeName(""); // Resetting the doctypeName state variable
+        setDoctypeName("");
         setFileName(response.data);
         if (response.status == 200) {
           notification["success"]({
@@ -659,11 +684,13 @@ const GuestTeamSpace = () => {
         console.error("Error downloading the file:", error);
       });
   };
+  // ------------------------------------------------Start Share Link Modal
   const [shareId, setShareId] = useState({});
   const [shareLink, setShareLink] = useState([]);
   const [openLink, setOpenLink] = useState(false);
-  const [error, setError] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [getExpiry, setGetExpiry] = useState("");
+  console.log(getExpiry, "getExpiry");
   const [shareFormData, setShareFormData] = useState({
     Email: "",
     Password: "",
@@ -687,18 +714,61 @@ const GuestTeamSpace = () => {
     comment: false,
     properties: false,
   });
-
-  const handleClickLinkOpen = (id, file_type, name) => {
+  const handleClickLinkOpen = (id, file_type, name, expiry_date) => {
+    setGetExpiry(expiry_date);
     setShareId({ id: id, file_type: file_type, name: name });
     setOpenLink(true);
   };
   const handleLinkClose = () => {
     resetState();
+    setError(false);
     setOpenLink(false);
     resetCheckboxState();
   };
   const handleDateChange = (date) => {
     setSelectedDate(date);
+  };
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handlePasswordChange = (event) => {
+    const newPassword = event.target.value;
+    let hasError = false;
+    let errorMessage = "";
+    if (isLogin.user_type === "User") {
+      const {
+        minimum_character,
+        minimum_numeric,
+        minimum_Alphabets,
+        minimum_special_character,
+      } = PermissionPolicy[0];
+      if (newPassword?.length < minimum_character) {
+        hasError = true;
+        errorMessage = `Password must be at least ${minimum_character} characters long.`;
+      } else {
+        const numericCount = (newPassword.match(/\d/g) || "").length;
+        const alphabetsCount = (newPassword.match(/[a-zA-Z]/g) || "").length;
+        const specialCount = (newPassword.match(/[^a-zA-Z0-9]/g) || "").length;
+
+        if (minimum_numeric && numericCount < minimum_numeric) {
+          hasError = true;
+          errorMessage = `Password must contain at least ${minimum_numeric} numeric character(s).`;
+        } else if (minimum_Alphabets && alphabetsCount < minimum_Alphabets) {
+          hasError = true;
+          errorMessage = `Password must contain at least ${minimum_Alphabets} alphabet character(s).`;
+        } else if (
+          minimum_special_character &&
+          specialCount < minimum_special_character
+        ) {
+          hasError = true;
+          errorMessage = `Password must contain at least ${minimum_special_character} special character(s).`;
+        }
+      }
+      setError(hasError);
+      setErrorMessage(errorMessage);
+    }
+    setPassword(newPassword);
   };
   const handleShareData = (e) => {
     const { name, value } = e.target;
@@ -714,11 +784,8 @@ const GuestTeamSpace = () => {
       [name]: checked,
     }));
   };
-  const handleFileClose = () => {
-    resetFileForm();
-    setLoading(false);
-  };
   const onFetchlink = () => {
+    setLoading(true);
     let data = {
       id: shareId.id,
       link_expiry: selectedDate,
@@ -726,16 +793,18 @@ const GuestTeamSpace = () => {
       email: shareFormData?.Email,
       file_type: shareId.file_type || "",
       workspace_name: shareFormData.workspace_name,
+      sharedfrom: guestTableData?.workspace_type,
+      shared_workspace_id: workSpaceData.workspace_id,
       name: shareId.name,
       message: shareFormData.Message,
       subject: shareFormData.Subject,
-      password: shareFormData.Password,
+      password: password,
       user_email: shareFormData?.userDropdowns?.email,
       view: checkboxValues.view,
       share: checkboxValues.share,
       rename: checkboxValues.rename,
       upload_folder: checkboxValues.upload_folder,
-      create_folder: JSON.stringify(checkboxValues.create_folder),
+      create_folder: checkboxValues.create_folder,
       upload_file: checkboxValues.upload_file,
       delete_action: checkboxValues.delete,
       download: checkboxValues.download,
@@ -747,28 +816,25 @@ const GuestTeamSpace = () => {
     getfetchlink(
       data,
       (apiRes) => {
+        setLoading(false);
+        handleLinkClose();
         setShareLink(apiRes?.data);
-        // Show success notification
         notification["success"]({
           placement: "top",
           description: "",
-          message: "Link Shared Successfully...",
+          message: apiRes?.data.message,
           style: {
             height: 60,
           },
         });
-        handleLinkClose();
       },
       (apiErr) => {
-        // For example, you can show an error notification if needed
         notification["error"]({
           placement: "top",
-          description: "An error occurred while sharing the link.",
-          message: "Error",
-          style: {
-            height: 60,
-          },
+          description: "",
+          message: apiErr?.response?.data?.message,
         });
+        setLoading(false);
       }
     );
   };
@@ -781,6 +847,7 @@ const GuestTeamSpace = () => {
       Message: "",
       Subject: "",
     });
+    setPassword("");
   };
   const resetCheckboxState = () => {
     setCheckboxValues({
@@ -816,10 +883,16 @@ const GuestTeamSpace = () => {
       label: "Update D/T",
     },
     {
-      id: "Uploaded By",
+      id: "expiry_date",
       numeric: false,
       disablePadding: true,
-      label: "Uploaded By",
+      label: "Expiry Date",
+    },
+    {
+      id: "Shared By",
+      numeric: false,
+      disablePadding: true,
+      label: "Shared By",
     },
     {
       id: "Size",
@@ -853,10 +926,6 @@ const GuestTeamSpace = () => {
   ]);
   useEffect(() => {
     setList([{ id: "its_me", folder_name: "GuestWorkspace" }]);
-    getAllfoldernames({
-      workspace_name: retrievedWorkspaceName,
-      workspace_id: retrievedWorkspaceId,
-    });
   }, [workSpaceData?.workspace_name]);
   const nestedFolder = (obj, folderName) => {
     if (folderName == "ws1") {
@@ -880,15 +949,35 @@ const GuestTeamSpace = () => {
       workspace_name: data?.workspace_name,
       workspace_id: data?.workspace_id,
     };
+    if (data.levels == 0) {
+      setDefaultPermission(data);
+    }
+    if (
+      data.view == "true" ||
+      data.rename == "true" ||
+      data.download == "true" ||
+      data.move == "true" ||
+      data.share == "true" ||
+      data.delete_action == "true" ||
+      data.comment == "true" ||
+      data.properties == "true" ||
+      data.rights == "true" ||
+      data.create_folder == "true" ||
+      data.upload_file == "true" ||
+      data.upload_folder == "true"
+    ) {
+      setDefaultPermission(data);
+    }
+    setGuestTableData(data);
     getAllfoldernames(apiData);
     setCurrentFolderData(data);
-
-    localStorage.setItem("permission", JSON.stringify(data));
-    localStorage.setItem("create_folder", data.create_folder);
-    localStorage.setItem("upload_file", data.upload_file);
-    localStorage.setItem("upload_folder", data.upload_folder);
   };
+  const [permissionD, setPermissionD] = useState({});
   const callApiHeader = async (data) => {
+    setPermissionD(data);
+    if (data?.folder_name == "GuestWorkspace") {
+      setDefaultPermission({});
+    }
     if (data.id === "its_me") {
       getAllfoldernames({
         workspace_name: retrievedWorkspaceName,
@@ -903,10 +992,10 @@ const GuestTeamSpace = () => {
       setList([{ id: "its_me", folder_name: "GuestWorkspace" }]);
     } else {
       let apiData = {
-        parent_id: data?.id,
-        levels: data?.levels + 1,
-        workspace_name: data?.workspace_name,
-        workspace_id: data?.workspace_id,
+        parent_id: data.id,
+        levels: data.levels + 1,
+        workspace_name: retrievedWorkspaceName,
+        workspace_id: retrievedWorkspaceId,
       };
       getAllfoldernames(apiData);
       setCurrentFolderData(data);
@@ -914,10 +1003,6 @@ const GuestTeamSpace = () => {
       arr.splice(data.index + 1, 100);
       setList(arr);
     }
-    localStorage.setItem("permission", JSON.stringify(data));
-    localStorage.setItem("create_folder", data.create_folder);
-    localStorage.setItem("upload_file", data.upload_file);
-    localStorage.setItem("upload_folder", data.upload_folder);
   };
   // ---------------------------------Properties
   const [propertiesModel, setPropertiesModel] = useState(false);
@@ -1118,21 +1203,19 @@ const GuestTeamSpace = () => {
   // ---------------------------------move
   // ---------------------------------Ws1 Rights
   const checkboxData = [
-    { label: "View", name: "view", style: { marginLeft: "-8.8px" } },
-    { label: "Move", name: "move", style: { marginLeft: "11px" } },
-    { label: "Share", name: "share", style: { marginLeft: "35px" } },
-    { label: "Rights", name: "rights", style: { marginLeft: "29px" } },
+    { label: "View", name: "view" },
+    { label: "Move", name: "move" },
+    { label: "Share", name: "share" },
+    { label: "Rights", name: "rights" },
     { label: "Rename", name: "rename" },
-    { label: "Delete", name: "delete", style: { marginLeft: "-10px" } },
+    { label: "Delete", name: "delete" },
     {
       label: "Comments",
       name: "comment",
-      style: { marginLeft: "30px" },
     },
     {
       label: "Download",
       name: "download",
-      style: { marginLeft: "-6px" },
     },
     {
       label: "Properties",
@@ -1141,18 +1224,15 @@ const GuestTeamSpace = () => {
     {
       label: "Upload Folder",
       name: "upload_folder",
-      style: { marginLeft: "-25px" },
     },
     {
       label: "Create Folder",
       name: "create_folder",
-      style: { marginLeft: "-22px" },
     },
 
     {
       label: "Upload File",
       name: "upload_file",
-      style: { marginLeft: "-22px" },
     },
   ];
   const [PermissionEditedId, setPermissionEditedId] = useState(0);
@@ -1204,7 +1284,7 @@ const GuestTeamSpace = () => {
           id: PermissionEditedId?.permissionId,
           file_id: PermissionEditedId?.id,
           file_name: PermissionEditedId.file_name,
-          policy_type: "Guest",
+          policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
           rename: checkboxWs1.rename,
@@ -1225,7 +1305,7 @@ const GuestTeamSpace = () => {
           id: PermissionEditedId?.permissionId,
           folder_id: PermissionEditedId?.id,
           folder_name: PermissionEditedId.folder_name,
-          policy_type: "Guest",
+          policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
           rename: checkboxWs1.rename,
@@ -1272,7 +1352,7 @@ const GuestTeamSpace = () => {
       if (file_type) {
         data = {
           file_id: id,
-          policy_type: "Guest",
+          policy_type: "My Workspace",
           file_name: file_name,
           view: checkboxWs1.view,
           share: checkboxWs1.share,
@@ -1292,7 +1372,7 @@ const GuestTeamSpace = () => {
       } else {
         data = {
           folder_id: id,
-          policy_type: "Guest",
+          policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
           folder_name: folder_name,
@@ -1379,11 +1459,11 @@ const GuestTeamSpace = () => {
       { label: "View", name: "view" },
       { label: "Move", name: "move" },
       { label: "Share", name: "share" },
+      { label: "Rename", name: "rename" },
       {
         label: "Rights",
         name: "rights",
       },
-      { label: "Rename", name: "rename" },
       {
         label: "Delete",
         name: "delete",
@@ -1400,19 +1480,19 @@ const GuestTeamSpace = () => {
         label: "Properties",
         name: "properties",
       },
-      // {
-      //   label: "Upload Folder",
-      //   name: "upload_folder",
-      // },
-      // {
-      //   label: "Create Folder",
-      //   name: "create_folder",
-      // },
+      {
+        label: "Upload Folder",
+        name: "upload_folder",
+      },
+      {
+        label: "Create Folder",
+        name: "create_folder",
+      },
 
-      // {
-      //   label: "Upload File",
-      //   name: "upload_file",
-      // },
+      {
+        label: "Upload File",
+        name: "upload_file",
+      },
     ],
     buttonLabels: {
       agree: "Grant Access",
@@ -1440,13 +1520,37 @@ const GuestTeamSpace = () => {
       selected_users: [],
     });
   };
-
   // ---------------------------------Ws1 Rights
+  // ---------------------------------workspace Permission
+  useEffect(() => {
+    workspacePermission();
+    getallfolderPermission();
+  }, [workspace.length, workSpaceData, shareId.id, PermissionEditedId.id]);
+
+  const workspacePermission = () => {
+    workspace?.forEach((data) => {
+      if (data.workspace_name === workSpaceData?.workspace_name) {
+        setWorkspacePermissionWs1(data.workspacePermission);
+      }
+    });
+  };
+  const getallfolderPermission = () => {
+    allfolderlist?.forEach((data) => {
+      if (
+        (data.workspace_name === workSpaceData?.workspace_name &&
+          data.id === shareId.id) ||
+        data.id === PermissionEditedId.id
+      ) {
+        setGetAllfolderPermission(data.permission);
+      }
+    });
+  };
+  // ---------------------------------workspace Permission
   return (
     <>
-      <Head title="Guest - Regular"></Head>
+      <Head title="My Workspace - Regular"></Head>
       <Content>
-        <Stack style={{ marginTop: "-58px" }}>
+        <Stack style={{ marginTop: "-28px" }}>
           {loading ? (
             <LinearProgress
               color="primary"
@@ -1471,11 +1575,15 @@ const GuestTeamSpace = () => {
           )}
           <ModalPop
             open={openDelete.status}
-            handleClose={handleCloseDelete}
             handleOkay={onDeleteClick}
-            title="User Delete?  You Sure!"
             data={openDelete?.data?.id}
+            handleClose={handleCloseDelete}
             file_type={openDelete.data.file_type}
+            title={
+              openDelete.data.file_type
+                ? "File Deleted?  You Sure!"
+                : "Folder Deleted?  You Sure!"
+            }
           />
           <FileFolderProperties
             list={list}
@@ -1487,16 +1595,17 @@ const GuestTeamSpace = () => {
             autocomplete="true"
             isLogin={isLogin}
             data={openDialog.data}
-            permissionForm={permissionForm}
             permission={permissionWs1}
             checkboxValues={checkboxWs1}
-            userDropdowns={permissionUserList}
             openDialog={openDialog.status}
             groupsDropdown={groupsDropdown}
-            workspacePermissionWs1={workspacePermissionWs1}
-            handleClickPermission={onSubmitAddPermission}
+            permissionForm={permissionForm}
+            userDropdowns={permissionUserList}
             handleCheckboxChange={handleCheckboxWs1}
+            handleClickPermission={onSubmitAddPermission}
             handleClosePermission={handleClosePermission}
+            workspacePermissionWs1={workspacePermissionWs1}
+            getAllfolderPermission={getAllfolderPermission}
             handleAutocompleteChange={handleAutocompleteChange}
           />
           <FileFolderComments
@@ -1530,50 +1639,56 @@ const GuestTeamSpace = () => {
             handleCloseMove={handleCloseMove}
             onSubmitUpdatefolder={onSubmitUpdatefolder}
           />
-          <CreateLinkModel
+          <GuestShareing
             error={error}
+            isLogin={isLogin}
             moveData={moveData}
             openLink={openLink}
+            password={password}
+            guestFromshow="false"
             workspace={workspace}
+            shareLink={shareLink}
             teamSpace={teamSpace}
-            userDropdowns={userDropdowns}
+            errorMessage={errorMessage}
             selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
+            userDropdowns={userDropdowns}
+            getExpiry={getExpiry}
+            accesscheckbox={checkboxData}
             shareFormData={shareFormData}
             checkboxValues={checkboxValues}
+            setSelectedDate={setSelectedDate}
             handleShareData={handleShareData}
             handleLinkClose={handleLinkClose}
             handleDateChange={handleDateChange}
-            handleCheckboxChange={handleCheckboxChange}
             handleSubmitShareData={onFetchlink}
-            shareLink={shareLink}
-            accesscheckbox={checkboxData}
+            handlePasswordChange={handlePasswordChange}
+            handleCheckboxChange={handleCheckboxChange}
+            getAllfolderPermission={getAllfolderPermission}
+            workspacePermissionWs1={workspacePermissionWs1}
           />
           <GuestTSFileUpload
-            open={openFileModal}
-            editFileId={editFileId}
             loading={loading}
-            fileNameInput={fileNameInput}
-            handleChangeFile={handleChangeFile}
-            matchedWorkspace={matchedWorkspace}
             selectedFile={file}
-            handleDoctypeAutocomplete={handleDoctypeAutocomplete}
             fileName={fileName}
-            close={CancelFileUpload}
+            open={openFileModal}
+            formValues={formValues}
+            editFileId={editFileId}
+            close={file ? CancelFileUpload : handleCloseFileModal}
             handleOkay={handleSubmit}
             Properties={addProperties}
             docListUpload={docListUpload}
-            handleCloseFileModal={handleCloseFileModal}
+            fileNameInput={fileNameInput}
+            handleChangeFile={handleChangeFile}
+            matchedWorkspace={matchedWorkspace}
             handleFileChange={handleFileChange}
+            handleInputChange={handleInputChange}
+            handleCloseFileModal={handleCloseFileModal}
+            handleDoctypeAutocomplete={handleDoctypeAutocomplete}
             fileDesc={(e) => {
               setFileDesc(e.target.value);
             }}
-            handleInputChange={handleInputChange}
-            formValues={formValues}
           />
           <GuestTSHeader
-            openFolderModal={handleOpenFolderModal}
-            openModal1={() => setFileModal({ ...fileModal, status: true })}
             sm={sm}
             list={list}
             isLogin={isLogin}
@@ -1582,27 +1697,29 @@ const GuestTeamSpace = () => {
             policies={propertys}
             findFolder={findFolder}
             searchTerm={searchTerm}
-            allfolderlist={allfolderlist}
             setSearchTerm={setSearchTerm}
             callApiHeader={callApiHeader}
             openFileUpload={handleOpenFileModal}
+            defaultPermission={defaultPermission}
+            openFolderModal={handleOpenFolderModal}
             workspacePermissionWs1={workspacePermissionWs1}
+            openModal1={() => setFileModal({ ...fileModal, status: true })}
           />
           <GuestTSFolderCreate
-            open={openFolderModal}
-            handleClose={handleCloseFolderModal}
-            title="Create Folder"
-            buttonSuccessTitle="Create"
             id={id}
+            type="form"
+            input={input}
+            title="Create Folder"
+            open={openFolderModal}
+            buttonSuccessTitle="Create"
             addNew={onFolderFormSubmit}
             editFolderId={editFolderId}
-            input={input}
-            type="form"
+            handleChange={handleChangeFolder}
+            folderNameInput={folderNameInput}
+            handleClose={handleCloseFolderModal}
             inputList={[
               { type: "text", name: "name", placeholder: "Enter Folder Name" },
             ]}
-            handleChange={handleChangeFolder}
-            folderNameInput={folderNameInput}
           />
           <GuestTSTable
             rows={folderList}
@@ -1615,9 +1732,12 @@ const GuestTeamSpace = () => {
             allfolderlist={allfolderlist}
             onFileDownload={onFileDownload}
             handleClickMove={handleClickMove}
+            onEditFileClick={onEditFileClick}
             PermissionPolicy={PermissionPolicy}
             onDownloadfolders={onDownloadfolders}
+            defaultPermission={defaultPermission}
             handleOpenDeleteFile={handleClickOpen}
+            openEditFolderModal={onEditFolderClick}
             handleClickLinkOpen={handleClickLinkOpen}
             handleOpenPermission={handleOpenPermission}
             onEditPermissionClick={onEditPermissionClick}
@@ -1625,8 +1745,6 @@ const GuestTeamSpace = () => {
             handleClickVersionOpen={handleClickVersionOpen}
             handleClickOpenCommets={handleClickOpenCommets}
             handleClickOpenProperties={handleClickOpenProperties}
-            openEditFolderModal={onEditFolderClick}
-            onEditFileClick={onEditFileClick}
           />
         </Stack>
       </Content>

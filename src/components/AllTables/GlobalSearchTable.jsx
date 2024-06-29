@@ -68,7 +68,6 @@ export default function GlobalSearchTable({
   searchTerm,
   handleChange,
   handleSearch,
-  allfolderlist,
   onFileDownload,
   onDownloadfolders,
   handleClickLinkOpen,
@@ -80,6 +79,8 @@ export default function GlobalSearchTable({
       id: id,
       file: data,
       filemongo_id: filemongo_id,
+      workspace_type: "GlobalSearch",
+      commentHide: "true",
     });
   };
   const [page, setPage] = React.useState(0);
@@ -150,13 +151,12 @@ export default function GlobalSearchTable({
     }
   }
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
+
   return (
     <Box>
       <Stack
         flexDirection="row"
-        style={{ padding: "0px 0px 5px 0px" }}
+        style={{ padding: "0px 0px 5px 0px",marginTop:"5px" }}
         mt={-2.5}
       >
         <AutoComplete
@@ -183,13 +183,14 @@ export default function GlobalSearchTable({
           onChange={handleChange}
         />
         <Button
-          variant="contained"
           onClick={handleSearch}
           style={{
             borderRadius: "5px",
             margin: "0px 0px 0px 5px",
             height: "31px",
             outline: "none",
+            background: "#6577FF",
+            color: "white",
           }}
         >
           View
@@ -208,7 +209,7 @@ export default function GlobalSearchTable({
               headCells={headCells}
             />
             <TableBody>
-              {allfolderlist
+              {rows
                 ?.filter((item) =>
                   (item.file_name || item.folder_name)
                     ?.toLowerCase()
@@ -216,7 +217,6 @@ export default function GlobalSearchTable({
                 )
                 .map((data, index) => {
                   const isItemSelected = isSelected(data.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
                   const originalTimestamp = data.updatedAt;
                   const originalDate = new Date(originalTimestamp);
                   const options = {
@@ -228,7 +228,7 @@ export default function GlobalSearchTable({
                     hour12: false,
                   };
                   const convertedTimestamp = originalDate.toLocaleString(
-                    "en-US",
+                    "en-GB",
                     options
                   );
 
@@ -494,13 +494,11 @@ export default function GlobalSearchTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
+              {!rows.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -509,7 +507,7 @@ export default function GlobalSearchTable({
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

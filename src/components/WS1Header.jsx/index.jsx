@@ -1,29 +1,27 @@
-import { IconButton, Link, Stack, TextField, Typography } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import {
-  BlockBetween,
-  BlockHead,
-  BlockHeadContent,
-  Button,
-  Icon,
-} from "../Component";
-import SearchIcon from "@mui/icons-material/Search";
-// import SearchBar from "../SearchBar";
 import SearchBar from "../../components/SearchBar";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Icon,
+  Button,
+  BlockHead,
+  BlockBetween,
+  BlockHeadContent,
+} from "../Component";
 
 const WS1Header = ({
   sm,
   list,
   isLogin,
-  policies,
   heading,
   updateSm,
-  openFolderModal,
   findFolder,
   searchTerm,
   setSearchTerm,
   callApiHeader,
   openFileUpload,
+  openFolderModal,
   workspacePermissionWs1,
 }) => {
   const [open, setOpen] = useState(false);
@@ -32,11 +30,9 @@ const WS1Header = ({
     add: false,
   });
   useEffect(() => {
-    // After 5 seconds, set open to false
     const timeoutId = setTimeout(() => {
       setOpen(false);
     }, 15000);
-    // Clean up the timeout when the component unmounts or when open changes
     return () => clearTimeout(timeoutId);
   }, []);
   return (
@@ -50,7 +46,7 @@ const WS1Header = ({
                 fontWeight: "bold",
               }}
             >
-              {heading == "true" ? <>Global Search</> : <>My Workspace</>}
+              {heading}
             </Typography>
           </BlockHeadContent>
           <BlockHeadContent>

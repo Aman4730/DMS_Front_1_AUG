@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Button } from "../Component";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
@@ -11,6 +10,7 @@ import {
   Typography,
   Autocomplete,
   FormControlLabel,
+  Button,
 } from "@mui/material";
 export default function Ws1_Rights({
   data,
@@ -22,8 +22,9 @@ export default function Ws1_Rights({
   checkboxValues,
   groupsDropdown,
   permissionForm,
-  handleCheckboxChange,
+  handleCheckboxWs1,
   handleClickPermission,
+  getAllfolderPermission,
   handleClosePermission,
   workspacePermissionWs1,
   handleAutocompleteChange,
@@ -37,11 +38,11 @@ export default function Ws1_Rights({
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
         fullWidth
-        maxWidth="sm" //xs, sm, md, lg, xl
+        maxWidth="sm"
       >
         <DialogTitle fontSize="17px">{title}</DialogTitle>
         <DialogContent>
-          <Grid container pt={0.8} spacing={1}>
+          <Grid container id="form">
             {autocomplete && (
               <>
                 <Grid item xs={6}>
@@ -54,7 +55,7 @@ export default function Ws1_Rights({
                     getOptionLabel={(option) => option}
                     filterSelectedOptions
                     renderInput={(params) => (
-                      <TextField {...params} label="selected_group" />
+                      <TextField {...params} label="Select Group" />
                     )}
                     value={permissionForm?.selected_group}
                     onChange={(event, value) =>
@@ -72,7 +73,7 @@ export default function Ws1_Rights({
                     getOptionLabel={(option) => option}
                     filterSelectedOptions
                     renderInput={(params) => (
-                      <TextField {...params} label="Selected Users" />
+                      <TextField {...params} label="Select Users" />
                     )}
                     value={permissionForm?.selected_users}
                     onChange={(event, value) =>
@@ -82,47 +83,34 @@ export default function Ws1_Rights({
                 </Grid>
               </>
             )}
-
             {permissionArray?.map((data) => {
               if (
-                (((data?.name == "view") == true) ===
-                  workspacePermissionWs1?.view) ==
-                  true ||
-                (((data?.name == "share") == true) ===
-                  workspacePermissionWs1?.share) ==
-                  true ||
-                (((data?.name == "move") == true) ===
-                  workspacePermissionWs1?.move) ==
-                  true ||
-                (((data?.name == "rights") == true) ===
-                  workspacePermissionWs1?.rights) ==
-                  true ||
-                (((data?.name == "rename") == true) ===
-                  workspacePermissionWs1?.rename) ==
-                  true ||
-                (((data?.name == "upload_folder") == true) ===
-                  workspacePermissionWs1?.upload_folder) ==
-                  true ||
-                (((data?.name == "create_folder") == true) ===
-                  workspacePermissionWs1?.create_folder) ==
-                  true ||
-                (((data?.name == "upload_file") == true) ===
-                  workspacePermissionWs1?.upload_file) ==
-                  true ||
-                (((data?.name == "delete") == true) ===
-                  workspacePermissionWs1?.delete_per) ==
-                  true ||
-                (((data?.name == "download") == true) ===
-                  workspacePermissionWs1?.download_per) ==
-                  true ||
-                (((data?.name == "comment") == true) ===
-                  workspacePermissionWs1?.comments) ==
-                  true ||
-                (((data?.name == "properties") == true) ===
-                  workspacePermissionWs1?.properties) ==
-                  true ||
-                isLogin.user_type === "Admin"
-              ) {
+                (data.name == "view") &&
+                 ( workspacePermissionWs1.view == true || getAllfolderPermission.view==true)||
+                  (data.name == "move") &&
+                 ( workspacePermissionWs1.move == true || getAllfolderPermission.move==true)||
+                  (data.name == "share") &&
+                 ( workspacePermissionWs1.share == true || getAllfolderPermission.share==true)||
+                  (data.name == "rights") &&
+                 ( workspacePermissionWs1.rights == true || getAllfolderPermission.rights==true)||
+                  (data.name == "rename") &&
+                 ( workspacePermissionWs1.rename == true || getAllfolderPermission.rename==true)||
+                  (data.name == "delete") &&
+                 ( workspacePermissionWs1.delete_per == true || getAllfolderPermission.delete_per==true)||
+                  (data.name == "comment") &&
+                 ( workspacePermissionWs1.comments == true || getAllfolderPermission.comments==true)||
+                 (data.name == "download") &&
+                 ( workspacePermissionWs1.download_per == true || getAllfolderPermission.download_per==true)||
+                 (data.name == "properties") &&
+                 ( workspacePermissionWs1.properties == true || getAllfolderPermission.properties==true)||
+                 (data.name == "upload_folder") &&
+                 ( workspacePermissionWs1.upload_folder == true || getAllfolderPermission.upload_folder==true)||
+                 (data.name == "create_folder") &&
+                 ( workspacePermissionWs1.create_folder == true || getAllfolderPermission.create_folder==true)||
+                 (data.name == "upload_file") &&
+                 ( workspacePermissionWs1.upload_file == true || getAllfolderPermission.upload_file==true)||
+                 isLogin.user_type === "Admin"
+                ){
                 return (
                   <Grid item key={data.label} xs={3}>
                     <FormControlLabel
@@ -130,20 +118,18 @@ export default function Ws1_Rights({
                         <Checkbox
                           name={data?.name}
                           checked={checkboxValues[data?.name]}
-                          onChange={handleCheckboxChange}
+                          onChange={handleCheckboxWs1}
                         />
                       }
                       label={
                         <Typography
                           variant="body2"
-                          style={{ fontSize: "15px" }}
-                          sx={{ pl: -1 }}
+                          style={{ fontSize: "14px" }}
                         >
                           {data.label}
                         </Typography>
                       }
-                      sx={{ pl: 0.4 }}
-                      style={data.style}
+                      sx={{ width: "100%", mb: -1.3 }}
                     />
                   </Grid>
                 );
@@ -152,8 +138,15 @@ export default function Ws1_Rights({
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClosePermission}>Cancel</Button>
           <Button
+            id="closeBtn"
+            variant="outlined"
+            onClick={handleClosePermission}
+          >
+            Cancel
+          </Button>
+          <Button
+            id="submitBtn"
             onClick={() =>
               handleClickPermission(
                 data?.id,
@@ -162,8 +155,6 @@ export default function Ws1_Rights({
                 data?.folder_name
               )
             }
-            size="md"
-            color="primary"
           >
             Submit
           </Button>

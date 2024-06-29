@@ -64,8 +64,6 @@ export default function DataGridCard({ tableData }) {
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("name");
   const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -97,17 +95,14 @@ export default function DataGridCard({ tableData }) {
     }
   }
   const isSelected = (name) => selected.indexOf(name) !== -1;
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   return (
     <Box>
       <Paper>
         <TableContainer
           style={{
-            height: "260px",
-            width: "65.7vw",
-            borderRadius: "10px",
+            height: "40.7vh",
+            borderRadius: "7px",
           }}
         >
           <Table aria-labelledby="tableTitle" size={"small"}>
@@ -183,18 +178,14 @@ export default function DataGridCard({ tableData }) {
                         height="22px"
                         style={{ marginRight: "10px", marginBottom: "2px" }}
                       />
-                      {/* <svg href="/Image/docx.svg"></svg> */}
-
                       {data?.file_name || data?.folder_name}
                     </TableCell>
-
                     <TableCell style={{ fontSize: "12px" }}>
                       {data.email}
                     </TableCell>
                     <TableCell style={{ fontSize: "12px" }}>
                       {data.workspace_name}
                     </TableCell>
-
                     <TableCell
                       style={{
                         fontSize: "12px",

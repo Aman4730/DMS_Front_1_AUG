@@ -52,6 +52,8 @@ export default function FileVersion({
       id: id,
       file: data,
       filemongo_id: filemongo_id,
+      workspace_type: "my-workspace",
+      commentHide: "true",
     });
   };
   return (
@@ -117,7 +119,6 @@ export default function FileVersion({
                     }}
                   >
                     <TableCell
-                      onClick={() => callApi(data)}
                       className="tablefont"
                       style={{
                         fontSize: "13px",
@@ -172,21 +173,21 @@ export default function FileVersion({
                         title="Download"
                         onClick={() => {
                           if (data.file_type) {
-                            onFileDownload(data.filemongo_id, data.file_name);
+                            onFileDownload(
+                              data.filemongo_id,
+                              data.file_name,
+                              data.file_type
+                            );
                           } else {
-                            onDownloadfolders(data.id, data.folder_name);
+                            onDownloadfolders(
+                              data.id,
+                              data.folder_name,
+                              data.file_type
+                            );
                           }
                         }}
                       >
                         <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} />
-                      </Tooltip>
-                      <Tooltip
-                        title="Delete"
-                        onClick={() =>
-                          handleOpenDeleteFile(data.id, data.file_type)
-                        }
-                      >
-                        <DeleteIcon fontSize="small" />
                       </Tooltip>
                     </TableCell>
                   </TableRow>
@@ -196,7 +197,20 @@ export default function FileVersion({
           </Table>
         </TableContainer>
         <DialogActions>
-          <Button onClick={handleVersionClose}>Close</Button>
+          <Button
+            variant="outlined"
+            style={{
+              marginLeft: "5px",
+              height: "35px",
+              width: "80px",
+              outline: "none",
+              borderColor: "#7460ff",
+              color: "#7460ff",
+            }}
+            onClick={handleVersionClose}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

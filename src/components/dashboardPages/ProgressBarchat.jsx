@@ -1,8 +1,16 @@
 import "./style.css";
 import React from "react";
-import { Card, Grid } from "@mui/material";
+import { Card, Grid, Typography } from "@mui/material";
+import Icon from "../icon/Icon";
 
-const ProgressBar = ({ label, initialPercentage, isUser, used_quota }) => {
+const ProgressBar = ({
+  label,
+  initialPercentage,
+  isUser,
+  used_quota,
+  icon,
+  style,
+}) => {
   const barColor = isUser ? "#48C9B0" : "#3498DB";
   const calculatedPercentage = (used_quota / initialPercentage) * 100;
   const roundedPercentage = calculatedPercentage.toFixed(2);
@@ -22,12 +30,13 @@ const ProgressBar = ({ label, initialPercentage, isUser, used_quota }) => {
       >
         <div
           style={{
-            width: "150px",
+            width: "225px",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
           }}
         >
+          <Icon name={icon} style={style}></Icon>
           {label}
         </div>
         <div
@@ -63,50 +72,57 @@ const ProgressBar = ({ label, initialPercentage, isUser, used_quota }) => {
 
 const ProgressBarchat = ({ quotadetail, userquota }) => {
   return (
-    <Card
-      sx={{
-        ml: 2,
-        mr: 2,
-        mb: 1,
-        overflowY: "hidden",
-        maxHeight: "184px",
-        fontFamily: "Arial, sans-serif",
-        padding: "15px 0px 15px 15px",
-        borderRadius: "10px",
-      }}
-    >
-      <h6>Storage Quota</h6>
-      <div
-        style={{
-          maxHeight: "150px",
-          overflowY: "auto",
-          paddingBottom: "15px",
-        }}
-      >
-        <Grid container>
-          {quotadetail.map((data, index) => (
-            <Grid item xs={12} key={index}>
-              <ProgressBar
-                label={data.workspace_name}
-                initialPercentage={data.workspace_quota}
-                used_quota={data.used_quota}
-                isUser={false}
-              />
+    <Grid item xs={12} container spacing={1}>
+      <Grid item lg={12} sm={12} xs={12}>
+        <Card
+          sx={{
+            overflowY: "hidden",
+            fontFamily: "Arial, sans-serif",
+            padding: "15px 0px 15px 15px",
+            borderRadius: "7px",
+          }}
+        >
+          <h6>Storage Quota</h6>
+          <div
+            style={{
+              maxHeight: "25vh",
+              overflowY: "auto",
+              paddingBottom: "15px",
+            }}
+          >
+            <Grid container>
+              {quotadetail.map((data, index) => (
+                <Grid item xs={12} key={index}>
+                  <ProgressBar
+                    label={data.workspace_name}
+                    initialPercentage={data.workspace_quota}
+                    used_quota={data.used_quota}
+                    isUser={false}
+                    icon="folder-fill"
+                    style={{ marginRight: "2px", color: "#F4D03F" }}
+                  />
+                </Grid>
+              ))}
+              {userquota.map((data, index) => (
+                <Grid item xs={12} key={index}>
+                  <ProgressBar
+                    label={data.user_email}
+                    initialPercentage={data.max_quota}
+                    used_quota={data.used_quota}
+                    isUser={true}
+                    icon="user-fill"
+                    style={{ marginRight: "2px", color: "#117A65" }}
+                  />
+                </Grid>
+              ))}
             </Grid>
-          ))}
-          {userquota.map((data, index) => (
-            <Grid item xs={12} key={index}>
-              <ProgressBar
-                label={data.user_email}
-                initialPercentage={data.max_quota}
-                used_quota={data.used_quota}
-                isUser={true}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </div>
-    </Card>
+            {!quotadetail.length && !userquota.length ? (
+              <Typography>No storage available</Typography>
+            ) : null}
+          </div>
+        </Card>
+      </Grid>
+    </Grid>
   );
 };
 

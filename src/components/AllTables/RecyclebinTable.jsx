@@ -1,18 +1,18 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
+import TableRow from "@mui/material/TableRow";
 import EditIcon from "@mui/icons-material/Edit";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import DeleteIcon from "@mui/icons-material/Delete";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import TableContainer from "@mui/material/TableContainer";
+import TablePagination from "@mui/material/TablePagination";
 import FastRewindIcon from "@mui/icons-material/FastRewind";
 
 function EnhancedTableHead(props) {
@@ -125,9 +125,6 @@ export default function RecyclebinTable({
         return "/Image/default.svg";
     }
   }
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
-
   return (
     <Box>
       <Paper>
@@ -151,9 +148,8 @@ export default function RecyclebinTable({
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   const isItemSelected = isSelected(row?.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-                  const originalTimestamp = row.updatedAt;
-                  const originalDate = new Date(originalTimestamp);
+                  const originalTimestamp = row?.deleted_at;
+                  const originalDate = new Date(parseInt(originalTimestamp)*1000);
                   const options = {
                     year: "numeric",
                     month: "2-digit",
@@ -162,11 +158,10 @@ export default function RecyclebinTable({
                     minute: "2-digit",
                     hour12: false,
                   };
-                  const convertedTimestamp = originalDate.toLocaleString(
-                    "en-US",
+                  const convertedTimestamp = originalDate.toLocaleDateString(
+                    "en-GB",
                     options
                   );
-
                   function formatFileSize(sizeInBytes) {
                     if (sizeInBytes < 1024) {
                       return sizeInBytes + " B";
@@ -191,7 +186,6 @@ export default function RecyclebinTable({
                       tabIndex={-1}
                       key={index}
                       selected={isItemSelected}
-                      sx={{ cursor: "pointer" }}
                     >
                       <TableCell
                         // onClick={() => callApi(data)}
@@ -219,11 +213,17 @@ export default function RecyclebinTable({
                         {row?.file_name || row?.folder_name}
                       </TableCell>
                       <TableCell style={{ fontSize: "13px" }}>
+                        {row?.deletedBy}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "13px" }}>
                         {convertedTimestamp}
+                      </TableCell>
+
+                      <TableCell style={{ fontSize: "13px" }}>
+                        {row?.daysLeft}
                       </TableCell>
                       <TableCell
                         component="th"
-                        id={labelId}
                         scope="row"
                         style={{ fontSize: "13px" }}
                       >
@@ -256,11 +256,13 @@ export default function RecyclebinTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!allfolderlist.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>

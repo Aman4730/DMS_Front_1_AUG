@@ -1,17 +1,17 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
+import TableRow from "@mui/material/TableRow";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import DeleteIcon from "@mui/icons-material/Delete";
+import TableContainer from "@mui/material/TableContainer";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import TablePagination from "@mui/material/TablePagination";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 
 function EnhancedTableHead(props) {
@@ -52,18 +52,16 @@ function EnhancedTableHead(props) {
 
 export default function DocmetaTable({
   rows,
-  toggle,
   setModal,
   headCells,
   searchTerm,
   onProperties,
-  allfolderlist,
   handleClickOpen,
 }) {
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("calories");
-  const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
+  const [order, setOrder] = React.useState("asc");
+  const [selected, setSelected] = React.useState([]);
+  const [orderBy, setOrderBy] = React.useState("calories");
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
@@ -101,9 +99,6 @@ export default function DocmetaTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
-
   return (
     <Box>
       <Paper>
@@ -117,11 +112,11 @@ export default function DocmetaTable({
             />
             <TableBody>
               {(rowsPerPage > 0
-                ? allfolderlist.slice(
+                ? rows.slice(
                     page * rowsPerPage,
                     page * rowsPerPage + rowsPerPage
                   )
-                : allfolderlist
+                : rows
               )
                 ?.filter((item) =>
                   item.metadata_name
@@ -130,7 +125,6 @@ export default function DocmetaTable({
                 )
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
                   return (
                     <TableRow
                       hover
@@ -140,7 +134,6 @@ export default function DocmetaTable({
                       tabIndex={-1}
                       key={index}
                       selected={isItemSelected}
-                      sx={{ cursor: "pointer" }}
                     >
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.metadata_name}
@@ -181,18 +174,20 @@ export default function DocmetaTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!rows.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

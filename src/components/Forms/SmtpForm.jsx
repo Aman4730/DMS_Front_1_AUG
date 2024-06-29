@@ -160,14 +160,7 @@ export default function SmtpForm({
             />
           </Grid>
           <Grid item xs={7} display="flex" justifyContent="end">
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              style={{
-                outline: "none",
-              }}
-              sx={{ mr: 10.5 }}
-            >
+            <Button id="submitBtn" onClick={handleSubmit} sx={{ mr: 10.5 }}>
               {editId ? "Update" : "Submit"}
             </Button>
           </Grid>
@@ -223,6 +216,7 @@ export default function SmtpForm({
               onClick={handleSubmitTestEmail}
               style={{
                 outline: "none",
+                background:"#6577FF"
               }}
               sx={{ mt: 1.2 }}
             >

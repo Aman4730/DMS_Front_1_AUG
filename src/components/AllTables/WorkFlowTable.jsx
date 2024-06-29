@@ -1,19 +1,19 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
+import { Switch } from "@mui/material";
 import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
+import TableRow from "@mui/material/TableRow";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Switch } from "@mui/material";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import TableContainer from "@mui/material/TableContainer";
+import TablePagination from "@mui/material/TablePagination";
 
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
@@ -100,9 +100,6 @@ export default function WorkFlowTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
-
   return (
     <Box>
       <Paper>
@@ -129,7 +126,6 @@ export default function WorkFlowTable({
                 )
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
                   const originalTimestamp = row.updatedAt;
                   const originalDate = new Date(originalTimestamp);
                   const options = {
@@ -141,9 +137,13 @@ export default function WorkFlowTable({
                     hour12: false,
                   };
                   const convertedTimestamp = originalDate.toLocaleString(
-                    "en-US",
+                    "en-GB",
                     options
                   );
+                  let userName = "";
+                  for (let i = 0; i < row?.user_email.length; i++) {
+                    userName = userName + "\n" + row?.user_email[i];
+                  }
                   return (
                     <TableRow
                       hover
@@ -153,7 +153,6 @@ export default function WorkFlowTable({
                       tabIndex={-1}
                       key={index}
                       selected={isItemSelected}
-                      sx={{ cursor: "pointer" }}
                     >
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.policy_name}
@@ -161,8 +160,21 @@ export default function WorkFlowTable({
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.group_admin}
                       </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.selected_users}
+                      <TableCell
+                        style={{
+                          fontSize: "12px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "150px",
+                        }}
+                      >
+                        <abbr
+                          title={userName}
+                          style={{ cursor: "pointer", textDecoration: "none" }}
+                        >
+                          {row?.user_email}
+                        </abbr>
                       </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
                         {convertedTimestamp}
@@ -184,11 +196,13 @@ export default function WorkFlowTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!allfolderlist.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>

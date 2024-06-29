@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState } from "react";
 import axios from "axios";
-import Icon from "../../components/icon/Icon";
 import classNames from "classnames";
+import Icon from "../../components/icon/Icon";
 import { NavLink, Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { UserContext } from "../../context/UserContext";
@@ -217,7 +217,6 @@ const MenuItem = ({
     </li>
   );
 };
-
 const MenuSub = ({
   icon,
   link,
@@ -247,17 +246,13 @@ const MenuSub = ({
     </ul>
   );
 };
-
 const Menu = ({ sidebarToggle, mobileView }) => {
   const { menuData, userAuthContextData } = useContext(AuthContext);
   menuData.splice(6);
   const [userDataguest] = userAuthContextData;
-  const { contextData } = useContext(UserContext);
-  const [userData] = contextData;
   const [workspacelist, setWorkspacelist] = useState([]);
   let token = localStorage.getItem("token") || "";
   const { setWorkspaceData, isLogin } = useContext(UserContext);
-
   useEffect(() => {
     const config = {
       headers: {
@@ -277,20 +272,76 @@ const Menu = ({ sidebarToggle, mobileView }) => {
       })
       .catch((error) => {});
   }, []);
+  // const subMenu = workspacelist
+  //   ?.map((data) => {
+  //     if (isLogin?.my_workspace?.includes(data.workspace_name)) {
+  //       return {
+  //         icon: "folders-fill",
+  //         text: data.workspace_name,
+  //         active: true,
+  //         link: "/my-workspace",
+  //         id: data.id,
+  //       };
+  //     }
+  //     return null;
+  //   })
+  //   .filter(Boolean);
+  // const teamMenu = workspacelist
+  //   ?.map((data) => {
+  //     if (isLogin?.teamspace?.includes(data.workspace_name)) {
+  //       return {
+  //         icon: "folders-fill",
+  //         text: data.workspace_name,
+  //         active: true,
+  //         link: "/teamSpace",
+  //         id: data.id,
+  //       };
+  //     }
+  //     return null;
+  //   })
+  //   .filter(Boolean);
+  // const dataroomMenu = workspacelist
+  // ?.map((data) => {
+  //   if (isLogin?.teamspace?.includes(data.workspace_name)) {
+  //     return {
+  //       icon: "folders-fill",
+  //       text: data.workspace_name,
+  //       active: true,
+  //       link: "/teamSpace",
+  //       id: data.id,
+  //     };
+  //   }
+  //   return null;
+  // })
+  // .filter(Boolean);
+  // new
   const subMenu = workspacelist
-    ?.map((data) => {
-      if (isLogin?.my_workspace?.includes(data.workspace_name)) {
-        return {
-          icon: "folders-fill",
-          text: data.workspace_name,
-          active: true,
-          link: "/my-workspace",
-          id: data.id,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
+    ?.filter((data) => data.workspace_type === "My Workspace")
+    .map((data) => ({
+      icon: "folders-fill",
+      text: data.workspace_name,
+      active: true,
+      link: "/my-workspace",
+      id: data.id,
+    }));
+  const teamMenu = workspacelist
+    ?.filter((data) => data.workspace_type === "TeamSpace")
+    .map((data) => ({
+      icon: "folders-fill",
+      text: data.workspace_name,
+      active: true,
+      link: "/teamSpace",
+      id: data.id,
+    }));
+  const dataroomMenu = workspacelist
+    ?.filter((data) => data.workspace_type === "Data Room")
+    .map((data) => ({
+      icon: "folders-fill",
+      text: data.workspace_name,
+      active: true,
+      link: "/dataRoom",
+      id: data.id,
+    }));
   let workSpaceMenu = [
     {
       icon: "growth-fill",
@@ -305,28 +356,6 @@ const Menu = ({ sidebarToggle, mobileView }) => {
       link: "/workspace-data",
       subMenu: subMenu,
     },
-  ];
-
-  const teamMenu = workspacelist
-    ?.map((data) => {
-      if (isLogin?.teamspace?.includes(data.workspace_name)) {
-        return {
-          icon: "folders-fill",
-          text: data.workspace_name,
-          active: true,
-          link: "/teamSpace",
-          id: data.id,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  let loginData = {};
-  const property = isLogin?.Permission?.map((data) => {
-    loginData = data;
-  });
-  let teamSpaceMenu = [
     {
       icon: "share-fill",
       text: "TeamSpace",
@@ -335,16 +364,19 @@ const Menu = ({ sidebarToggle, mobileView }) => {
       subMenu: teamMenu,
     },
     {
-      icon: "eye-fill",
-      text: "Global Search",
+      icon: "slack",
+      text: "Data Room",
       active: true,
-      link: "/GlobalSearch",
+      link: "/dataRoom",
+      subMenu: dataroomMenu,
     },
   ];
-  const run = "false";
-  // Check if the permission for the recycle bin is granted
+  let loginData = {};
+  const property = isLogin?.Permission?.map((data) => {
+    loginData = data;
+  });
   if (loginData?.recycle_bin === "true") {
-    teamSpaceMenu.push({
+    workSpaceMenu.push({
       icon: "trash-fill",
       text: "Recycle bin",
       active: true,
@@ -355,25 +387,6 @@ const Menu = ({ sidebarToggle, mobileView }) => {
   return (
     <ul className="nk-menu">
       {workSpaceMenu.map((item) =>
-        item.heading ? (
-          <MenuHeading heading={item.heading} key={item.heading} />
-        ) : userDataguest.type === "guest" ? (
-          ""
-        ) : (
-          <MenuItem
-            key={item.text}
-            link={item.link}
-            icon={item.icon}
-            iconUrl={item.iconUrl}
-            text={item.text}
-            sub={item.subMenu}
-            badge={item.badge}
-            sidebarToggle={sidebarToggle}
-            mobileView={mobileView}
-          />
-        )
-      )}
-      {teamSpaceMenu.map((item) =>
         item.heading ? (
           <MenuHeading heading={item.heading} key={item.heading} />
         ) : userDataguest.type === "guest" ? (

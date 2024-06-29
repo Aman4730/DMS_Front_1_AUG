@@ -1,5 +1,7 @@
 import { Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import SearchBar from "../../components/SearchBar";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Icon,
   Button,
@@ -7,8 +9,6 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../Component";
-import SearchBar from "../../components/SearchBar";
-import SearchIcon from "@mui/icons-material/Search";
 
 const TeamSpaceHeader = ({
   sm,
@@ -46,7 +46,7 @@ const TeamSpaceHeader = ({
                 fontWeight: "bold",
               }}
             >
-              {heading == "true" ? <>Global Search</> : <>Team Space</>}
+              {heading == "true" ? <>Global Search</> : <>TeamSpace</>}
             </Typography>
           </BlockHeadContent>
           <BlockHeadContent>

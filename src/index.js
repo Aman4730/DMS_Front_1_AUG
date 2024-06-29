@@ -3,7 +3,6 @@ import App from "./App";
 import ReactDOM from "react-dom";
 import "./assets/scss/dashlite.scss";
 import "./assets/scss/style-email.scss";
-import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 
 const Error404Modern = lazy(() => import("./pages/error/404-modern"));
@@ -38,4 +37,3 @@ ReactDOM.render(
   </React.Fragment>,
   document.getElementById("root")
 );
-reportWebVitals();

@@ -1,5 +1,7 @@
 import { Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import SearchBar from "../../components/SearchBar";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Icon,
   Button,
@@ -11,12 +13,17 @@ import {
 const GuestTSHeader = ({
   sm,
   list,
+  isLogin,
+  heading,
   updateSm,
-  openFolderModal,
   findFolder,
+  searchTerm,
   setSearchTerm,
   callApiHeader,
   openFileUpload,
+  openFolderModal,
+  defaultPermission,
+  workspacePermissionWs1,
 }) => {
   const [open, setOpen] = useState(false);
   const [modal, setModal] = useState({
@@ -24,18 +31,11 @@ const GuestTSHeader = ({
     add: false,
   });
   useEffect(() => {
-    // After 5 seconds, set open to false
     const timeoutId = setTimeout(() => {
       setOpen(false);
     }, 15000);
-    // Clean up the timeout when the component unmounts or when open changes
     return () => clearTimeout(timeoutId);
   }, []);
-  let create_folder = localStorage.getItem("create_folder");
-  let upload_file = localStorage.getItem("upload_file");
-  let upload_folder = localStorage.getItem("upload_folder");
-  console.log(upload_folder, "upload_folder");
-
   return (
     <Stack>
       <BlockHead size="sm">
@@ -47,7 +47,7 @@ const GuestTSHeader = ({
                 fontWeight: "bold",
               }}
             >
-              Guest TeamSpace
+             GuestWorkSpace
             </Typography>
           </BlockHeadContent>
           <BlockHeadContent>
@@ -69,7 +69,7 @@ const GuestTSHeader = ({
               >
                 <ul className="nk-block-tools g-3">
                   <li className="nk-block-tools-opt">
-                    {create_folder === "true" ? (
+                    {defaultPermission?.create_folder === "true" ? (
                       <Button
                         color="primary"
                         className="btn-icon"
@@ -83,7 +83,7 @@ const GuestTSHeader = ({
                     )}
                   </li>
                   <li className="nk-block-tools-opt">
-                    {upload_folder === "true" ? (
+                    {defaultPermission?.upload_folder === "true" ? (
                       <Button
                         color="primary"
                         className="btn-icon"
@@ -97,7 +97,7 @@ const GuestTSHeader = ({
                     )}
                   </li>
                   <li className="nk-block-tools-opt">
-                    {upload_file === "true" ? (
+                    {defaultPermission?.upload_file === "true" ? (
                       <Button
                         color="primary"
                         className="btn-icon"

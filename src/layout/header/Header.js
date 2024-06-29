@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useContext } from "react";
+import Logo from "../logo/Logo";
 import classNames from "classnames";
 import Toggle from "../sidebar/Toggle";
-import Logo from "../logo/Logo";
-import News from "../news/News";
-import User from "./dropdown/user/User";
-import Notification from "./dropdown/Notification/Notification";
-import acmeLogo from "../../images/acmeLogo.jpeg";
-import { Link } from "react-router-dom";
-import { BlockHeadContent, BlockTitle } from "../../components/Component";
 import { Stack } from "@mui/material";
+import User from "./dropdown/user/User";
+import { Link } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
+import Notification from "./dropdown/Notification/Notification";
+import { BlockHeadContent, BlockTitle } from "../../components/Component";
 
 const Header = ({ fixed, theme, className, setVisibility, ...props }) => {
+  const { userAuthContextData } = useContext(AuthContext);
+  const [userData] = userAuthContextData;
   const headerClass = classNames({
     "nk-header": true,
     "nk-header-fixed": fixed,
@@ -29,10 +30,6 @@ const Header = ({ fixed, theme, className, setVisibility, ...props }) => {
               click={props.sidebarToggle}
             />
           </div>
-          <div className="nk-header-brand d-xl-none">
-            <Logo />
-          </div>
-          <div className="nk-header-news d-none d-xl-block"></div>
           <div className="nk-header-tools">
             <ul className="nk-quick-nav">
               <Stack
@@ -53,7 +50,7 @@ const Header = ({ fixed, theme, className, setVisibility, ...props }) => {
                 className="notification-dropdown mr-n1"
                 onClick={() => setVisibility(false)}
               >
-                <Notification />
+                {userData.type === "guest" ? "" : <Notification />}
               </li>
               <li
                 className="user-dropdown"
@@ -65,8 +62,6 @@ const Header = ({ fixed, theme, className, setVisibility, ...props }) => {
           </div>
           <div>
             <Link to={process.env.PUBLIC_URL + "/"} className="logo-link">
-              {/* <img className="logo-light logo-img logo-img-lg" src={acmeLogo} alt="logo" />
-              <img className="logo-dark logo-img logo-img-lg" src={acmeLogo} alt="logo-dark" /> */}
               <img
                 style={{
                   width: "100px",
@@ -75,7 +70,6 @@ const Header = ({ fixed, theme, className, setVisibility, ...props }) => {
                 src="/Image/acmeLogo.jpeg"
                 alt="logo-dark"
               ></img>
-              {/* <img className="logo-light w-80 h-80" src={acmeLogo} alt="logo" /> */}
             </Link>
           </div>
         </div>

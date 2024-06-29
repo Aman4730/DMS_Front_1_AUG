@@ -1,8 +1,8 @@
 import React from "react";
-import { Button } from "../Component";
 import { TextField } from "@mui/material";
 import {
   Dialog,
+  Button,
   DialogTitle,
   FormControl,
   DialogActions,
@@ -12,7 +12,6 @@ import {
 const TeamSpaceFolderCreate = ({
   id,
   open,
-  data,
   title,
   input,
   addNew,
@@ -46,7 +45,6 @@ const TeamSpaceFolderCreate = ({
                   fullWidth
                   key={index}
                   size="small"
-                  sx={{ mt: 1 }}
                   type={data.type}
                   name={data.name}
                   variant="outlined"
@@ -60,8 +58,10 @@ const TeamSpaceFolderCreate = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>{buttonCancelTitle}</Button>
-        <Button color="primary" size="md" onClick={() => addNew(id, input)}>
+        <Button variant="outlined" id="closeBtn" onClick={handleClose}>
+          {buttonCancelTitle}
+        </Button>
+        <Button id="submitBtn" onClick={() => addNew(id, input)}>
           {editFolderId ? "Update" : "Create"}
         </Button>
       </DialogActions>

@@ -1,19 +1,18 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
+import TableRow from "@mui/material/TableRow";
 import EditIcon from "@mui/icons-material/Edit";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Switch } from "@mui/material";
+import TableContainer from "@mui/material/TableContainer";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import TablePagination from "@mui/material/TablePagination";
 
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
@@ -52,12 +51,11 @@ function EnhancedTableHead(props) {
 }
 
 export default function GroupsTable({
-  allfolderlist,
   rows,
   headCells,
+  searchTerm,
   onEditClick,
   handleClickOpen,
-  searchTerm,
 }) {
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
@@ -100,9 +98,6 @@ export default function GroupsTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - allfolderlist.length) : 0;
-
   return (
     <Box>
       <Paper>
@@ -116,11 +111,11 @@ export default function GroupsTable({
             />
             <TableBody>
               {(rowsPerPage > 0
-                ? allfolderlist.slice(
+                ? rows.slice(
                     page * rowsPerPage,
                     page * rowsPerPage + rowsPerPage
                   )
-                : allfolderlist
+                : rows
               )
                 ?.filter((item) =>
                   item.group_name
@@ -139,7 +134,6 @@ export default function GroupsTable({
                       tabIndex={-1}
                       key={index}
                       selected={isItemSelected}
-                      sx={{ cursor: "pointer" }}
                     >
                       <TableCell style={{ fontSize: "12px" }}>
                         {row.group_name}
@@ -172,18 +166,20 @@ export default function GroupsTable({
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+                {!rows.length > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

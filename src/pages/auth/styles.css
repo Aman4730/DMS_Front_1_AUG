@@ -1,0 +1,43 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+.header {
+  background-color: #6576ff;
+  color: white;
+  padding: 20px;
+}
+
+.footer {
+  background-color: #6576ff;
+  color: white;
+}
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.responsive-img {
+  max-width: 540px;
+  height: auto;
+  margin-top: -12px;
+}
+.image-container {
+  display: flex;
+  justify-content: center;
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Add this line */
+}
+label {
+  margin-bottom: 2px;
+}
+.MuiFormControl-root {
+  margin-bottom: 5px;
+}

@@ -103,7 +103,7 @@ const AuthFooter = () => {
                             alt=""
                             className="language-flag"
                           />
-                          <span className="language-name">Español</span>
+                          <span className="language-name">Espa�ol</span>
                         </DropdownItem>
                       </li>
                       <li>
@@ -120,7 +120,7 @@ const AuthFooter = () => {
                             alt=""
                             className="language-flag"
                           />
-                          <span className="language-name">Français</span>
+                          <span className="language-name">Fran�ais</span>
                         </DropdownItem>
                       </li>
                       <li>
@@ -137,7 +137,7 @@ const AuthFooter = () => {
                             alt=""
                             className="language-flag"
                           />
-                          <span className="language-name">Türkçe</span>
+                          <span className="language-name">T�rk�e</span>
                         </DropdownItem>
                       </li>
                     </ul>
