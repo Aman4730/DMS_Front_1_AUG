@@ -4,6 +4,7 @@ node_modules/
 # .env file
 .env
 /build
+/build copy
 
 # NPM package lock
 package-lock.json

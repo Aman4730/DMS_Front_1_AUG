@@ -23,7 +23,7 @@ import TablePagination from "@mui/material/TablePagination";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import SecurityUpdateSharpIcon from "@mui/icons-material/SecurityUpdateSharp";
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 import SportsVolleyballRoundedIcon from "@mui/icons-material/SportsVolleyballRounded";
 import Loading from "../Loading";
@@ -83,17 +83,19 @@ export default function CommonTable({
   onEditPermissionClick,
   handleClickOpenCommets,
   workspacePermissionWs1,
+  onFileWatermarkDownload,
   handleClickVersionOpen,
   handleClickOpenProperties,
 }) {
   const history = useHistory();
-  const navigate = (id, data, filemongo_id) => {
+  const navigate = (id, data, filemongo_id, watermark) => {
     history.push("/fileviewer", {
       id: id,
       file: data,
       filemongo_id: filemongo_id,
       workspace_type: workspace_type,
       commentHide: "true",
+      watermark: watermark,
     });
   };
   const [order, setOrder] = React.useState("asc");
@@ -117,6 +119,10 @@ export default function CommonTable({
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+  const handlClickData = (data)=>{
+    setPage(0)
+    callApi(data)
+  }
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -222,7 +228,7 @@ export default function CommonTable({
                         ""
                       )}
                       <TableCell
-                        onClick={() => (data.file_type ? "" : callApi(data))}
+                        onClick={() => (data.file_type ? "" : handlClickData(data) )}
                         className="tablefont"
                         style={{
                           fontSize: "13px",
@@ -293,6 +299,45 @@ export default function CommonTable({
                               />
                             </Tooltip>
                           )}
+                          {data.file_type && (
+                            <>
+                              <Tooltip
+                                title="View Watermark"
+                                onClick={() => {
+                                  if (data.file_type) {
+                                    navigate(
+                                      data.id,
+                                      data?.file_name,
+                                      data?.filemongo_id,
+                                      true
+                                    );
+                                  } else {
+                                    callApi(data);
+                                  }
+                                }}
+                              >
+                                <PreviewIcon fontSize="small" sx={{ mr: 1 }} />
+                              </Tooltip>
+                              <Tooltip
+                                title="Download Watermark"
+                                onClick={() => {
+                                  if (data.file_type) {
+                                    onFileWatermarkDownload(
+                                      data.filemongo_id,
+                                      data.file_name,
+                                      data.file_size,
+                                      data.file_type
+                                    );
+                                  }
+                                }}
+                              >
+                                <SystemUpdateAltIcon
+                                  fontSize="small"
+                                  sx={{ mr: 1 }}
+                                />
+                              </Tooltip>
+                            </>
+                          )}
                           <Tooltip
                             title="View"
                             onClick={() => {
@@ -300,7 +345,7 @@ export default function CommonTable({
                                 navigate(
                                   data.id,
                                   data?.file_name,
-                                  data?.filemongo_id,
+                                  data?.filemongo_id
                                 );
                               } else {
                                 callApi(data);
@@ -309,7 +354,7 @@ export default function CommonTable({
                           >
                             <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
-                       
+
                           <Tooltip
                             title="Edit"
                             onClick={() => {
@@ -364,7 +409,7 @@ export default function CommonTable({
                                 handleClickLinkOpen(
                                   data.id,
                                   data.file_type,
-                                  data?.file_name || data.folder_name
+                                  data?.file_name || data?.folder_name
                                 )
                               }
                             >
@@ -453,6 +498,59 @@ export default function CommonTable({
                                 sx={{ mr: 1 }}
                               />
                             </Tooltip>
+                          )}
+                          {data.file_type && (
+                            <>
+                              {data?.permission?.view_watermark == true ||
+                              workspacePermissionWs1?.view_watermark == true ? (
+                                <Tooltip
+                                  title="View Watermark"
+                                  onClick={() => {
+                                    if (data.file_type) {
+                                      navigate(
+                                        data.id,
+                                        data?.file_name,
+                                        data?.filemongo_id,
+                                        true
+                                      );
+                                    } else {
+                                      callApi(data);
+                                    }
+                                  }}
+                                >
+                                  <PreviewIcon
+                                    fontSize="small"
+                                    sx={{ mr: 1 }}
+                                  />
+                                </Tooltip>
+                              ) : (
+                                ""
+                              )}
+                              {data?.permission?.download_watermark == true ||
+                              workspacePermissionWs1?.download_watermark ==
+                                true ? (
+                                <Tooltip
+                                  title="Download Watermark"
+                                  onClick={() => {
+                                    if (data.file_type) {
+                                      onFileWatermarkDownload(
+                                        data.filemongo_id,
+                                        data.file_name,
+                                        data.file_size,
+                                        data.file_type
+                                      );
+                                    }
+                                  }}
+                                >
+                                  <SystemUpdateAltIcon
+                                    fontSize="small"
+                                    sx={{ mr: 1 }}
+                                  />
+                                </Tooltip>
+                              ) : (
+                                ""
+                              )}
+                            </>
                           )}
                           {data?.permission?.view == true ||
                           workspacePermissionWs1?.view == true ? (
@@ -545,7 +643,7 @@ export default function CommonTable({
                                 handleClickLinkOpen(
                                   data.id,
                                   data.file_type,
-                                  data?.file_name || data.folder_name
+                                  data?.file_name || data?.folder_name
                                 )
                               }
                             >

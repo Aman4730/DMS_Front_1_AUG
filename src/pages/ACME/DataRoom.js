@@ -19,6 +19,8 @@ import FileFolderMove from "../../components/FileFolderMove/index.jsx";
 import FileFolderComments from "../../components/FileFolderComments/index.jsx";
 import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
 import LinearProgressBar from "../../components/ProgressBar/index.jsx";
+import FolderUpload from "../../components/FolderUploaded/index.jsx";
+import JSZip from "jszip";
 const DataRoom = () => {
   useEffect(() => {
     getAllfoldernames({
@@ -371,7 +373,7 @@ const DataRoom = () => {
   };
   // ------------------------------------------------Create Folder End
   // ------------------------------------------------file upload
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
   const [fileName, setFileName] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editFileId, setEditFileId] = useState(0);
@@ -444,14 +446,19 @@ const DataRoom = () => {
   const onChooseFile = () => {
     inputRef.current.click();
   };
-  const clearFileInput = () => {
+  const multiplefilesArray = Object.values(file);
+  const clearFileInput = (id) => {
     inputRef.current.value = "";
-    setFile(null);
     setProgress(0);
-    setUploadStatus("select");
+    if (window.confirm("Are you sure you want to remove this file?")) {
+      const result = multiplefilesArray.filter(
+        (data) => data.lastModified !== id
+      );
+      setFile(result);
+    }
   };
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    setFile(event.target.files);
     setUploadStatus("selected");
   };
 
@@ -496,6 +503,22 @@ const DataRoom = () => {
     } else {
       try {
         setUploadStatus("uploading");
+        let multipleFileExtensions = "";
+        let totalmultipleFileSize = 0;
+        const formData = new FormData();
+        for (let i = 0; i < file.length; i++) {
+          formData.append("files", file[i]);
+          //multipleFileSize
+          totalmultipleFileSize += multiplefilesArray[i].size;
+          //extensions
+          let extension = file[i]?.name?.split(".").pop();
+          if (extension) {
+            if (multipleFileExtensions) {
+              multipleFileExtensions += ",";
+            }
+            multipleFileExtensions += extension;
+          }
+        }
         const data = {
           workspace_id: workSpaceData.workspace_id,
           workspace_name: workSpaceData.workspace_name,
@@ -504,19 +527,17 @@ const DataRoom = () => {
             isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
           doctype: doctypeName,
           fileDesc: fileNameInput?.file_description,
-          file_Size: file.size,
+          file_Size: totalmultipleFileSize,
           Feilds_Name: formValues,
           workspace_type: "Data Room",
         };
-        const formData = new FormData();
-        formData.append("file", file);
+
         formData.append("data", JSON.stringify(data));
-        const quary = [[file.size], [workSpaceData.workspace_name]];
-        const file_type = file.name?.split(".").pop();
+        const quary = [[totalmultipleFileSize], [workSpaceData.workspace_name]];
         const response = await axios.post(
           `${
             process.env.REACT_APP_API_URL_LOCAL
-          }/uploadcreate?q=${quary}&fileExtension=${file_type}&workspace_type=${"Data Room"}`,
+          }/uploadcreate?q=${quary}&fileExtension=${multipleFileExtensions}&workspace_type=${"Data Room"}`,
           formData,
           {
             headers: {
@@ -556,7 +577,7 @@ const DataRoom = () => {
           notification["warning"]({
             placement: "top",
             description: "",
-            message: error.response.data.message,
+            message: error?.response?.data?.message,
           });
         }
         handleCloseFileModal();
@@ -860,7 +881,7 @@ const DataRoom = () => {
       upload_file: checkboxValues.upload_file,
       delete_action: checkboxValues.delete,
       download: checkboxValues.download,
-      move: checkboxValues.move,
+      move: checkboxValues?.move,
       rights: checkboxValues.rights,
       comment: checkboxValues.comment,
       properties: checkboxValues.properties,
@@ -1351,7 +1372,7 @@ const DataRoom = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
+          move: checkboxWs1?.move,
           rights: checkboxWs1.rights,
           comments: checkboxWs1.comment,
           properties: checkboxWs1.properties,
@@ -1372,7 +1393,7 @@ const DataRoom = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
+          move: checkboxWs1?.move,
           rights: checkboxWs1.rights,
           comments: checkboxWs1.comment,
           properties: checkboxWs1.properties,
@@ -1420,7 +1441,7 @@ const DataRoom = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
+          move: checkboxWs1?.move,
           rights: checkboxWs1.rights,
           comments: checkboxWs1.comment,
           properties: checkboxWs1.properties,
@@ -1440,7 +1461,7 @@ const DataRoom = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
+          move: checkboxWs1?.move,
           rights: checkboxWs1.rights,
           comments: checkboxWs1.comment,
           properties: checkboxWs1.properties,
@@ -1661,7 +1682,103 @@ const DataRoom = () => {
   };
   // ---------------------------------sharingcancel
   // ---------------------------------folderupload
+  const [openUploadFolder, setOpenUploadFolder] = useState(false);
 
+  const handleClickOpenUploadFolder = () => {
+    setOpenUploadFolder(true);
+  };
+
+  const handleCloseUploadFolder = () => {
+    setOpenUploadFolder(false);
+    setCurrentFile(null);
+    setProgressFolderUpload(0);
+  };
+
+  const [progressFolderUpload, setProgressFolderUpload] = useState(0);
+  const [currentFile, setCurrentFile] = useState(null);
+  const [folderName, setFolderName] = useState("");
+  const [totalFiles, setTotalFiles] = useState("");
+  const [zipFolder, setZipFolder] = useState({});
+  let token = localStorage.getItem("token") || "";
+
+  const updateImageDisplay = (event) => {
+    const zip = new JSZip();
+    const files = Array.from(event.target.files);
+    files.forEach((file) => {
+      zip.file(file.webkitRelativePath, file);
+    });
+    const folderName = files[0].webkitRelativePath.split("/")[0];
+    setFolderName(folderName);
+    setTotalFiles(event?.target?.files?.length);
+    zip
+      .generateAsync({ type: "blob" }, (metadata) => {
+        setProgressFolderUpload(metadata.percent.toFixed(2));
+        if (metadata.currentFile) {
+          setCurrentFile(metadata.currentFile);
+        }
+      })
+
+      .then((content) => {
+        setZipFolder(content);
+      })
+      .catch((error) => {
+        console.error("Error generating ZIP file:", error);
+      });
+  };
+  const folderUpload = () => {
+    const data = {
+      workspace_id: workSpaceData.workspace_id,
+      workspace_name: workSpaceData.workspace_name,
+      policies_id: isLogin?.user_type === "Admin" ? "" : ws1Policy?.id,
+      workspace_type: "Data Room",
+      parent_id: currentFolderData?.id,
+      level: currentFolderData?.id ? currentFolderData?.levels + 1 : 0,
+    };
+
+    const formData = new FormData();
+    formData.append("folder", zipFolder, `${folderName}.zip`);
+    formData.append("data", JSON.stringify(data));
+
+    fetch(`${process.env.REACT_APP_API_URL_LOCAL}/uploadfolder`, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: token,
+      },
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.status == true) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: data?.message,
+          });
+          handleCloseUploadFolder();
+          let newData = {
+            parent_id: currentFolderData?.id,
+            levels: currentFolderData?.levels + 1,
+            workspace_name: workSpaceData?.workspace_name,
+            workspace_id: JSON.stringify(workSpaceData.workspace_id),
+          };
+          getAllfoldernames(newData);
+          console.log(data, "in----");
+        } else {
+          notification["warning"]({
+            placement: "top",
+            description: "",
+            message: data.message,
+          });
+          handleCloseUploadFolder();
+        }
+      })
+      .catch((apiErr) => {
+        console.log("Error uploading file:", apiErr);
+      });
+  };
+  const stopDataRoomUploadF = () => {};
   // ---------------------------------folderupload
   return (
     <>
@@ -1823,6 +1940,7 @@ const DataRoom = () => {
             handleFileChange={handleFileChange}
             handleInputChange={handleInputChange}
             handleCloseFileModal={handleCloseFileModal}
+            multiplefilesArray={multiplefilesArray}
             inputRef={inputRef}
             onChooseFile={onChooseFile}
             progress={progress}
@@ -1832,6 +1950,16 @@ const DataRoom = () => {
             fileDesc={(e) => {
               setFileDesc(e.target.value);
             }}
+          />
+          <FolderUpload
+            folderName={folderName}
+            totalFiles={totalFiles}
+            currentFile={currentFile}
+            folderUpload={folderUpload}
+            openUploadFolder={openUploadFolder}
+            updateImageDisplay={updateImageDisplay}
+            progressFolderUpload={progressFolderUpload}
+            handleCloseUploadFolder={handleCloseUploadFolder}
           />
           <WS1Header
             sm={sm}
@@ -1847,6 +1975,7 @@ const DataRoom = () => {
             callApiHeader={callApiHeader}
             openFileUpload={handleOpenFileModal}
             openFolderModal={handleOpenFolderModal}
+            openFolderUpload={stopDataRoomUploadF}
             workspacePermissionWs1={workspacePermissionWs1}
             openModal1={() => setFileModal({ ...fileModal, status: true })}
           />
@@ -1879,7 +2008,6 @@ const DataRoom = () => {
             onFileDownload={onFileDownload}
             handleClickMove={handleClickMove}
             onEditFileClick={onEditFileClick}
-            PermissionPolicy={PermissionPolicy}
             onDownloadfolders={onDownloadfolders}
             handleOpenDeleteFile={handleClickOpen}
             openEditFolderModal={onEditFolderClick}

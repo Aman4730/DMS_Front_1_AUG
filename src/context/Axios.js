@@ -44,6 +44,7 @@ function AxiosPost(key, body, handleSuccess, handleError, config = {}) {
       if (handleSuccess) handleSuccess(res);
     })
     .catch((err) => {
+      console.log(err,"------errr")
       if (handleError) handleError(err);
     });
 }

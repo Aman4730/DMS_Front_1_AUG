@@ -290,7 +290,7 @@ export default function GuestTSTable({
                             <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
                         )}
-                        {(data.rename === "true" ||
+                        {(data?.rename === "true" ||
                           defaultPermission?.rename === "true") && (
                           <Tooltip
                             title="Edit"
@@ -323,7 +323,7 @@ export default function GuestTSTable({
                             <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
                         )}
-                        {(data.move === "true" ||
+                        {(data?.move === "true" ||
                           defaultPermission?.move === "true") && (
                           <Tooltip
                             title="Move"
@@ -371,7 +371,7 @@ export default function GuestTSTable({
                             <SmsIcon fontSize="small" sx={{ mr: 1 }} />
                           </Tooltip>
                         )}
-                        {(data.properties === "true" ||
+                        {(data?.properties === "true" ||
                           defaultPermission?.properties === "true") && (
                           <Tooltip
                             title="Properties"

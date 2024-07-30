@@ -1,5 +1,4 @@
 import * as React from "react";
-import DatePicker from "react-datepicker";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
@@ -14,7 +13,7 @@ import {
   InputAdornment,
   Button,
 } from "@mui/material";
-import dayjs from "dayjs";
+import { DatePicker } from "@atlaskit/datetime-picker";
 
 export default function UserForm({
   editId,
@@ -22,6 +21,7 @@ export default function UserForm({
   formData,
   setFormData,
   handleChange,
+  defaultDate,
   onFormSubmit,
   groupsDropdown,
   handleCloseForm,
@@ -30,16 +30,6 @@ export default function UserForm({
   const [showPassword, setShowPassword] = React.useState(false);
   const handleTogglePassword = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
-  };
-  const minDays = 5; // Minimum number of days from today
-  const maxDays = 30; // Maximum number of days from today
-
-  const minDate = dayjs().add(minDays, "day");
-  const maxDate = dayjs().add(maxDays, "day");
-
-  const disabledDate = (currentDate) => {
-    console.log(currentDate, "currentDate");
-    return currentDate && (currentDate < minDate || currentDate > maxDate);
   };
 
   return (
@@ -207,15 +197,16 @@ export default function UserForm({
               <Grid item xs={6}>
                 <DatePicker
                   name="userValidity"
+                  defaultValue={defaultDate}
                   selected={formData.userValidity}
                   onChange={(e) => {
                     setFormData({ ...formData, userValidity: e });
                   }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="User Validity"
-                  disabledDate={disabledDate}
+                  dateFormat="DD/MM/YYYY"
+                  placeholder="User Validity"
                   customInput={<TextField fullWidth size="small" />}
                 />
+               
               </Grid>
             </Grid>
           </DialogContent>

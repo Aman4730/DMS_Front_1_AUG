@@ -690,7 +690,6 @@ const GuestTeamSpace = () => {
   const [openLink, setOpenLink] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [getExpiry, setGetExpiry] = useState("");
-  console.log(getExpiry, "getExpiry");
   const [shareFormData, setShareFormData] = useState({
     Email: "",
     Password: "",
@@ -802,16 +801,16 @@ const GuestTeamSpace = () => {
       user_email: shareFormData?.userDropdowns?.email,
       view: checkboxValues.view,
       share: checkboxValues.share,
-      rename: checkboxValues.rename,
+      rename: checkboxValues?.rename,
       upload_folder: checkboxValues.upload_folder,
       create_folder: checkboxValues.create_folder,
       upload_file: checkboxValues.upload_file,
       delete_action: checkboxValues.delete,
       download: checkboxValues.download,
-      move: checkboxValues.move,
+      move: checkboxValues?.move,
       rights: checkboxValues.rights,
       comment: checkboxValues.comment,
-      properties: checkboxValues.properties,
+      properties: checkboxValues?.properties,
     };
     getfetchlink(
       data,
@@ -954,13 +953,13 @@ const GuestTeamSpace = () => {
     }
     if (
       data.view == "true" ||
-      data.rename == "true" ||
+      data?.rename == "true" ||
       data.download == "true" ||
-      data.move == "true" ||
+      data?.move == "true" ||
       data.share == "true" ||
       data.delete_action == "true" ||
       data.comment == "true" ||
-      data.properties == "true" ||
+      data?.properties == "true" ||
       data.rights == "true" ||
       data.create_folder == "true" ||
       data.upload_file == "true" ||
@@ -1287,7 +1286,7 @@ const GuestTeamSpace = () => {
           policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1295,10 +1294,10 @@ const GuestTeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
+          move: checkboxWs1?.move,
           rights: checkboxWs1.rights,
           comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          properties: checkboxWs1?.properties,
         };
       } else {
         data = {
@@ -1308,7 +1307,7 @@ const GuestTeamSpace = () => {
           policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1316,10 +1315,10 @@ const GuestTeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       }
 
@@ -1356,7 +1355,7 @@ const GuestTeamSpace = () => {
           file_name: file_name,
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1364,10 +1363,10 @@ const GuestTeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       } else {
         data = {
@@ -1376,7 +1375,7 @@ const GuestTeamSpace = () => {
           view: checkboxWs1.view,
           share: checkboxWs1.share,
           folder_name: folder_name,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1384,10 +1383,10 @@ const GuestTeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       }
 

@@ -2,11 +2,9 @@ import React, { Suspense, useLayoutEffect } from "react";
 import { Switch, Route } from "react-router-dom";
 import { ProductContextProvider } from "../pages/pre-built/products/ProductContext";
 import { UserContextProvider } from "../pages/pre-built/user-manage/UserContext";
-import { GroupsContextProvider } from "../pages/pre-built/groups-manage/GroupsContext";
 
 import { RedirectAs404 } from "../utils/Utils";
 
-import Homepage from "../pages/Homepage";
 import Crypto from "../pages/Crypto";
 import Analytics from "../pages/Analytics";
 import Invest from "../pages/Invest";
@@ -175,7 +173,7 @@ const Pages = () => {
       "/teamSpace",
       "/GlobalSearch",
       "/recyclebin",
-      // "/logs",
+      "/logs",
       "/user-list",
       "/groups",
       "/smtp",

@@ -284,6 +284,8 @@ export const UserContextProvider = (props) => {
       }
     );
   }
+ 
+  
   async function add_permission(
     userSubmittedData,
     handleApiRes,

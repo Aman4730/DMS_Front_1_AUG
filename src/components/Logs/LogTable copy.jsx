@@ -199,7 +199,7 @@ export default function LogTable({
                   hour12: false,
                 };
                 const convertedTimestamp = originalDate.toLocaleString(
-                  "en-US",
+                  "en-GB",
                   options
                 );
 

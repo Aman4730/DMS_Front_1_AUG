@@ -124,7 +124,7 @@ export default function DataGridCard({ tableData }) {
                 };
                 const updateAt = new Date(data.updatedAt);
                 const updateAtdate = updateAt.toLocaleTimeString(
-                  "en-US",
+                  "en-GB",
                   options
                 );
                 const isEvenRow = index % 2 === 1;

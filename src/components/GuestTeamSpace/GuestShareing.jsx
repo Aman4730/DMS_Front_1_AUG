@@ -7,12 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { DatePicker } from "@atlaskit/datetime-picker";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import {
-  Grid,
-  Checkbox,
-  Typography,
-  FormControlLabel,
-} from "@mui/material";
+import { Grid, Checkbox, Typography, FormControlLabel } from "@mui/material";
 export default function GuestShareing({
   error,
   isLogin,
@@ -96,8 +91,8 @@ export default function GuestShareing({
             </Grid>
             <Grid item lg={6} sm={6} xs={12} mt={1}>
               <DatePicker
-                minDate={formattedminDate}
-                maxDate={formattedmaxDate}
+                // minDate={formattedminDate}
+                // maxDate={formattedmaxDate}
                 name="userValidity"
                 value={selectedDate}
                 onChange={handleDateChange}
@@ -108,41 +103,41 @@ export default function GuestShareing({
             {accesscheckbox?.map((data) => {
               if (
                 (data.name == "view" &&
-                  (workspacePermissionWs1.view == true ||
-                    getAllfolderPermission.view == true)) ||
+                  (workspacePermissionWs1?.view == true ||
+                    getAllfolderPermission?.view == true)) ||
                 (data.name == "move" &&
-                  (workspacePermissionWs1.move == true ||
-                    getAllfolderPermission.move == true)) ||
+                  (workspacePermissionWs1?.move == true ||
+                    getAllfolderPermission?.move == true)) ||
                 (data.name == "share" &&
-                  (workspacePermissionWs1.share == true ||
-                    getAllfolderPermission.share == true)) ||
+                  (workspacePermissionWs1?.share == true ||
+                    getAllfolderPermission?.share == true)) ||
                 (data.name == "rights" &&
-                  (workspacePermissionWs1.rights == true ||
-                    getAllfolderPermission.rights == true)) ||
+                  (workspacePermissionWs1?.rights == true ||
+                    getAllfolderPermission?.rights == true)) ||
                 (data.name == "rename" &&
-                  (workspacePermissionWs1.rename == true ||
-                    getAllfolderPermission.rename == true)) ||
+                  (workspacePermissionWs1?.rename == true ||
+                    getAllfolderPermission?.rename == true)) ||
                 (data.name == "delete" &&
-                  (workspacePermissionWs1.delete_per == true ||
-                    getAllfolderPermission.delete_per == true)) ||
+                  (workspacePermissionWs1?.delete_per == true ||
+                    getAllfolderPermission?.delete_per == true)) ||
                 (data.name == "comment" &&
-                  (workspacePermissionWs1.comments == true ||
-                    getAllfolderPermission.comments == true)) ||
+                  (workspacePermissionWs1?.comments == true ||
+                    getAllfolderPermission?.comments == true)) ||
                 (data.name == "download" &&
-                  (workspacePermissionWs1.download_per == true ||
-                    getAllfolderPermission.download_per == true)) ||
+                  (workspacePermissionWs1?.download_per == true ||
+                    getAllfolderPermission?.download_per == true)) ||
                 (data.name == "properties" &&
-                  (workspacePermissionWs1.properties == true ||
-                    getAllfolderPermission.properties == true)) ||
+                  (workspacePermissionWs1?.properties == true ||
+                    getAllfolderPermission?.properties == true)) ||
                 (data.name == "upload_folder" &&
-                  (workspacePermissionWs1.upload_folder == true ||
-                    getAllfolderPermission.upload_folder == true)) ||
+                  (workspacePermissionWs1?.upload_folder == true ||
+                    getAllfolderPermission?.upload_folder == true)) ||
                 (data.name == "create_folder" &&
-                  (workspacePermissionWs1.create_folder == true ||
-                    getAllfolderPermission.create_folder == true)) ||
+                  (workspacePermissionWs1?.create_folder == true ||
+                    getAllfolderPermission?.create_folder == true)) ||
                 (data.name == "upload_file" &&
-                  (workspacePermissionWs1.upload_file == true ||
-                    getAllfolderPermission.upload_file == true)) ||
+                  (workspacePermissionWs1?.upload_file == true ||
+                    getAllfolderPermission?.upload_file == true)) ||
                 isLogin.user_type === "Admin"
               ) {
                 return (

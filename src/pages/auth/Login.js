@@ -45,7 +45,6 @@ const Login = () => {
         return data.json();
       })
       .then((data) => {
-        console.log(data)
         if (data.status) {
           notification["success"]({
             placement: "top",
@@ -211,7 +210,6 @@ const Login = () => {
                     }`}
                   >
                     <Icon name="eye" className="passcode-icon icon-show"></Icon>
-
                     <Icon
                       name="eye-off"
                       className="passcode-icon icon-hide"

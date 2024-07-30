@@ -7,6 +7,7 @@ import {
   TextField,
   Autocomplete,
 } from "@mui/material";
+import { DatePicker } from "@atlaskit/datetime-picker";
 export default function WorkspceForm({
   editId,
   formShow,
@@ -24,7 +25,7 @@ export default function WorkspceForm({
       {formShow && (
         <Card sx={{ p: 2, mb: 1 }}>
           <Grid container spacing={1} id="form">
-            <Grid item xs={3}>
+            <Grid item lg={3} sm={3} xs={12}>
               <Autocomplete
                 fullWidth
                 size="small"
@@ -42,7 +43,7 @@ export default function WorkspceForm({
                 }
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item lg={3} sm={3} xs={12}>
               <Autocomplete
                 fullWidth
                 size="small"
@@ -58,7 +59,7 @@ export default function WorkspceForm({
                 }
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item lg={3} sm={3} xs={12}>
               <TextField
                 fullWidth
                 size="small"
@@ -70,7 +71,7 @@ export default function WorkspceForm({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item lg={3} sm={3} xs={12}>
               <TextField
                 fullWidth
                 id="enter_quota"
@@ -82,7 +83,7 @@ export default function WorkspceForm({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item lg={3} sm={3} xs={12}>
               <Autocomplete
                 multiple
                 fullWidth
@@ -100,7 +101,7 @@ export default function WorkspceForm({
                 }
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item lg={3} sm={3} xs={12}>
               <Autocomplete
                 multiple
                 fullWidth
@@ -116,6 +117,30 @@ export default function WorkspceForm({
                 onChange={(event, value) =>
                   handleAutocompleteChange("selected_users", value)
                 }
+              />
+            </Grid>
+            <Grid item lg={3} sm={3} xs={12}>
+              <DatePicker
+                name="userValidity"
+                // selected={formData.userValidity}
+                // onChange={(e) => {
+                //   setFormData({ ...formData, userValidity: e });
+                // }}
+                dateFormat="DD/MM/YYYY"
+                placeholder="Start Date"
+                customInput={<TextField fullWidth size="small" />}
+              />
+            </Grid>
+            <Grid item lg={3} sm={3} xs={12}>
+              <DatePicker
+                name="userValidity"
+                // selected={formData.userValidity}
+                // onChange={(e) => {
+                //   setFormData({ ...formData, userValidity: e });
+                // }}
+                dateFormat="DD/MM/YYYY"
+                placeholder="End Date"
+                customInput={<TextField fullWidth size="small" />}
               />
             </Grid>
             <Grid item xs={2} justifyContent="flex-end" container>

@@ -19,6 +19,9 @@ import LinearProgressBar from "../../components/ProgressBar/index.jsx";
 import FileFolderMove from "../../components/FileFolderMove/index.jsx";
 import FileFolderComments from "../../components/FileFolderComments/index.jsx";
 import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
+import { addDays, format } from "date-fns";
+import JSZip from "jszip";
+import FolderUpload from "../../components/FolderUploaded/index.jsx";
 const WS1 = () => {
   useEffect(() => {
     getdoclistuploadfile();
@@ -81,7 +84,24 @@ const WS1 = () => {
     setUserData([...newData]);
   }, []);
   // ------------------------------------------------getApis Start
+  //main policy
   const PermissionPolicy = isLogin?.Permission;
+  const [ws1Policy, setWs1Policy] = useState({});
+  useEffect(() => {
+    PermissionPolicy?.map((permission) => {
+      if (permission?.policy_type === "My Workspace") {
+        setWs1Policy(permission);
+      }
+    });
+  }, [isLogin]);
+  const [mainPolicy, setMainPolicy] = useState({});
+  useEffect(() => {
+    PermissionPolicy?.map((permission) => {
+      if (permission?.policy_type === "TeamSpace") {
+        setMainPolicy(permission);
+      }
+    });
+  }, [isLogin]);
   const getdoclistuploadfile = () => {
     getdoclist(
       {},
@@ -199,7 +219,16 @@ const WS1 = () => {
       (apiRes) => {
         setAddProperties(apiRes.data);
       },
-      (apiErr) => {}
+      (apiErr) => {
+        notification["error"]({
+          placement: "top",
+          description: "",
+          message: apiErr.response.data.message,
+          style: {
+            height: 60,
+          },
+        });
+      }
     );
   };
   // ------------------------------------------------Doc Type End
@@ -247,7 +276,16 @@ const WS1 = () => {
           getAllfoldernames(newData);
         }
       },
-      (apiErr) => {}
+      (apiErr) => {
+        notification["error"]({
+          placement: "top",
+          description: "",
+          message: apiErr.response.data.message,
+          style: {
+            height: 60,
+          },
+        });
+      }
     );
   };
   // ------------------------------------------------Delete File Folder
@@ -301,15 +339,23 @@ const WS1 = () => {
             getAllfoldernames(newData);
           }
         },
-        (apiErr) => {}
+        (apiErr) => {
+          notification["error"]({
+            placement: "top",
+            description: "",
+            message: apiErr.response.data.message,
+            style: {
+              height: 60,
+            },
+          });
+        }
       );
     } else {
       let data = {
         workspace_id: JSON.stringify(workSpaceData.workspace_id),
         workspace_name: workSpaceData.workspace_name,
         workspace_type: "My Workspace",
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        policies_id: isLogin?.user_type == "Admin" ? "" : ws1Policy?.id,
         folder_name: folderNameInput.name,
         levels: currentFolderData.levels,
         parent_id: currentFolderData.parent_id,
@@ -337,7 +383,16 @@ const WS1 = () => {
             getAllfoldernames(newData);
           }
         },
-        (apiErr) => {}
+        (apiErr) => {
+          notification["error"]({
+            placement: "top",
+            description: "",
+            message: apiErr.response.data.message,
+            style: {
+              height: 60,
+            },
+          });
+        }
       );
     }
   };
@@ -362,7 +417,10 @@ const WS1 = () => {
   };
   // ------------------------------------------------Create Folder End
   // ------------------------------------------------file upload
-  const [file, setFile] = useState(null);
+  //change
+  const [file, setFile] = useState([]);
+  const multiplefilesArray = Object.values(file);
+
   const [fileName, setFileName] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editFileId, setEditFileId] = useState(0);
@@ -435,14 +493,21 @@ const WS1 = () => {
   const onChooseFile = () => {
     inputRef.current.click();
   };
-  const clearFileInput = () => {
+
+  //change
+  const clearFileInput = (id) => {
     inputRef.current.value = "";
-    setFile(null);
     setProgress(0);
-    setUploadStatus("select");
+    if (window.confirm("Are you sure you want to remove this file?")) {
+      const result = multiplefilesArray.filter(
+        (data) => data.lastModified !== id
+      );
+      setFile(result);
+    }
   };
+
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    setFile(event.target.files);
     setUploadStatus("selected");
   };
   const cancelTokenSource = useRef(null);
@@ -487,28 +552,42 @@ const WS1 = () => {
     } else {
       try {
         setUploadStatus("uploading");
+        let multipleFileExtensions = "";
+        let totalmultipleFileSize = 0;
+        const formData = new FormData();
+        for (let i = 0; i < file.length; i++) {
+          formData.append("files", file[i]);
+          //multipleFileSize
+          totalmultipleFileSize += multiplefilesArray[i].size;
+          //extensions
+          let extension = file[i]?.name?.split(".").pop();
+          if (extension) {
+            if (multipleFileExtensions) {
+              multipleFileExtensions += ",";
+            }
+            multipleFileExtensions += extension;
+          }
+        }
         const data = {
           workspace_id: workSpaceData.workspace_id,
           workspace_name: workSpaceData.workspace_name,
           folder_id: currentFolderData.id || null,
-          policies_id:
-            isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+          policies_id: isLogin?.user_type == "Admin" ? "" : ws1Policy?.id,
           doctype: doctypeName,
           fileDesc: fileNameInput?.file_description,
-          file_Size: file.size,
+          file_Size: totalmultipleFileSize,
           Feilds_Name: formValues,
           workspace_type: "My Workspace",
         };
-        const formData = new FormData();
-        formData.append("file", file);
+
         formData.append("data", JSON.stringify(data));
+
         cancelTokenSource.current = axios.CancelToken.source();
-        const quary = [[file.size], [workSpaceData.workspace_name]];
-        const file_type = file.name?.split(".").pop();
+        const quary = [[totalmultipleFileSize], [workSpaceData.workspace_name]];
         const response = await axios.post(
           `${
             process.env.REACT_APP_API_URL_LOCAL
-          }/uploadcreate?q=${quary}&fileExtension=${file_type}&workspace_type=${"My Workspace"}`,
+          }/uploadcreate?q=${quary}&fileExtension=${multipleFileExtensions}&workspace_type=${"My Workspace"}`,
           formData,
           {
             headers: {
@@ -545,13 +624,11 @@ const WS1 = () => {
         }
       } catch (error) {
         setUploadStatus("select");
-        if (error?.response?.status == 400) {
-          notification["warning"]({
-            placement: "top",
-            description: "",
-            message: error.response.data.message,
-          });
-        }
+        notification["warning"]({
+          placement: "top",
+          description: "",
+          message: error?.response?.data?.message,
+        });
         handleCloseFileModal();
         // setLoading(false);
       }
@@ -562,8 +639,11 @@ const WS1 = () => {
       cancelTokenSource.current.cancel("Upload cancelled by user.");
       notification["success"]({
         placement: "top",
-        description: "File Upload Canceled",
-        message: "",
+        description: "",
+        message: "File Upload Canceled",
+        style: {
+          height: 60,
+        },
       });
       handleCloseFileModal();
     }
@@ -593,7 +673,7 @@ const WS1 = () => {
   };
 
   const resetFileForm = () => {
-    setFile("");
+    setFile([]);
     setEditFileId(0);
     setFormValues({});
     setDoctypeName("");
@@ -675,6 +755,59 @@ const WS1 = () => {
             height: 60,
           },
         });
+        const blob = response.data;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = file_name;
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(url);
+        link.remove();
+      })
+      .catch((error) => {
+        notification["error"]({
+          placement: "top",
+          message: error?.response?.statusText,
+          style: {
+            height: 60,
+          },
+        });
+      });
+  };
+  // Add watermark
+  const onFileWatermarkDownload = (
+    filemongo_id,
+    file_name,
+    file_size,
+    file_type
+  ) => {
+    const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfile`;
+    const requestData = { filemongo_id: filemongo_id };
+
+    axios
+      .post(apiUrl, requestData, {
+        responseType: "blob",
+        onDownloadProgress: (progressEvent) => {
+          const loaded = progressEvent?.loaded;
+          const totalBytes = file_size || 0;
+          let progress = 0;
+          if (totalBytes > 0 && loaded > 0) {
+            progress = Math.round((loaded / totalBytes) * 100);
+          }
+          setProgressBar(progress);
+        },
+      })
+      .then(async (response) => {
+        setProgressBar(0);
+        notification["success"]({
+          placement: "top",
+          description: "",
+          message: "File Download Successfully...",
+          style: {
+            height: 60,
+          },
+        });
         if (file_type === "pdf") {
           const arrayBuffer = await response.data.arrayBuffer();
           const pdfDoc = await PDFDocument.load(arrayBuffer);
@@ -719,13 +852,9 @@ const WS1 = () => {
           placement: "top",
           description: "Failed to download the file.",
           message: "Download Error",
-          style: {
-            height: 60,
-          },
         });
       });
   };
-
   // ------------------------------------------------Start Share Link Modal
   const checkboxData = [
     { label: "View", name: "view" },
@@ -812,17 +941,22 @@ const WS1 = () => {
     resetCheckboxState();
   };
   //min and max dates
+
   useEffect(() => {
-    if (isLogin.user_type === "User" && PermissionPolicy.length > 0) {
-      const PolicyMinDays = PermissionPolicy[0]?.minimum_maximum_days[0];
-      const PolicyMaxDays = PermissionPolicy[0]?.minimum_maximum_days[1];
+    if (
+      isLogin.user_type === "User" &&
+      mainPolicy &&
+      mainPolicy?.minimum_maximum_days
+    ) {
+      const PolicyMinDays = mainPolicy?.minimum_maximum_days[0];
+      const PolicyMaxDays = mainPolicy?.minimum_maximum_days[1];
       const today = new Date();
       const min = format(addDays(today, PolicyMinDays), "yyyy-MM-dd");
       const max = format(addDays(today, PolicyMaxDays), "yyyy-MM-dd");
       setMinDate(min);
       setMaxDate(max);
     }
-  }, [isLogin, PermissionPolicy]);
+  }, [isLogin, PermissionPolicy, mainPolicy]);
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -840,7 +974,7 @@ const WS1 = () => {
         minimum_numeric,
         minimum_Alphabets,
         minimum_special_character,
-      } = PermissionPolicy[0];
+      } = ws1Policy;
       if (newPassword?.length < minimum_character) {
         hasError = true;
         errorMessage = `Password must be at least ${minimum_character} characters long.`;
@@ -896,22 +1030,22 @@ const WS1 = () => {
       name: shareId.name,
       message: shareFormData.Message,
       subject: shareFormData.Subject,
-      password: password,
+      password: shareFormData.Password,
       user_email: shareFormData?.userDropdowns?.email,
       view: checkboxValues.view,
       share: checkboxValues.share,
-      rename: checkboxValues.rename,
-      view_watermark: checkboxValues.view_watermark,
+      rename: checkboxValues?.rename,
+      view_watermark: checkboxValues?.view_watermark,
       download_watermark: checkboxValues.download_watermark,
       upload_folder: checkboxValues.upload_folder,
       create_folder: checkboxValues.create_folder,
       upload_file: checkboxValues.upload_file,
       delete_action: checkboxValues.delete,
       download: checkboxValues.download,
-      move: checkboxValues.move,
-      rights: checkboxValues.rights,
-      comment: checkboxValues.comment,
-      properties: checkboxValues.properties,
+      move: checkboxValues?.move,
+      rights: checkboxValues?.rights,
+      comment: checkboxValues?.comment,
+      properties: checkboxValues?.properties,
     };
     getfetchlink(
       data,
@@ -1083,7 +1217,10 @@ const WS1 = () => {
     }
   };
   // ---------------------------------Properties
-  const [propertiesModel, setPropertiesModel] = useState(false);
+  const [propertiesModel, setPropertiesModel] = useState({
+    status: false,
+    data: "",
+  });
   const handleClickOpenProperties = (data) => {
     setPropertiesModel({ status: true, data: data });
   };
@@ -1242,8 +1379,7 @@ const WS1 = () => {
     let data;
     if (openMove?.data?.file_type) {
       data = {
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        policies_id: isLogin?.user_type == "Admin" ? "" : ws1Policy?.id,
         file_id: openMove?.data?.id,
         folder_id: currentFolderData.id || null,
         workspace_name: workSpaceData.workspace_name,
@@ -1253,8 +1389,7 @@ const WS1 = () => {
       data = {
         workspace_name: workSpaceData.workspace_name,
         workspace_id: workSpaceData.workspace_id,
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        policies_id: isLogin?.user_type == "Admin" ? "" : ws1Policy?.id,
         levels: currentFolderData.levels,
         parent_id: currentFolderData.id,
         folder_id: openMove?.data?.id || null,
@@ -1356,20 +1491,20 @@ const WS1 = () => {
           policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
-          view_watermark: checkboxWs1.view_watermark,
+          view_watermark: checkboxWs1?.view_watermark,
           download_watermark: checkboxWs1.download_watermark,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       } else {
         data = {
@@ -1379,20 +1514,20 @@ const WS1 = () => {
           policy_type: "My Workspace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
-          view_watermark: checkboxWs1.view_watermark,
+          view_watermark: checkboxWs1?.view_watermark,
           download_watermark: checkboxWs1.download_watermark,
           upload_folder: checkboxWs1.upload_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       }
 
@@ -1429,20 +1564,20 @@ const WS1 = () => {
           file_name: file_name,
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
-          view_watermark: checkboxWs1.view_watermark,
+          view_watermark: checkboxWs1?.view_watermark,
           download_watermark: checkboxWs1.download_watermark,
           upload_folder: checkboxWs1.upload_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       } else {
         data = {
@@ -1451,20 +1586,20 @@ const WS1 = () => {
           view: checkboxWs1.view,
           share: checkboxWs1.share,
           folder_name: folder_name,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
-          view_watermark: checkboxWs1.view_watermark,
+          view_watermark: checkboxWs1?.view_watermark,
           download_watermark: checkboxWs1.download_watermark,
           upload_folder: checkboxWs1.upload_folder,
           create_folder: checkboxWs1.create_folder,
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       }
 
@@ -1695,7 +1830,101 @@ const WS1 = () => {
   };
   // ---------------------------------sharingcancel
   // ---------------------------------folderupload
+  const [openUploadFolder, setOpenUploadFolder] = useState(false);
 
+  const handleClickOpenUploadFolder = () => {
+    setOpenUploadFolder(true);
+  };
+
+  const handleCloseUploadFolder = () => {
+    setOpenUploadFolder(false);
+    setCurrentFile(null);
+    setProgressFolderUpload(0);
+  };
+
+  const [progressFolderUpload, setProgressFolderUpload] = useState(0);
+  const [currentFile, setCurrentFile] = useState(null);
+  const [folderName, setFolderName] = useState("");
+  const [totalFiles, setTotalFiles] = useState("");
+  const [zipFolder, setZipFolder] = useState({});
+  let token = localStorage.getItem("token") || "";
+
+  const updateImageDisplay = (event) => {
+    const zip = new JSZip();
+    const files = Array.from(event.target.files);
+    files.forEach((file) => {
+      zip.file(file.webkitRelativePath, file);
+    });
+    const folderName = files[0].webkitRelativePath.split("/")[0];
+    setFolderName(folderName);
+    setTotalFiles(event?.target?.files?.length);
+    zip
+      .generateAsync({ type: "blob" }, (metadata) => {
+        setProgressFolderUpload(metadata.percent.toFixed(2));
+        if (metadata.currentFile) {
+          setCurrentFile(metadata.currentFile);
+        }
+      })
+
+      .then((content) => {
+        setZipFolder(content);
+      })
+      .catch((error) => {
+        console.error("Error generating ZIP file:", error);
+      });
+  };
+  const folderUpload = () => {
+    const data = {
+      workspace_id: workSpaceData.workspace_id,
+      workspace_name: workSpaceData.workspace_name,
+      policies_id: isLogin?.user_type === "Admin" ? "" : ws1Policy?.id,
+      workspace_type: "My Workspace",
+      parent_id: currentFolderData?.id,
+      level: currentFolderData?.id ? currentFolderData?.levels + 1 : 0,
+    };
+
+    const formData = new FormData();
+    formData.append("folder", zipFolder, `${folderName}.zip`);
+    formData.append("data", JSON.stringify(data));
+
+    fetch(`${process.env.REACT_APP_API_URL_LOCAL}/uploadfolder`, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: token,
+      },
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.status == true) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: data?.message,
+          });
+          handleCloseUploadFolder();
+          let newData = {
+            parent_id: currentFolderData?.id,
+            levels: currentFolderData?.levels + 1,
+            workspace_name: workSpaceData?.workspace_name,
+            workspace_id: JSON.stringify(workSpaceData.workspace_id),
+          };
+          getAllfoldernames(newData);
+        } else {
+          notification["warning"]({
+            placement: "top",
+            description: "",
+            message: data.message,
+          });
+          handleCloseUploadFolder();
+        }
+      })
+      .catch((apiErr) => {
+        console.log("Error uploading file:", apiErr);
+      });
+  };
   // ---------------------------------folderupload
   return (
     <React.Fragment>
@@ -1820,7 +2049,7 @@ const WS1 = () => {
             moveData={moveData}
             openLink={openLink}
             password={password}
-            guestFromshow="false"
+            guestFromshow="true"
             workspace={workspace}
             shareLink={shareLink}
             teamSpace={teamSpace}
@@ -1839,6 +2068,16 @@ const WS1 = () => {
             handleCheckboxChange={handleCheckboxChange}
             getAllfolderPermission={getAllfolderPermission}
             workspacePermissionWs1={workspacePermissionWs1}
+          />
+          <FolderUpload
+            folderName={folderName}
+            totalFiles={totalFiles}
+            currentFile={currentFile}
+            folderUpload={folderUpload}
+            openUploadFolder={openUploadFolder}
+            updateImageDisplay={updateImageDisplay}
+            progressFolderUpload={progressFolderUpload}
+            handleCloseUploadFolder={handleCloseUploadFolder}
           />
           <FileUpload
             loading={loading}
@@ -1863,6 +2102,7 @@ const WS1 = () => {
             progress={progress}
             doctypeName={doctypeName}
             uploadStatus={uploadStatus}
+            multiplefilesArray={multiplefilesArray}
             clearFileInput={clearFileInput}
             handleDoctypeAutocomplete={handleDoctypeAutocomplete}
             fileDesc={(e) => {
@@ -1883,6 +2123,7 @@ const WS1 = () => {
             callApiHeader={callApiHeader}
             openFileUpload={handleOpenFileModal}
             openFolderModal={handleOpenFolderModal}
+            openFolderUpload={handleClickOpenUploadFolder}
             workspacePermissionWs1={workspacePermissionWs1}
             openModal1={() => setFileModal({ ...fileModal, status: true })}
           />
@@ -1915,7 +2156,6 @@ const WS1 = () => {
             onFileDownload={onFileDownload}
             handleClickMove={handleClickMove}
             onEditFileClick={onEditFileClick}
-            PermissionPolicy={PermissionPolicy}
             onDownloadfolders={onDownloadfolders}
             handleOpenDeleteFile={handleClickOpen}
             openEditFolderModal={onEditFolderClick}
@@ -1926,6 +2166,7 @@ const WS1 = () => {
             workspacePermissionWs1={workspacePermissionWs1}
             handleClickVersionOpen={handleClickVersionOpen}
             handleClickOpenCommets={handleClickOpenCommets}
+            onFileWatermarkDownload={onFileWatermarkDownload}
             handleClickOpenProperties={handleClickOpenProperties}
           />
         </Stack>

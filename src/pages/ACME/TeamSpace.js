@@ -20,6 +20,9 @@ import TeamSpaceHeader from "../../components/TeamSpace/TeamSpaceHeader.jsx";
 import FileFolderComments from "../../components/FileFolderComments/index.jsx";
 import FileFolderProperties from "../../components/FileFolderProperties/index.jsx";
 import TeamSpaceFolderCreate from "../../components/TeamSpace/TeamSpaceFolderCreate.jsx";
+import FolderUpload from "../../components/FolderUploaded/index.jsx";
+import JSZip from "jszip";
+
 const TeamSpace = () => {
   useEffect(() => {
     getUserRselect();
@@ -84,7 +87,17 @@ const TeamSpace = () => {
     setUserData([...newData]);
   }, []);
   // ------------------------------------------------getApis Start
+  //main policy
   const PermissionPolicy = isLogin?.Permission;
+  const [mainPolicy, setMainPolicy] = useState({});
+  useEffect(() => {
+    PermissionPolicy.map((permission) => {
+      if (permission.policy_type === "TeamSpace") {
+        setMainPolicy(permission);
+      }
+    });
+  }, [isLogin]);
+
   const getdoclistuploadfile = () => {
     getdoclist(
       {},
@@ -255,8 +268,12 @@ const TeamSpace = () => {
           let newData = {
             parent_id: currentFolderData?.id,
             levels: currentFolderData?.levels + 1,
-            workspace_name: workSpaceData?.workspace_name,
-            workspace_id: JSON.stringify(workSpaceData.workspace_id),
+            workspace_id: currentFolderData.workspace_id
+              ? currentFolderData.workspace_id
+              : JSON.stringify(workSpaceData.workspace_id),
+            workspace_name: currentFolderData.workspace_name
+              ? currentFolderData.workspace_name
+              : workSpaceData.workspace_name,
           };
           getAllfoldernames(newData);
         }
@@ -309,8 +326,12 @@ const TeamSpace = () => {
             let newData = {
               parent_id: currentFolderData?.id,
               levels: currentFolderData?.levels + 1,
-              workspace_name: workSpaceData?.workspace_name,
-              workspace_id: JSON.stringify(workSpaceData.workspace_id),
+              workspace_id: currentFolderData.workspace_id
+                ? currentFolderData.workspace_id
+                : JSON.stringify(workSpaceData.workspace_id),
+              workspace_name: currentFolderData.workspace_name
+                ? currentFolderData.workspace_name
+                : workSpaceData.workspace_name,
             };
             getAllfoldernames(newData);
           }
@@ -319,11 +340,14 @@ const TeamSpace = () => {
       );
     } else {
       let data = {
-        workspace_id: JSON.stringify(workSpaceData.workspace_id),
-        workspace_name: workSpaceData.workspace_name,
+        workspace_id: currentFolderData.workspace_id
+          ? currentFolderData.workspace_id
+          : JSON.stringify(workSpaceData.workspace_id),
+        workspace_name: currentFolderData.workspace_name
+          ? currentFolderData.workspace_name
+          : workSpaceData.workspace_name,
         workspace_type: "TeamSpace",
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        policies_id: isLogin?.user_type == "Admin" ? "" : mainPolicy?.id,
         folder_name: folderNameInput.name,
         levels: currentFolderData.levels,
         parent_id: currentFolderData.parent_id,
@@ -345,8 +369,12 @@ const TeamSpace = () => {
             let newData = {
               parent_id: currentFolderData?.id,
               levels: currentFolderData?.levels + 1,
-              workspace_name: workSpaceData?.workspace_name,
-              workspace_id: JSON.stringify(workSpaceData.workspace_id),
+              workspace_id: currentFolderData.workspace_id
+                ? currentFolderData.workspace_id
+                : JSON.stringify(workSpaceData.workspace_id),
+              workspace_name: currentFolderData.workspace_name
+                ? currentFolderData.workspace_name
+                : workSpaceData.workspace_name,
             };
             getAllfoldernames(newData);
           }
@@ -376,7 +404,7 @@ const TeamSpace = () => {
   };
   // ------------------------------------------------Create Folder End
   // ------------------------------------------------file upload
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
   const [fileName, setFileName] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editFileId, setEditFileId] = useState(0);
@@ -449,14 +477,19 @@ const TeamSpace = () => {
   const onChooseFile = () => {
     inputRef.current.click();
   };
-  const clearFileInput = () => {
+  const multiplefilesArray = Object.values(file);
+  const clearFileInput = (id) => {
     inputRef.current.value = "";
-    setFile(null);
     setProgress(0);
-    setUploadStatus("select");
+    if (window.confirm("Are you sure you want to remove this file?")) {
+      const result = multiplefilesArray.filter(
+        (data) => data.lastModified !== id
+      );
+      setFile(result);
+    }
   };
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    setFile(event.target.files);
     setUploadStatus("selected");
   };
 
@@ -501,27 +534,39 @@ const TeamSpace = () => {
     } else {
       try {
         setUploadStatus("uploading");
+        let multipleFileExtensions = "";
+        let totalmultipleFileSize = 0;
+        const formData = new FormData();
+        for (let i = 0; i < file.length; i++) {
+          formData.append("files", file[i]);
+          //multipleFileSize
+          totalmultipleFileSize += multiplefilesArray[i].size;
+          //extensions
+          let extension = file[i]?.name?.split(".").pop();
+          if (extension) {
+            if (multipleFileExtensions) {
+              multipleFileExtensions += ",";
+            }
+            multipleFileExtensions += extension;
+          }
+        }
         const data = {
           workspace_id: workSpaceData.workspace_id,
           workspace_name: workSpaceData.workspace_name,
           folder_id: currentFolderData.id || null,
-          policies_id:
-            isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+          policies_id: isLogin?.user_type == "Admin" ? "" : mainPolicy?.id,
           doctype: doctypeName,
           fileDesc: fileNameInput?.file_description,
-          file_Size: file.size,
+          file_Size: totalmultipleFileSize,
           Feilds_Name: formValues,
           workspace_type: "TeamSpace",
         };
-        const formData = new FormData();
-        formData.append("file", file);
         formData.append("data", JSON.stringify(data));
-        const quary = [[file.size], [workSpaceData.workspace_name]];
-        const file_type = file.name?.split(".").pop();
+        const quary = [[totalmultipleFileSize], [workSpaceData.workspace_name]];
         const response = await axios.post(
           `${
             process.env.REACT_APP_API_URL_LOCAL
-          }/uploadcreate?q=${quary}&fileExtension=${file_type}&workspace_type=${"TeamSpace"}`,
+          }/uploadcreate?q=${quary}&fileExtension=${multipleFileExtensions}&workspace_type=${"TeamSpace"}`,
           formData,
           {
             headers: {
@@ -561,7 +606,7 @@ const TeamSpace = () => {
           notification["warning"]({
             placement: "top",
             description: "",
-            message: error.response.data.message,
+            message: error?.response?.data?.message,
           });
         }
         handleCloseFileModal();
@@ -791,17 +836,22 @@ const TeamSpace = () => {
     resetCheckboxState();
   };
   //min and max dates
+
   useEffect(() => {
-    if (isLogin.user_type === "User" && PermissionPolicy.length > 0) {
-      const PolicyMinDays = PermissionPolicy[0]?.minimum_maximum_days[0];
-      const PolicyMaxDays = PermissionPolicy[0]?.minimum_maximum_days[1];
+    if (
+      isLogin.user_type === "User" &&
+      mainPolicy &&
+      mainPolicy?.minimum_maximum_days
+    ) {
+      const PolicyMinDays = mainPolicy?.minimum_maximum_days[0];
+      const PolicyMaxDays = mainPolicy?.minimum_maximum_days[1];
       const today = new Date();
       const min = format(addDays(today, PolicyMinDays), "yyyy-MM-dd");
       const max = format(addDays(today, PolicyMaxDays), "yyyy-MM-dd");
       setMinDate(min);
       setMaxDate(max);
     }
-  }, [isLogin, PermissionPolicy]);
+  }, [isLogin, PermissionPolicy, mainPolicy]);
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -815,7 +865,7 @@ const TeamSpace = () => {
         minimum_numeric,
         minimum_Alphabets,
         minimum_special_character,
-      } = PermissionPolicy[0];
+      } = mainPolicy;
       if (newPassword?.length < minimum_character) {
         hasError = true;
         errorMessage = `Password must be at least ${minimum_character} characters long.`;
@@ -873,20 +923,20 @@ const TeamSpace = () => {
       subject: shareFormData.Subject,
       password: shareFormData.Password,
       user_email: shareFormData?.userDropdowns?.email,
-      view: checkboxValues.view,
-      share: checkboxValues.share,
-      rename: checkboxValues.rename,
-      upload_folder: checkboxValues.upload_folder,
-      create_folder: checkboxValues.create_folder,
-      view_watermark: checkboxValues.view_watermark,
-      download_watermark: checkboxValues.download_watermark,
-      upload_file: checkboxValues.upload_file,
-      delete_action: checkboxValues.delete,
-      download: checkboxValues.download,
-      move: checkboxValues.move,
-      rights: checkboxValues.rights,
-      comment: checkboxValues.comment,
-      properties: checkboxValues.properties,
+      view: checkboxValues?.view,
+      share: checkboxValues?.share,
+      rename: checkboxValues?.rename,
+      upload_folder: checkboxValues?.upload_folder,
+      create_folder: checkboxValues?.create_folder,
+      view_watermark: checkboxValues?.view_watermark,
+      download_watermark: checkboxValues?.download_watermark,
+      upload_file: checkboxValues?.upload_file,
+      delete_action: checkboxValues?.delete,
+      download: checkboxValues?.download,
+      move: checkboxValues?.move,
+      rights: checkboxValues?.rights,
+      comment: checkboxValues?.comment,
+      properties: checkboxValues?.properties,
     };
     getfetchlink(
       data,
@@ -902,6 +952,17 @@ const TeamSpace = () => {
             height: 60,
           },
         });
+        let newData = {
+          parent_id: currentFolderData?.id,
+          levels: currentFolderData?.levels + 1,
+          workspace_id: currentFolderData.workspace_id
+            ? currentFolderData.workspace_id
+            : JSON.stringify(workSpaceData.workspace_id),
+          workspace_name: currentFolderData.workspace_name
+            ? currentFolderData.workspace_name
+            : workSpaceData.workspace_name,
+        };
+        getAllfoldernames(newData);
       },
       (apiErr) => {
         notification["error"]({
@@ -1056,8 +1117,12 @@ const TeamSpace = () => {
       let apiData = {
         parent_id: data.id,
         levels: data.levels + 1,
-        workspace_name: retrievedWorkspaceName,
-        workspace_id: retrievedWorkspaceId,
+        workspace_id: currentFolderData.workspace_id
+          ? currentFolderData.workspace_id
+          : JSON.stringify(workSpaceData.workspace_id),
+        workspace_name: currentFolderData.workspace_name
+          ? currentFolderData.workspace_name
+          : workSpaceData.workspace_name,
       };
       getAllfoldernames(apiData);
       setCurrentFolderData(data);
@@ -1226,8 +1291,7 @@ const TeamSpace = () => {
     let data;
     if (openMove?.data?.file_type) {
       data = {
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        policies_id: isLogin?.user_type == "Admin" ? "" : mainPolicy?.id,
         file_id: openMove?.data?.id,
         folder_id: currentFolderData.id || null,
         workspace_name: workSpaceData.workspace_name,
@@ -1237,8 +1301,7 @@ const TeamSpace = () => {
       data = {
         workspace_name: workSpaceData.workspace_name,
         workspace_id: retrievedWorkspaceId,
-        policies_id:
-          isLogin?.user_type == "Admin" ? "" : PermissionPolicy[0]?.id,
+        policies_id: isLogin?.user_type == "Admin" ? "" : mainPolicy?.id,
         levels: currentFolderData.levels,
         parent_id: currentFolderData.id,
         folder_id: openMove?.data?.id || null,
@@ -1376,7 +1439,7 @@ const TeamSpace = () => {
           policy_type: "TeamSpace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1386,10 +1449,10 @@ const TeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       } else {
         data = {
@@ -1399,7 +1462,7 @@ const TeamSpace = () => {
           policy_type: "TeamSpace",
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1409,10 +1472,10 @@ const TeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       }
 
@@ -1449,7 +1512,7 @@ const TeamSpace = () => {
           file_name: file_name,
           view: checkboxWs1.view,
           share: checkboxWs1.share,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1459,10 +1522,10 @@ const TeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       } else {
         data = {
@@ -1471,7 +1534,7 @@ const TeamSpace = () => {
           view: checkboxWs1.view,
           share: checkboxWs1.share,
           folder_name: folder_name,
-          rename: checkboxWs1.rename,
+          rename: checkboxWs1?.rename,
           selected_users: permissionForm?.selected_users,
           selected_group: permissionForm?.selected_group,
           upload_folder: checkboxWs1.upload_folder,
@@ -1481,10 +1544,10 @@ const TeamSpace = () => {
           upload_file: checkboxWs1.upload_file,
           delete_per: checkboxWs1.delete,
           download_per: checkboxWs1.download,
-          move: checkboxWs1.move,
-          rights: checkboxWs1.rights,
-          comments: checkboxWs1.comment,
-          properties: checkboxWs1.properties,
+          move: checkboxWs1?.move,
+          rights: checkboxWs1?.rights,
+          comments: checkboxWs1?.comment,
+          properties: checkboxWs1?.properties,
         };
       }
 
@@ -1697,6 +1760,104 @@ const TeamSpace = () => {
     );
   };
   // ---------------------------------sharingcancel
+  // ---------------------------------folderupload
+  const [openUploadFolder, setOpenUploadFolder] = useState(false);
+
+  const handleClickOpenUploadFolder = () => {
+    setOpenUploadFolder(true);
+  };
+
+  const handleCloseUploadFolder = () => {
+    setOpenUploadFolder(false);
+    setCurrentFile(null);
+    setProgressFolderUpload(0);
+  };
+
+  const [progressFolderUpload, setProgressFolderUpload] = useState(0);
+  const [currentFile, setCurrentFile] = useState(null);
+  const [folderName, setFolderName] = useState("");
+  const [totalFiles, setTotalFiles] = useState("");
+  const [zipFolder, setZipFolder] = useState({});
+  let token = localStorage.getItem("token") || "";
+
+  const updateImageDisplay = (event) => {
+    const zip = new JSZip();
+    const files = Array.from(event.target.files);
+    files.forEach((file) => {
+      zip.file(file.webkitRelativePath, file);
+    });
+    const folderName = files[0].webkitRelativePath.split("/")[0];
+    setFolderName(folderName);
+    setTotalFiles(event?.target?.files?.length);
+    zip
+      .generateAsync({ type: "blob" }, (metadata) => {
+        setProgressFolderUpload(metadata.percent.toFixed(2));
+        if (metadata.currentFile) {
+          setCurrentFile(metadata.currentFile);
+        }
+      })
+
+      .then((content) => {
+        setZipFolder(content);
+      })
+      .catch((error) => {
+        console.error("Error generating ZIP file:", error);
+      });
+  };
+  const folderUpload = () => {
+    const data = {
+      workspace_id: workSpaceData.workspace_id,
+      workspace_name: workSpaceData.workspace_name,
+      policies_id: isLogin?.user_type === "Admin" ? "" : ws1Policy?.id,
+      workspace_type: "TeamSpace",
+      parent_id: currentFolderData?.id,
+      level: currentFolderData?.id ? currentFolderData?.levels + 1 : 0,
+    };
+
+    const formData = new FormData();
+    formData.append("folder", zipFolder, `${folderName}.zip`);
+    formData.append("data", JSON.stringify(data));
+
+    fetch(`${process.env.REACT_APP_API_URL_LOCAL}/uploadfolder`, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: token,
+      },
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.status == true) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: data?.message,
+          });
+          handleCloseUploadFolder();
+          let newData = {
+            parent_id: currentFolderData?.id,
+            levels: currentFolderData?.levels + 1,
+            workspace_name: workSpaceData?.workspace_name,
+            workspace_id: JSON.stringify(workSpaceData.workspace_id),
+          };
+          getAllfoldernames(newData);
+          console.log(data, "in----");
+        } else {
+          notification["warning"]({
+            placement: "top",
+            description: "",
+            message: data.message,
+          });
+          handleCloseUploadFolder();
+        }
+      })
+      .catch((apiErr) => {
+        console.log("Error uploading file:", apiErr);
+      });
+  };
+  // ---------------------------------folderupload
   return (
     <React.Fragment>
       <Head title="TeamSpace - Regular"></Head>
@@ -1830,7 +1991,6 @@ const TeamSpace = () => {
             accesscheckbox={checkboxData}
             shareFormData={shareFormData}
             checkboxValues={checkboxValues}
-            PermissionPolicy={PermissionPolicy}
             setSelectedDate={setSelectedDate}
             handleShareData={handleShareData}
             handleLinkClose={handleLinkClose}
@@ -1858,6 +2018,7 @@ const TeamSpace = () => {
             matchedWorkspace={matchedWorkspace}
             handleFileChange={handleFileChange}
             handleInputChange={handleInputChange}
+            multiplefilesArray={multiplefilesArray}
             handleCloseFileModal={handleCloseFileModal}
             inputRef={inputRef}
             onChooseFile={onChooseFile}
@@ -1869,6 +2030,16 @@ const TeamSpace = () => {
             fileDesc={(e) => {
               setFileDesc(e.target.value);
             }}
+          />
+          <FolderUpload
+            folderName={folderName}
+            totalFiles={totalFiles}
+            currentFile={currentFile}
+            folderUpload={folderUpload}
+            openUploadFolder={openUploadFolder}
+            updateImageDisplay={updateImageDisplay}
+            progressFolderUpload={progressFolderUpload}
+            handleCloseUploadFolder={handleCloseUploadFolder}
           />
           <TeamSpaceHeader
             sm={sm}
@@ -1883,6 +2054,7 @@ const TeamSpace = () => {
             callApiHeader={callApiHeader}
             openFileUpload={handleOpenFileModal}
             openFolderModal={handleOpenFolderModal}
+            openFolderUpload={handleClickOpenUploadFolder}
             workspacePermissionWs1={workspacePermissionWs1}
             openModal1={() => setFileModal({ ...fileModal, status: true })}
           />
@@ -1914,7 +2086,6 @@ const TeamSpace = () => {
             onFileDownload={onFileDownload}
             onEditFileClick={onEditFileClick}
             handleClickMove={handleClickMove}
-            PermissionPolicy={PermissionPolicy}
             onDownloadfolders={onDownloadfolders}
             handleOpenDeleteFile={handleClickOpen}
             openEditFolderModal={onEditFolderClick}

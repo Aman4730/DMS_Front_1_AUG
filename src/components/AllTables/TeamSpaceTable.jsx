@@ -12,7 +12,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import ShareIcon from "@mui/icons-material/Share";
-import BlockIcon from "@mui/icons-material/Block";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArticleIcon from "@mui/icons-material/Article";
 import TableSortLabel from "@mui/material/TableSortLabel";
@@ -20,7 +19,7 @@ import TableContainer from "@mui/material/TableContainer";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import TablePagination from "@mui/material/TablePagination";
 import PreviewIcon from "@mui/icons-material/Preview";
-import SecurityUpdateIcon from "@mui/icons-material/SecurityUpdate";
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
@@ -85,15 +84,17 @@ export default function TeamSpaceTable({
   handleClickOpenProperties,
 }) {
   const history = useHistory();
-  const navigate = (id, data, filemongo_id) => {
+  const navigate = (id, data, filemongo_id, watermark) => {
     history.push("/fileviewer", {
       id: id,
       file: data,
       filemongo_id: filemongo_id,
       workspace_type: "TeamSpace",
       commentHide: "true",
+      watermark: watermark,
     });
   };
+ 
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
   const [selected, setSelected] = React.useState([]);
@@ -115,6 +116,10 @@ export default function TeamSpaceTable({
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+  const handlClickData = (data)=>{
+    setPage(0)
+    callApi(data)
+  }
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -226,7 +231,7 @@ export default function TeamSpaceTable({
                       }}
                     >
                       <TableCell
-                        onClick={() => (data.file_type ? "" : callApi(data))}
+                        onClick={() => (data.file_type ? "" : handlClickData(data))}
                         className="tablefont"
                         style={{
                           fontSize: "12px",
@@ -349,21 +354,47 @@ export default function TeamSpaceTable({
                                 />
                               </Tooltip>
                             ) : (
-                                  <Tooltip
-                                title="Share Cancel"
-                                onClick={() =>
-                                  handleClickShareOpen(
-                                    data?.id,
-                                    data?.file_type
-                                  )
-                                }
+                              ""
+                            ))}
+                          {data.file_type && (
+                            <>
+                              <Tooltip
+                                title="View Watermark"
+                                onClick={() => {
+                                  if (data.file_type) {
+                                    navigate(
+                                      data.id,
+                                      data?.file_name,
+                                      data?.filemongo_id,
+                                      true
+                                    );
+                                  } else {
+                                    callApi(data);
+                                  }
+                                }}
                               >
-                                <SettingsBackupRestoreIcon
+                                <PreviewIcon fontSize="small" sx={{ mr: 1 }} />
+                              </Tooltip>
+                              <Tooltip
+                                title="Download Watermark"
+                                onClick={() => {
+                                  if (data.file_type) {
+                                    onFileWatermarkDownload(
+                                      data.filemongo_id,
+                                      data.file_name,
+                                      data.file_size,
+                                      data.file_type
+                                    );
+                                  }
+                                }}
+                              >
+                                <SystemUpdateAltIcon
                                   fontSize="small"
                                   sx={{ mr: 1 }}
                                 />
                               </Tooltip>
-                            ))}
+                            </>
+                          )}
                           <Tooltip
                             title="View"
                             onClick={() => {
@@ -379,46 +410,6 @@ export default function TeamSpaceTable({
                             }}
                           >
                             <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
-                          </Tooltip>
-                          <Tooltip
-                            title="View W"
-                            onClick={() => {
-                              if (data.file_type) {
-                                navigate(
-                                  data.id,
-                                  data?.file_name,
-                                  data.filemongo_id
-                                );
-                              } else {
-                                callApi(data);
-                              }
-                            }}
-                          >
-                            <PreviewIcon fontSize="small" sx={{ mr: 1 }} />
-                          </Tooltip>
-                          <Tooltip
-                            title="Download W"
-                            onClick={() => {
-                              if (data.file_type) {
-                                onFileDownload(
-                                  data.filemongo_id,
-                                  data.file_name,
-                                  data.file_size,
-                                  data.file_type
-                                );
-                              } else {
-                                onDownloadfolders(
-                                  data.id,
-                                  data.folder_name,
-                                  data.folder_size
-                                );
-                              }
-                            }}
-                          >
-                            <SecurityUpdateIcon
-                              fontSize="small"
-                              sx={{ mr: 1 }}
-                            />
                           </Tooltip>
                           <Tooltip
                             title="Edit"
@@ -554,6 +545,59 @@ export default function TeamSpaceTable({
                                 sx={{ mr: 1 }}
                               />
                             </Tooltip>
+                          )}
+                             {data.file_type && (
+                            <>
+                              {data?.permission?.view_watermark == true ||
+                              workspacePermissionWs1?.view_watermark == true ? (
+                                <Tooltip
+                                  title="View Watermark"
+                                  onClick={() => {
+                                    if (data.file_type) {
+                                      navigate(
+                                        data.id,
+                                        data?.file_name,
+                                        data?.filemongo_id,
+                                        true
+                                      );
+                                    } else {
+                                      callApi(data);
+                                    }
+                                  }}
+                                >
+                                  <PreviewIcon
+                                    fontSize="small"
+                                    sx={{ mr: 1 }}
+                                  />
+                                </Tooltip>
+                              ) : (
+                                ""
+                              )}
+                              {data?.permission?.download_watermark == true ||
+                              workspacePermissionWs1?.download_watermark ==
+                                true ? (
+                                <Tooltip
+                                  title="Download Watermark"
+                                  onClick={() => {
+                                    if (data.file_type) {
+                                      onFileWatermarkDownload(
+                                        data.filemongo_id,
+                                        data.file_name,
+                                        data.file_size,
+                                        data.file_type
+                                      );
+                                    }
+                                  }}
+                                >
+                                  <SystemUpdateAltIcon
+                                    fontSize="small"
+                                    sx={{ mr: 1 }}
+                                  />
+                                </Tooltip>
+                              ) : (
+                                ""
+                              )}
+                            </>
                           )}
                           {data?.permission?.view == true ||
                           workspacePermissionWs1?.view == true ? (

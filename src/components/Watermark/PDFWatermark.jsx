@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { PDFDocument, rgb, degrees } from "pdf-lib";
 import axios from "axios";
 
-function PDFWatermark({ location }) {
+function PDFWatermark({ location, text, fontSize }) {
   const [pdfUrl, setPdfUrl] = useState(null);
 
   useEffect(() => {
@@ -25,14 +25,14 @@ function PDFWatermark({ location }) {
 
         pages.forEach((page) => {
           const { width, height } = page.getSize();
-          const textSize = 50;
-          const textWidth = font.widthOfTextAtSize("ACME", textSize);
+          const textSize = Number(fontSize);
+          const textWidth = font.widthOfTextAtSize(text, textSize);
           const textHeight = font.heightAtSize(textSize);
 
           const textX = width / 2 - textWidth / 2;
           const textY = height / 2 - textHeight / 2;
 
-          page.drawText("ACME", {
+          page.drawText(text, {
             x: textX,
             y: textY,
             size: textSize,

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-const ImageWithWatermark = ({ Img }) => {
+const ImageWithWatermark = ({ Img, text, fontSize }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -14,13 +14,13 @@ const ImageWithWatermark = ({ Img }) => {
       canvas.height = image.height;
 
       ctx.drawImage(image, 0, 0);
-      ctx.font = "48px sans-serif";
+      ctx.font = `${fontSize}px sans-serif`;
       ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const x = canvas.width / 2;
       const y = canvas.height / 2;
-      ctx.fillText("acme", x, y);
+      ctx.fillText(text, x, y);
     };
 
     image.onerror = () => {

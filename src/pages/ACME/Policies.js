@@ -67,10 +67,12 @@ const Policies = () => {
     minimum_download: "",
     no_of_days: "",
     no_of_versions: "",
-    startDate: null,
-    endDate: null,
+    // startDate: null,
+    // endDate: null,
     watermark_text: "",
     watermark_fontSize: "",
+    watermark_color: "",
+    watermark_fontStyle: "",
   });
   //datepicker
   const handleDateChange = (date, dateType) => {
@@ -221,10 +223,12 @@ const Policies = () => {
       minimum_download: "",
       recycle_bin: "",
       version: "",
-      startDate: null,
-      endDate: null,
+      // startDate: null,
+      // endDate: null,
       watermark_text: "",
       watermark_fontSize: "",
+      watermark_color: "",
+      watermark_fontStyle: "",
     });
     setCheckboxValues({
       versions: false,
@@ -235,24 +239,23 @@ const Policies = () => {
     setEditExtension([]);
     setEditedId(0);
   };
-  const startTimestamp = addPolicies?.startDate;
-  const endTimestamp = addPolicies.endDate;
-  const startDate = new Date(startTimestamp);
-  const endDate = new Date(endTimestamp);
+  // const startTimestamp = addPolicies?.startDate;
+  // const endTimestamp = addPolicies.endDate;
+  // const startDate = new Date(startTimestamp);
+  // const endDate = new Date(endTimestamp);
 
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
+  // const options = {
+  //   year: "numeric",
+  //   month: "2-digit",
+  //   day: "2-digit",
+  // };
 
-  const formattedStartDate = startDate
-    .toLocaleString("en-US", options)
-    .replace(/\//g, "-");
-  const formattedEndDate = endDate
-    .toLocaleString("en-US", options)
-    .replace(/\//g, "-");
-
+  // const formattedStartDate = startDate
+  //   .toLocaleString("en-US", options)
+  //   .replace(/\//g, "-");
+  // const formattedEndDate = endDate
+  //   .toLocaleString("en-US", options)
+  //   .replace(/\//g, "-");
   const onFormSubmit = () => {
     if (editId) {
       let submittedData = {
@@ -268,6 +271,8 @@ const Policies = () => {
         incorrect_password: addPolicies.incorrect_password,
         watermark_text: addPolicies.watermark_text,
         watermark_font: addPolicies.watermark_fontSize,
+        watermark_color: addPolicies.watermark_color,
+        watermark_fontStyle: addPolicies.watermark_fontStyle,
         file_extension: editExtension,
         minimum_days: addPolicies.minimum_days,
         maximum_days: addPolicies.maximum_days,
@@ -281,8 +286,8 @@ const Policies = () => {
         watermark: checkboxValues.watermarkCheckbox,
         print_userid_timestamp: checkboxValues.watermarkPrintId_timestamp,
         recycle_bin: checkboxValues.recycle_bin,
-        start_date: addPolicies?.startDate === null ? null : formattedStartDate,
-        end_date: addPolicies?.endDate === null ? null : formattedEndDate,
+        // start_date: addPolicies?.startDate === null ? null : formattedStartDate,
+        // end_date: addPolicies?.endDate === null ? null : formattedEndDate,
       };
       add_Policies(
         submittedData,
@@ -318,6 +323,8 @@ const Policies = () => {
         incorrect_password: addPolicies.incorrect_password,
         watermark_text: addPolicies.watermark_text,
         watermark_font: addPolicies.watermark_fontSize,
+        watermark_color: addPolicies.watermark_color,
+        watermark_fontStyle: addPolicies.watermark_fontStyle,
         file_extension: editExtension,
         subject: addPolicies.subject,
         message: addPolicies.message,
@@ -329,8 +336,8 @@ const Policies = () => {
         print_userid_timestamp: checkboxValues.watermarkPrintId_timestamp,
         no_of_days: addPolicies.no_of_days,
         no_of_versions: addPolicies.no_of_versions,
-        start_date: addPolicies?.startDate === null ? null : formattedStartDate,
-        end_date: addPolicies?.endDate === null ? null : formattedEndDate,
+        // start_date: addPolicies?.startDate === null ? null : formattedStartDate,
+        // end_date: addPolicies?.endDate === null ? null : formattedEndDate,
       };
       add_Policies(
         submittedData,
@@ -355,8 +362,8 @@ const Policies = () => {
   const onEditClick = (id) => {
     tableDropdown.map((item) => {
       if (item.id == id) {
-        const startDate = new Date(item.start_date);
-        const endDate = new Date(item.end_date);
+        // const startDate = new Date(item.start_date);
+        // const endDate = new Date(item.end_date);
         setAddPolicies({
           id: id,
           policy_name: item.policy_name,
@@ -373,8 +380,9 @@ const Policies = () => {
           maximum_days: item.minimum_maximum_days[1],
           subject: item.subject,
           message: item.message,
-          startDate: startDate,
-          endDate: endDate,
+          // startDate:
+          //   addPolicies?.startDate === null ? null : formattedStartDate,
+          // endDate: addPolicies?.endDate === null ? null : formattedEndDate,
           minimum_upload: item.Bandwidth_min_max[0],
           minimum_download: item.Bandwidth_min_max[1],
           no_of_days: item.no_of_days,
@@ -541,6 +549,20 @@ const Policies = () => {
         recyclebin={[{ label: "Enable", name: "recycle_bin" }]}
         watermarkPrintId_timestamp={[
           { label: "Enable", name: "watermarkPrintId_timestamp" },
+        ]}
+        watermarkFields={[
+          {
+            label: "watermark_text",
+            name: "watermark_text",
+            type: "text",
+            fieldSize: 8,
+          },
+          {
+            label: "fontSize",
+            name: "watermark_fontSize",
+            type: "number",
+            fieldSize: 4,
+          },
         ]}
         watermarkCheckbox={[{ label: "Enable", name: "watermarkCheckbox" }]}
         buttonSuccessTitle={editId ? "Update" : "Submit"}

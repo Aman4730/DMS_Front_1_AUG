@@ -205,7 +205,7 @@ export default function UserPermissiontable({
                       <Tooltip title="Edit">
                         <EditIcon
                           fontSize="small"
-                          sx={{ mr: 1, color: data.rename ? "grey" : "" }}
+                          sx={{ mr: 1, color: data?.rename ? "grey" : "" }}
                         />
                       </Tooltip>
                       <Tooltip title="Download">
@@ -217,7 +217,7 @@ export default function UserPermissiontable({
                       <Tooltip title="Move">
                         <DriveFileMoveIcon
                           fontSize="small"
-                          sx={{ mr: 1, color: data.move ? "grey" : "" }}
+                          sx={{ mr: 1, color: data?.move ? "grey" : "" }}
                         />
                       </Tooltip>
                       <Tooltip title="Share">

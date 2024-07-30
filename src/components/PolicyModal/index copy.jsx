@@ -1072,6 +1072,27 @@ export default function PolicyModal({
                         </Grid>
                       </>
                     ))}
+                    <Grid item xs={10} sx={{ mb: -2 }}>
+                      <DialogTitle sx={{ ml: -3, mt: -2.5 }} fontSize="14px">
+                        Select Date
+                      </DialogTitle>
+                    </Grid>
+                    <Grid item xs={4.3}>
+                      <DatePicker
+                        selected={addPolicies.startDate}
+                        dateFormat="yyyy/MM/dd"
+                        placeholderText="Start Date"
+                        onChange={(date) => handleDateChange(date, "startDate")}
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <DatePicker
+                        selected={addPolicies.endDate}
+                        dateFormat="yyyy/MM/dd"
+                        placeholderText="End Date"
+                        onChange={(date) => handleDateChange(date, "endDate")}
+                      />
+                    </Grid>
                     {/* recyclebin */}
                     <Grid item xs={10} sx={{ mb: -3.5 }}>
                       <DialogTitle sx={{ ml: -3 }} fontSize="14px">

@@ -22,6 +22,7 @@ const WS1Header = ({
   callApiHeader,
   openFileUpload,
   openFolderModal,
+  openFolderUpload,
   workspacePermissionWs1,
 }) => {
   const [open, setOpen] = useState(false);
@@ -82,7 +83,7 @@ const WS1Header = ({
                       <Button
                         color="primary"
                         className="btn-icon"
-                        onClick={openFileUpload}
+                        onClick={openFolderUpload}
                         style={{ padding: "2px 5px 2px 5px" }}
                       >
                         Upload Folder
@@ -149,7 +150,7 @@ const WS1Header = ({
                         <Button
                           color="primary"
                           className="btn-icon"
-                          onClick={openFileUpload}
+                          onClick={openFolderUpload}
                           style={{ padding: "2px 5px 2px 5px" }}
                         >
                           Upload Folder
@@ -189,11 +190,14 @@ const WS1Header = ({
         {list?.map((data, index) => (
           <div
             key={index}
-            style={{ cursor: "pointer" }}
             onClick={() => callApiHeader({ ...data, index })}
+            style={{ cursor: "pointer", height: "100%" }}
           >
             {data?.folder_name ? (
-              <p onClick={() => findFolder(data)} style={{ cursor: "pointer" }}>
+              <p
+                onClick={() => findFolder(data)}
+                style={{ cursor: "pointer", paddingTop: "5px" }}
+              >
                 {data?.folder_name} /
               </p>
             ) : (

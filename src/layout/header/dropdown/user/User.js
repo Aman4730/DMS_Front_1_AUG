@@ -9,12 +9,11 @@ import { DropdownToggle, DropdownMenu, Dropdown } from "reactstrap";
 import { notification } from "antd";
 
 const User = () => {
-  const { isLogin, logout, setIsLogin } = useContext(UserContext);
+  const { isLogin, logout } = useContext(UserContext);
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((prevState) => !prevState);
   const { userAuthContextData, logOut, GuestLogOUt } = useContext(AuthContext);
   const [userData] = userAuthContextData;
-  const { userName } = userData;
   useEffect(() => {
     const oneWeekInMilliseconds = 6 * 24 * 60 * 60 * 1000;
     const logoutTimer = setTimeout(() => {
@@ -24,10 +23,6 @@ const User = () => {
         description:
           "Your session has been idle for too long. Please log in again.",
         message: "Idle Session Timeout. Please Login.",
-        style: {
-          marginTop: "43px",
-          height: "60px",
-        },
       });
     }, oneWeekInMilliseconds);
     return () => {

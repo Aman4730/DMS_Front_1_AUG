@@ -20,6 +20,7 @@ const TeamSpaceHeader = ({
   searchTerm,
   setSearchTerm,
   callApiHeader,
+  openFolderUpload,
   openFileUpload,
   openFolderModal,
   workspacePermissionWs1,
@@ -82,7 +83,7 @@ const TeamSpaceHeader = ({
                       <Button
                         color="primary"
                         className="btn-icon"
-                        onClick={openFileUpload}
+                        onClick={openFolderUpload}
                         style={{ padding: "2px 5px 2px 5px" }}
                       >
                         Upload Folder
@@ -149,7 +150,7 @@ const TeamSpaceHeader = ({
                         <Button
                           color="primary"
                           className="btn-icon"
-                          onClick={openFileUpload}
+                          onClick={openFolderUpload}
                           style={{ padding: "2px 5px 2px 5px" }}
                         >
                           Upload Folder

@@ -187,7 +187,7 @@ export default function CreateLinkModel({
                 />
               )}
             </Grid>
-            <Grid container mt={1} ml={1}>
+            <Grid container  mt={1} ml={1}>
               {accesscheckbox?.map((data) => {
                 if (
                   (data.name == "view" &&
@@ -227,11 +227,11 @@ export default function CreateLinkModel({
                     (workspacePermissionWs1?.upload_file == true ||
                       getAllfolderPermission?.upload_file == true)) ||
                   (data.name == "view_watermark" &&
-                    (workspacePermissionWs1?.view_watermark == true ||
-                      getAllfolderPermission?.view_watermark == true)) ||
+                    (workspacePermissionWs1.view_watermark == true ||
+                      getAllfolderPermission.view_watermark == true)) ||
                   (data.name == "download_watermark" &&
-                    (workspacePermissionWs1?.download_watermark == true ||
-                      getAllfolderPermission?.download_watermark == true)) ||
+                    (workspacePermissionWs1.download_watermark == true ||
+                      getAllfolderPermission.download_watermark == true)) ||
                   isLogin?.user_type === "Admin"
                 ) {
                   return (

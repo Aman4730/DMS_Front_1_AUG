@@ -65,6 +65,7 @@ const UserListRegularPage = () => {
     getTotalGroups();
     getUserRselect();
   }, []);
+  
   const getUserRselect = () => {
     userDropdownU(
       {},

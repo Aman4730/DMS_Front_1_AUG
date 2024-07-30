@@ -84,33 +84,52 @@ export default function Ws1_Rights({
               </>
             )}
             {permissionArray?.map((data) => {
+             
               if (
-                (data.name == "view") &&
-                 ( workspacePermissionWs1.view == true || getAllfolderPermission.view==true)||
-                  (data.name == "move") &&
-                 ( workspacePermissionWs1.move == true || getAllfolderPermission.move==true)||
-                  (data.name == "share") &&
-                 ( workspacePermissionWs1.share == true || getAllfolderPermission.share==true)||
-                  (data.name == "rights") &&
-                 ( workspacePermissionWs1.rights == true || getAllfolderPermission.rights==true)||
-                  (data.name == "rename") &&
-                 ( workspacePermissionWs1.rename == true || getAllfolderPermission.rename==true)||
-                  (data.name == "delete") &&
-                 ( workspacePermissionWs1.delete_per == true || getAllfolderPermission.delete_per==true)||
-                  (data.name == "comment") &&
-                 ( workspacePermissionWs1.comments == true || getAllfolderPermission.comments==true)||
-                 (data.name == "download") &&
-                 ( workspacePermissionWs1.download_per == true || getAllfolderPermission.download_per==true)||
-                 (data.name == "properties") &&
-                 ( workspacePermissionWs1.properties == true || getAllfolderPermission.properties==true)||
-                 (data.name == "upload_folder") &&
-                 ( workspacePermissionWs1.upload_folder == true || getAllfolderPermission.upload_folder==true)||
-                 (data.name == "create_folder") &&
-                 ( workspacePermissionWs1.create_folder == true || getAllfolderPermission.create_folder==true)||
-                 (data.name == "upload_file") &&
-                 ( workspacePermissionWs1.upload_file == true || getAllfolderPermission.upload_file==true)||
-                 isLogin.user_type === "Admin"
-                ){
+                (data.name == "view" &&
+                  (workspacePermissionWs1?.view == true ||
+                    getAllfolderPermission?.view == true)) ||
+                (data.name == "move" &&
+                  (workspacePermissionWs1?.move == true ||
+                    getAllfolderPermission?.move == true)) ||
+                (data.name == "share" &&
+                  (workspacePermissionWs1?.share == true ||
+                    getAllfolderPermission?.share == true)) ||
+                (data.name == "rights" &&
+                  (workspacePermissionWs1?.rights == true ||
+                    getAllfolderPermission?.rights == true)) ||
+                (data.name == "rename" &&
+                  (workspacePermissionWs1?.rename == true ||
+                    getAllfolderPermission?.rename == true)) ||
+                (data.name == "delete" &&
+                  (workspacePermissionWs1?.delete_per == true ||
+                    getAllfolderPermission?.delete_per == true)) ||
+                (data.name == "comment" &&
+                  (workspacePermissionWs1?.comments == true ||
+                    getAllfolderPermission?.comments == true)) ||
+                (data.name == "download" &&
+                  (workspacePermissionWs1?.download_per == true ||
+                    getAllfolderPermission?.download_per == true)) ||
+                (data.name == "properties" &&
+                  (workspacePermissionWs1?.properties == true ||
+                    getAllfolderPermission?.properties == true)) ||
+                (data.name == "upload_folder" &&
+                  (workspacePermissionWs1?.upload_folder == true ||
+                    getAllfolderPermission?.upload_folder == true)) ||
+                (data.name == "create_folder" &&
+                  (workspacePermissionWs1?.create_folder == true ||
+                    getAllfolderPermission?.create_folder == true)) ||
+                (data.name == "upload_file" &&
+                  (workspacePermissionWs1?.upload_file == true ||
+                    getAllfolderPermission?.upload_file == true)) ||
+                (data.name == "view_watermark" &&
+                  (workspacePermissionWs1?.view_watermark == true ||
+                    getAllfolderPermission?.view_watermark == true)) ||
+                (data.name == "download_watermark" &&
+                  (workspacePermissionWs1?.download_watermark == true ||
+                    getAllfolderPermission?.download_watermark == true)) ||
+                isLogin.user_type === "Admin"
+              ) {
                 return (
                   <Grid item key={data.label} xs={3}>
                     <FormControlLabel

@@ -128,8 +128,10 @@ export default function UserTable({
                 )
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
+                  const lastLogin = row.last_login;
                   const originalTimestamp = row.validity_date;
                   const originalDate = new Date(originalTimestamp);
+                  const lastLoginDate = new Date(lastLogin);
                   const options = {
                     year: "numeric",
                     month: "2-digit",
@@ -139,6 +141,10 @@ export default function UserTable({
                     hour12: false,
                   };
                   const convertedTimestamp = originalDate.toLocaleString(
+                    "en-GB",
+                    options
+                  );
+                  const lastLoginFormate = lastLoginDate?.toLocaleString(
                     "en-GB",
                     options
                   );
@@ -170,6 +176,9 @@ export default function UserTable({
                           : convertedTimestamp}
                       </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
+                        {lastLoginFormate}
+                      </TableCell>
+                      <TableCell style={{ fontSize: "12px" }}>
                         {row.user_type}
                       </TableCell>
                       <TableCell style={{ fontSize: "12px" }}>
@@ -178,6 +187,7 @@ export default function UserTable({
                       <TableCell style={{ fontSize: "12px" }}>
                         {formattedSize}
                       </TableCell>
+                       
                       <TableCell>
                         <Tooltip
                           title="Omega Sync"

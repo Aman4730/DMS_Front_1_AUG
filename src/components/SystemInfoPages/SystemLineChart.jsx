@@ -62,7 +62,7 @@ const SystemLineChart = ({ system_Info }) => {
           hour12: false,
         };
         const convertedTimestamp = originalDate.toLocaleString(
-          "en-US",
+          "en-GB",
           options
         );
         let rx_sec = "";

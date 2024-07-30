@@ -3,6 +3,7 @@ import axios from "axios";
 import { notification } from "antd";
 import Dialog from "@mui/material/Dialog";
 import Head from "../../layout/head/Head";
+import WatermarkModule from "../Watermark";
 import FileViewer from "react-file-viewer";
 import { useHistory } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -10,7 +11,7 @@ import Content from "../../layout/content/Content";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import DialogTitle from "@mui/material/DialogTitle";
-import { PDFDocument, rgb, degrees } from "pdf-lib";
+import PDFWatermark from "../Watermark/PDFWatermark";
 import { UserContext } from "../../context/UserContext";
 import DialogActions from "@mui/material/DialogActions";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -31,8 +32,6 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
-import WatermarkModule from "../Watermark";
-import PDFWatermark from "../Watermark/PDFWatermark";
 function Fileviewer() {
   const {
     getnotes,
@@ -40,44 +39,43 @@ function Fileviewer() {
     CommonNotes,
     deleteNotes,
     getmetalist,
+    getWorkspace,
     workSpaceData,
     addmetaproperties,
     add_metaproperties,
   } = useContext(UserContext);
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState("");
-  const [doctypeName, setDoctypeName] = useState("");
   const [todos, setTodos] = useState([]);
   const [notes, setNotes] = useState([]);
-  const [propertys, setPropertys] = useState([]);
-  const [addProperties, setAddProperties] = useState([]);
-  const [docListUpload, setDocListupload] = useState([]);
-  const [formValues, setFormValues] = useState({});
   const [open, setOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(false);
+  const [fileType, setFileType] = useState("");
+  const [metaList, setMetaList] = useState([]);
+  const [propertys, setPropertys] = useState([]);
+  const [formValues, setFormValues] = useState({});
+  const [doctypeName, setDoctypeName] = useState("");
+  const [workspacePer, setWorkspacePer] = useState([]);
+  const [workspacePermission, setWorkspacePermission] = useState({});
+  const [docListUpload, setDocListupload] = useState([]);
+  const [addProperties, setAddProperties] = useState([]);
   const [addProperty, setAddProperty] = useState({
     notes: "",
   });
-
   const history = useHistory();
   const location = useLocation();
-  const workspace_type = location?.state?.workspace_type;
-  const commentHide = location?.state?.commentHide;
   const watermarkViewer = location.state.watermark;
+  const workspace_type = location?.state?.workspace_type;
   const handleClickOpen = () => {
     setOpen(true);
   };
   const handleClose = () => {
     setOpen(false);
   };
-  useEffect(() => {
-    getNoteslist();
-  }, [deleteId]);
 
   useEffect(() => {
     getNoteslist();
   }, [todos]);
   useEffect(() => {
+    getWorkspaces();
     getmetatypelist();
     getdoclistuploadfile();
   }, []);
@@ -102,68 +100,19 @@ function Fileviewer() {
         });
         const url = URL.createObjectURL(blob);
         setUrl(url);
-      } catch (error) {}
+      } catch (error) {
+        notification["error"]({
+          placement: "top",
+          description: "",
+          message: error.response.data.message,
+          style: {
+            height: 60,
+          },
+        });
+      }
     };
     fetchData();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await axios.post(
-  //         `${process.env.REACT_APP_API_URL_LOCAL}/filedata`,
-  //         {
-  //           filemongo_id: location.state.filemongo_id,
-  //         }
-  //       );
-  //       const data = response.data.file_data.data;
-  //       const fileType = response.data.newdata.file_type;
-  //       setFileType(fileType);
-  //       if (fileType === "pdf") {
-  //         const arrayBuffer = new Uint8Array(data).buffer;
-  //         const pdf = await PDFDocument.load(arrayBuffer);
-  //         const pages = pdf.getPages();
-  //         const font = await pdf.embedFont("Helvetica-Bold");
-
-  //         pages.forEach((page) => {
-  //           const { width, height } = page.getSize();
-  //           const textSize = 50;
-  //           const textWidth = font.widthOfTextAtSize("ACME", textSize);
-  //           const textHeight = font.heightAtSize(textSize);
-
-  //           const textX = width / 2 - textWidth / 2;
-  //           const textY = height / 2 - textHeight / 2;
-
-  //           page.drawText("ACME", {
-  //             x: textX,
-  //             y: textY,
-  //             size: textSize,
-  //             font: font,
-  //             color: rgb(0.95, 0.1, 0.1),
-  //             opacity: 0.5,
-  //             rotate: degrees(30),
-  //           });
-  //         });
-
-  //         const modifiedPdfBytes = await pdf.save();
-  //         setUrl(
-  //           URL.createObjectURL(
-  //             new Blob([modifiedPdfBytes], { type: "application/pdf" })
-  //           )
-  //         );
-  //       } else {
-  //         const uint8Array = new Uint8Array(data);
-  //         const blob = new Blob([uint8Array], { type: fileType });
-  //         const url = URL.createObjectURL(blob);
-  //         setUrl(url);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [location.state.filemongo_id]);
 
   const onNotesSubmit = () => {
     notification["success"]({
@@ -205,8 +154,6 @@ function Fileviewer() {
       description: "",
       message: "Comment Deleted Successfully...",
     });
-    setDeleteId(true);
-
     let data = {
       id: id,
     };
@@ -230,8 +177,6 @@ function Fileviewer() {
       }
     );
   };
-  const [metaList, setMetaList] = useState([]);
-
   const getmetatypelist = () => {
     getmetalist(
       {},
@@ -319,6 +264,28 @@ function Fileviewer() {
   const navigate = () => {
     history.push(`/${workspace_type}`);
   };
+  useEffect(() => {
+    workspacePermi();
+  }, [workspacePer.length]);
+  //get workspace
+  const getWorkspaces = () => {
+    getWorkspace(
+      {},
+      (apiRes) => {
+        setWorkspacePer(apiRes?.data?.data);
+      },
+      (apiErr) => {
+        console.log(apiErr);
+      }
+    );
+  };
+  const workspacePermi = () => {
+    workspacePer?.forEach((data) => {
+      if (data.workspace_name === workSpaceData?.workspace_name) {
+        setWorkspacePermission(data.workspacePermission);
+      }
+    });
+  };
   const top100Films = propertys;
   return (
     <React.Fragment>
@@ -372,10 +339,18 @@ function Fileviewer() {
               <>
                 {url && (
                   <>
-                    {fileType == "pnggg" ? (
-                      <WatermarkModule Img={url} />
-                    ) : fileType == "pdfff" ? (
-                      <PDFWatermark location={location} />
+                    {fileType == "png" && watermarkViewer ? (
+                      <WatermarkModule
+                        Img={url}
+                        text={workspacePermission.watermark_text || "ACME"}
+                        fontSize={workspacePermission.watermark_font || 100}
+                      />
+                    ) : fileType == "pdf" && watermarkViewer ? (
+                      <PDFWatermark
+                        location={location}
+                        text={workspacePermission.watermark_text || "ACME"}
+                        fontSize={workspacePermission.watermark_font || 50}
+                      />
                     ) : (
                       <FileViewer
                         fileType={fileType}

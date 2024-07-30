@@ -426,7 +426,7 @@ export default function GlobalSearchTable({
                           ) : (
                             ""
                           )}
-                          {propertys.move ? (
+                          {propertys?.move ? (
                             <Tooltip title="Move">
                               <DriveFileMoveIcon
                                 sx={{ ml: 1, mr: 1 }}
@@ -446,7 +446,7 @@ export default function GlobalSearchTable({
                           ) : (
                             ""
                           )}
-                          {propertys.delete_per ? (
+                          {propertys?.delete_per ? (
                             <Tooltip
                               title="Delete"
                               onClick={() =>

@@ -17,7 +17,7 @@ import {
   BlockBetween,
   BlockHeadContent,
 } from "../../../src/components/Component";
-import { addDays } from 'date-fns';
+import { addDays, format } from "date-fns";
 const UserListRegularPage = () => {
   // Destructure useContext variables
   const {
@@ -55,7 +55,7 @@ const UserListRegularPage = () => {
     userValidity: null,
     display_name: "",
   });
-  
+  const defaultDate = format(addDays(new Date(), 90), "yyyy-MM-dd");
   const [openSync, setOpenSync] = React.useState({
     status: false,
     data: {},
@@ -136,6 +136,7 @@ const UserListRegularPage = () => {
       data: "",
     });
   };
+
   const onFormSubmit = () => {
     if (editId) {
       // Edit existing user
@@ -175,7 +176,9 @@ const UserListRegularPage = () => {
       let submittedData = {
         level_1: formData.level_1,
         level_2: formData.level_2,
-        userValidity:  addDays(formData.userValidity, 90),
+        userValidity: formData.userValidity
+          ? formData.userValidity
+          : defaultDate,
         display_name: formData.display_name,
         emp_code: formData.emp_code,
         email: formData.email,
@@ -289,10 +292,10 @@ const UserListRegularPage = () => {
   };
   const tableHeader = [
     {
-      id: "Display Name",
+      id: "Name",
       numeric: false,
       disablePadding: true,
-      label: "Display Name",
+      label: "Name",
     },
     {
       id: "Email",
@@ -307,23 +310,30 @@ const UserListRegularPage = () => {
       label: "Expiry Date",
     },
     {
-      id: "User Role",
+      id: "Last Login",
       numeric: false,
       disablePadding: true,
-      label: "User Role",
+      label: "Last Login",
     },
     {
-      id: "Employee Code",
+      id: "Role",
       numeric: false,
       disablePadding: true,
-      label: "Employee Code",
+      label: "Role",
     },
     {
-      id: "Max Quota(Gb)",
+      id: "Code",
       numeric: false,
       disablePadding: true,
-      label: "Max Quota(Gb)",
+      label: "Code",
     },
+    {
+      id: "Quota(Gb)",
+      numeric: false,
+      disablePadding: true,
+      label: "Quota(Gb)",
+    },
+   
     {
       id: "Action",
       numeric: false,
@@ -430,6 +440,7 @@ const UserListRegularPage = () => {
           editId={editId}
           openForm={openForm}
           formData={formData}
+          defaultDate={defaultDate}
           setFormData={setFormData}
           handleChange={handleChange}
           onFormSubmit={onFormSubmit}

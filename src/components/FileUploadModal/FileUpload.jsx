@@ -28,6 +28,7 @@ export default function FileUpload({
   onChooseFile,
   fileNameInput,
   clearFileInput,
+  multiplefilesArray,
   handleFileChange,
   handleChangeFile,
   matchedWorkspace,
@@ -153,21 +154,24 @@ export default function FileUpload({
                 </React.Fragment>
               )}
             </Grid>
+            <Grid item lg={12} sm={12} xs={12}>
+              <FileUploaded
+                handleOkay={handleOkay}
+                clearFileInput={clearFileInput}
+                multiplefilesArray={multiplefilesArray}
+                handleFileChange={handleFileChange}
+                inputRef={inputRef}
+                editFileId={editFileId}
+                onChooseFile={onChooseFile}
+                progress={progress}
+                close={close}
+                selectedFile={selectedFile}
+                uploadStatus={uploadStatus}
+              />
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <FileUploaded
-            handleOkay={handleOkay}
-            clearFileInput={clearFileInput}
-            handleFileChange={handleFileChange}
-            inputRef={inputRef}
-            editFileId={editFileId}
-            onChooseFile={onChooseFile}
-            progress={progress}
-            close={close}
-            selectedFile={selectedFile}
-            uploadStatus={uploadStatus}
-          />
           <React.Fragment>
             {editFileId > 0 && (
               <button
@@ -178,33 +182,37 @@ export default function FileUpload({
                 Update
               </button>
             )}
-            {editFileId === 0 && userquota >= selectedFile?.size && (
-              <React.Fragment>
-                {uploadStatus === "selected" && (
-                  <button
-                    className="upload-btn"
-                    style={{ outline: "none" }}
-                    onClick={handleOkay}
-                  >
-                    Upload
-                  </button>
-                )}
-                {uploadStatus === "uploading" && (
-                  <button
-                    className="upload-btn"
-                    style={{ outline: "none" }}
-                    onClick={close}
-                  >
-                    Cancel
-                  </button>
-                )}
-                {uploadStatus === "done" && (
-                  <button className="upload-btn" onClick={handleCloseFileModal}>
-                    Done
-                  </button>
-                )}
-              </React.Fragment>
-            )}
+            {console.log(uploadStatus, "-----uploadStatus")}
+            <div>
+              {uploadStatus === "select" && (
+                <button className="upload-btn" onClick={handleCloseFileModal}>
+                  Close
+                </button>
+              )}
+              {uploadStatus === "selected" && (
+                <button
+                  className="upload-btn"
+                  style={{ outline: "none" }}
+                  onClick={handleOkay}
+                >
+                  Upload
+                </button>
+              )}
+              {uploadStatus === "uploading" && (
+                <button
+                  className="upload-btn"
+                  style={{ outline: "none" }}
+                  onClick={close}
+                >
+                  Cancel
+                </button>
+              )}
+              {uploadStatus === "done" && (
+                <button className="upload-btn" onClick={handleCloseFileModal}>
+                  Done
+                </button>
+              )}
+            </div>
           </React.Fragment>
         </DialogActions>
       </Dialog>

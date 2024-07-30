@@ -119,3 +119,76 @@
   border-radius: 8px;
   cursor: pointer;
 }
+/* ------------drag and drop css */
+
+
+
+
+a, a:hover, a:focus {
+  text-decoration: none;
+  transition: 0.5s;
+  outline: none;
+}
+
+/* ------------ */
+
+.card {
+  box-shadow: 0px 4px 8px rgb(0 0 0 / 16%);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 30px;
+  background-color: #fff;
+  border: none;
+}
+.kb-modal-data-title {
+  margin-bottom: 10px;
+}
+.kb-data-title h6 {
+  margin-bottom: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.kb-file-upload {
+  margin-bottom: 20px;
+}
+.file-upload-box {
+  border: 1px dashed #b6bed1;
+  background-color: #f0f2f7;
+  border-radius: 4px;
+  min-height: 150px;
+  position: relative;
+  overflow: hidden;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8194aa;
+  font-weight: 400;
+  font-size: 15px;
+}
+.file-upload-box .file-upload-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.file-link{
+  color: #475f7b;
+  text-decoration: underline;
+  margin-left: 3px;
+}
+.file-upload-box .file-link:hover{
+  text-decoration: none;
+}
+.file-atc-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+
+
+
