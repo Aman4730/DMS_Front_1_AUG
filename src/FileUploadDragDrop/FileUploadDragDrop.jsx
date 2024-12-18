@@ -83,7 +83,6 @@ const FileUploadDragDrop = ({ setmultipleFiles }) => {
       </div>
       <div >
         {multipleselectedFile.map((data) => {
-          console.log(data, "-----------data");
           const { id, filename, fileimage, datetime, filesize } = data;
           return (
             <div key={id}>

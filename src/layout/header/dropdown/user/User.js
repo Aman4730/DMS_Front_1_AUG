@@ -1,12 +1,10 @@
-import React, { useState, useContext, useEffect } from "react";
-import { findUpper } from "../../../../utils/Utils";
+import React, { useState, useContext } from "react";
 import { Icon } from "../../../../components/Component";
 import { AuthContext } from "../../../../context/AuthContext";
 import { UserContext } from "../../../../context/UserContext";
 import { LinkList } from "../../../../components/links/Links";
 import UserAvatar from "../../../../components/user/UserAvatar";
 import { DropdownToggle, DropdownMenu, Dropdown } from "reactstrap";
-import { notification } from "antd";
 
 const User = () => {
   const { isLogin, logout } = useContext(UserContext);
@@ -14,21 +12,6 @@ const User = () => {
   const toggle = () => setOpen((prevState) => !prevState);
   const { userAuthContextData, logOut, GuestLogOUt } = useContext(AuthContext);
   const [userData] = userAuthContextData;
-  useEffect(() => {
-    const oneWeekInMilliseconds = 6 * 24 * 60 * 60 * 1000;
-    const logoutTimer = setTimeout(() => {
-      logOut();
-      notification["success"]({
-        placement: "top",
-        description:
-          "Your session has been idle for too long. Please log in again.",
-        message: "Idle Session Timeout. Please Login.",
-      });
-    }, oneWeekInMilliseconds);
-    return () => {
-      clearTimeout(logoutTimer);
-    };
-  }, [logOut, notification]);
 
   const OnLogOut = () => {
     if (userData.type == "guest") {

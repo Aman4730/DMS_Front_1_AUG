@@ -16,6 +16,17 @@ const ProgressBar = ({
   const roundedPercentage = calculatedPercentage.toFixed(2);
   const progress = roundedPercentage;
 
+  function formatSizeInGB(sizeInBytes) {
+    return (sizeInBytes / (1024 * 1024)).toFixed(2);
+  }
+
+  function formatSizeWithLabel(sizeInBytes) {
+    return formatSizeInGB(sizeInBytes) + " GB";
+  }
+
+  const formattedSize = formatSizeWithLabel(initialPercentage);
+  const userQuotaInGB = formatSizeInGB(used_quota);
+
   const progressBarStyle = {
     width: progress + "%",
   };
@@ -37,7 +48,12 @@ const ProgressBar = ({
           }}
         >
           <Icon name={icon} style={style}></Icon>
-          {label}
+          <abbr
+            title={`${userQuotaInGB} / ${formattedSize}`}
+            style={{ cursor: "pointer", textDecoration: "none" }}
+          >
+            {label}
+          </abbr>
         </div>
         <div
           style={{

@@ -31,7 +31,7 @@ const GlobalSearch = () => {
     userDropdownU(
       {},
       (apiRes) => {
-        setUserDropdowns(apiRes.data.data);
+        setUserDropdowns(apiRes?.data?.data?.map((gro) => gro?.email));
       },
       (apiErr) => {}
     );
@@ -413,7 +413,7 @@ const GlobalSearch = () => {
           <BlockHeadContent>
             <Typography
               style={{
-                fontSize: "24.5px",
+              fontSize: "24.5px",
                 fontWeight: "bold",
               }}
             >
@@ -442,6 +442,7 @@ const GlobalSearch = () => {
             handleCheckboxChange={handleCheckboxChange}
             handleSubmitShareData={handleSubmitShareData}
             shareLink={shareLink}
+            teamSpace={[]}
           />
           <GlobalSearchTable
             rows={searchDataTable}

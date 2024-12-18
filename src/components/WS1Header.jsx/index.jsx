@@ -23,6 +23,8 @@ const WS1Header = ({
   openFileUpload,
   openFolderModal,
   openFolderUpload,
+  loginUserPermission,
+  innerDefaultPermission,
   workspacePermissionWs1,
 }) => {
   const [open, setOpen] = useState(false);
@@ -30,12 +32,6 @@ const WS1Header = ({
     edit: false,
     add: false,
   });
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setOpen(false);
-    }, 15000);
-    return () => clearTimeout(timeoutId);
-  }, []);
   return (
     <Stack>
       <BlockHead size="sm">
@@ -132,45 +128,45 @@ const WS1Header = ({
                 >
                   <ul className="nk-block-tools g-3">
                     <li className="nk-block-tools-opt">
-                      {workspacePermissionWs1?.create_folder ? (
+                      {(workspacePermissionWs1?.create_folder &&
+                        (loginUserPermission || []).includes(isLogin.email) ||
+                        innerDefaultPermission?.create_folder === true) && (
                         <Button
                           color="primary"
                           className="btn-icon"
                           onClick={openFolderModal}
-                          style={{ padding: "2px 5px 2px 5px" }}
+                          style={{ padding: "2px 5px" }}
                         >
                           Create Folder
                         </Button>
-                      ) : (
-                        ""
                       )}
                     </li>
                     <li className="nk-block-tools-opt">
-                      {workspacePermissionWs1?.upload_folder ? (
+                      {(workspacePermissionWs1?.upload_folder &&
+                        (loginUserPermission || []).includes(isLogin.email) ||
+                        innerDefaultPermission?.upload_folder === true) && (
                         <Button
                           color="primary"
                           className="btn-icon"
                           onClick={openFolderUpload}
-                          style={{ padding: "2px 5px 2px 5px" }}
+                          style={{ padding: "2px 5px" }}
                         >
                           Upload Folder
                         </Button>
-                      ) : (
-                        ""
                       )}
                     </li>
                     <li className="nk-block-tools-opt">
-                      {workspacePermissionWs1?.upload_file ? (
+                      {(workspacePermissionWs1?.upload_file &&
+                        (loginUserPermission || []).includes(isLogin.email) ||
+                        innerDefaultPermission?.upload_file === true) && (
                         <Button
                           color="primary"
                           className="btn-icon"
                           onClick={openFileUpload}
-                          style={{ padding: "2px 5px 2px 5px" }}
+                          style={{ padding: "2px 5px" }}
                         >
                           Upload File
                         </Button>
-                      ) : (
-                        ""
                       )}
                     </li>
                   </ul>

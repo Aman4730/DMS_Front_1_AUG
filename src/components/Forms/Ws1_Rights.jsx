@@ -30,6 +30,10 @@ export default function Ws1_Rights({
   handleAutocompleteChange,
 }) {
   const { title, permissionArray } = permission;
+  const sortedGroupsDropdown = (groupsDropdown || []).sort((a, b) =>
+    a.localeCompare(b)
+  );
+  // const sortedUsersDropdown = (userDropdowns || []).sort((a, b) => a.localeCompare(b));
   return (
     <React.Fragment>
       <Dialog
@@ -51,7 +55,7 @@ export default function Ws1_Rights({
                     fullWidth
                     size="small"
                     id="tags-outlined"
-                    options={groupsDropdown || ""}
+                    options={sortedGroupsDropdown || []}
                     getOptionLabel={(option) => option}
                     filterSelectedOptions
                     renderInput={(params) => (
@@ -69,7 +73,7 @@ export default function Ws1_Rights({
                     fullWidth
                     size="small"
                     id="tags-outlined"
-                    options={userDropdowns || ""}
+                    options={userDropdowns || []}
                     getOptionLabel={(option) => option}
                     filterSelectedOptions
                     renderInput={(params) => (
@@ -84,7 +88,6 @@ export default function Ws1_Rights({
               </>
             )}
             {permissionArray?.map((data) => {
-             
               if (
                 (data.name == "view" &&
                   (workspacePermissionWs1?.view == true ||
@@ -164,17 +167,7 @@ export default function Ws1_Rights({
           >
             Cancel
           </Button>
-          <Button
-            id="submitBtn"
-            onClick={() =>
-              handleClickPermission(
-                data?.id,
-                data?.file_type,
-                data?.file_name,
-                data?.folder_name
-              )
-            }
-          >
+          <Button id="submitBtn" onClick={handleClickPermission}>
             Submit
           </Button>
         </DialogActions>

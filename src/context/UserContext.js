@@ -252,6 +252,19 @@ export const UserContextProvider = (props) => {
       }
     );
   }
+
+  async function getCronStatus(userSubmittedData, handleApiRes, handleApiError) {
+    await AxiosPost(
+      "cronStatus",
+      userSubmittedData,
+      (apiRes) => {
+        handleApiRes(apiRes);
+      },
+      (apiError) => {
+        handleApiError(apiError);
+      }
+    );
+  }
   async function getWorkspacePermission(
     userSubmittedData,
     handleApiRes,
@@ -549,6 +562,18 @@ export const UserContextProvider = (props) => {
   async function addFileWork(userSubmittedData, handleApiRes, handleApiError) {
     await AxiosPost(
       "filedata",
+      userSubmittedData,
+      (apiRes) => {
+        handleApiRes(apiRes);
+      },
+      (apiError) => {
+        handleApiError(apiError);
+      }
+    );
+  }
+  async function StartCron(userSubmittedData, handleApiRes, handleApiError) {
+    await AxiosPost(
+      "startCron",
       userSubmittedData,
       (apiRes) => {
         handleApiRes(apiRes);
@@ -1152,6 +1177,7 @@ export const UserContextProvider = (props) => {
         contextData: [userData, setUserData],
         Login: Login,
         logout: logout,
+        StartCron:StartCron,
         forgetpass: forgetpass,
         CommonNotes: CommonNotes,
         addUser: addUser,
@@ -1196,6 +1222,7 @@ export const UserContextProvider = (props) => {
         getWorkspace: getWorkspace,
         getfetchlink: getfetchlink,
         getsharedfile: getsharedfile,
+        getCronStatus:getCronStatus,
         getproperties: getproperties,
         getFolderData: getFolderData,
         getfoldernames: getfoldernames,

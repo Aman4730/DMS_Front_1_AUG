@@ -202,22 +202,11 @@ const Workspace = () => {
   };
   const tableHeader = [
     {
-      id: "Doctype Name",
+      id: "doctype_name",
       numeric: false,
       disablePadding: true,
       label: "Doctype Name",
     },
-    {
-      id: "Doctype Name",
-    },
-    {
-      id: "Doctype Name",
-    },
-    {
-      id: "Doctype Name",
-    },
-
-    {},
     {
       id: "Action",
       numeric: false,

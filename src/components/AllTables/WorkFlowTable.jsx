@@ -100,6 +100,34 @@ export default function WorkFlowTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
+  const filteredRows = allfolderlist?.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    const selectedUsers = row.user_email?.join(", ").toLowerCase() || "";
+
+    return (
+      row.policy_name.toLowerCase().includes(searchLower) ||
+      row.group_admin.toLowerCase().includes(searchLower) ||
+      selectedUsers.includes(searchLower)
+    );
+  });
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (a[orderBy] < b[orderBy]) {
+      return order === "asc" ? -1 : 1;
+    }
+    if (a[orderBy] > b[orderBy]) {
+      return order === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const rowsToDisplay = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
   return (
     <Box>
       <Paper>
@@ -112,104 +140,89 @@ export default function WorkFlowTable({
               headCells={headCells}
             />
             <TableBody>
-              {(rowsPerPage > 0
-                ? allfolderlist.slice(
-                    page * rowsPerPage,
-                    page * rowsPerPage + rowsPerPage
-                  )
-                : allfolderlist
-              )
-                ?.filter((item) =>
-                  item.policy_name
-                    ?.toLowerCase()
-                    .includes(searchTerm?.toLowerCase())
-                )
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
-                  const originalTimestamp = row.updatedAt;
-                  const originalDate = new Date(originalTimestamp);
-                  const options = {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  };
-                  const convertedTimestamp = originalDate.toLocaleString(
-                    "en-GB",
-                    options
-                  );
-                  let userName = "";
-                  for (let i = 0; i < row?.user_email.length; i++) {
-                    userName = userName + "\n" + row?.user_email[i];
-                  }
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={index}
-                      selected={isItemSelected}
+              {rowsToDisplay.map((row, index) => {
+                const isItemSelected = isSelected(row.name);
+                const originalTimestamp = row.updatedAt;
+                const originalDate = new Date(originalTimestamp);
+                const options = {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                };
+                const convertedTimestamp = originalDate.toLocaleString(
+                  "en-GB",
+                  options
+                );
+                let userName = "";
+                for (let i = 0; i < row?.user_email.length; i++) {
+                  userName = userName + "\n" + row?.user_email[i];
+                }
+                return (
+                  <TableRow
+                    hover
+                    onClick={(event) => handleClick(event, row.name)}
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={index}
+                    selected={isItemSelected}
+                  >
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.policy_name}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.group_admin}
+                    </TableCell>
+                    <TableCell
+                      style={{
+                        fontSize: "12px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "150px",
+                      }}
                     >
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.policy_name}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.group_admin}
-                      </TableCell>
-                      <TableCell
-                        style={{
-                          fontSize: "12px",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          maxWidth: "150px",
-                        }}
+                      <abbr
+                        title={userName}
+                        style={{ cursor: "pointer", textDecoration: "none" }}
                       >
-                        <abbr
-                          title={userName}
-                          style={{ cursor: "pointer", textDecoration: "none" }}
-                        >
-                          {row?.user_email}
-                        </abbr>
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {convertedTimestamp}
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip
-                          title="Edit"
-                          onClick={() => onEditClick(row.id)}
-                        >
-                          <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                        <Tooltip
-                          title="Delete"
-                          onClick={() => handleClickOpen(row.id)}
-                        >
-                          <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {!allfolderlist.length > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No data available
+                        {row?.user_email}
+                      </abbr>
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {convertedTimestamp}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit" onClick={() => onEditClick(row.id)}>
+                        <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
+                      <Tooltip
+                        title="Delete"
+                        onClick={() => handleClickOpen(row.id)}
+                      >
+                        <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
-                )}
+                );
+              })}
+              {!filteredRows.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={allfolderlist.length}
+          count={filteredRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

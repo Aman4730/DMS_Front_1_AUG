@@ -55,7 +55,9 @@ const UserListRegularPage = () => {
     userValidity: null,
     display_name: "",
   });
-  const defaultDate = format(addDays(new Date(), 90), "yyyy-MM-dd");
+  const defaultDate = formData.userValidity
+    ? formData.userValidity
+    : format(addDays(new Date(), 90), "yyyy-MM-dd");
   const [openSync, setOpenSync] = React.useState({
     status: false,
     data: {},
@@ -144,7 +146,9 @@ const UserListRegularPage = () => {
         id: editId,
         level_1: formData.level_1,
         level_2: formData.level_2,
-        userValidity: formData.userValidity,
+        userValidity: formData.userValidity
+          ? formData.userValidity
+          : defaultDate,
         display_name: formData.display_name,
         emp_code: formData.emp_code,
         email: formData.email,
@@ -223,14 +227,13 @@ const UserListRegularPage = () => {
     function formatSizeInGB(sizeInBytes) {
       return sizeInBytes / (1024 * 1024);
     }
-    const formattedSize = formatSizeInGB(selectedUser.max_quota);
+    const formattedSize = formatSizeInGB(selectedUser?.max_quota);
     if (selectedUser) {
-      const formattedDate = selectedUser.validity_date
-        ? new Date(selectedUser.validity_date)
-        : null;
+      const date = new Date(selectedUser.validity_date);
+      const formattedDate = date.toISOString().slice(0, 10);
       setFormData({
         id: id,
-        userValidity: formattedDate, // Preserving the existing value, if any (This seems unnecessary)
+        userValidity: formattedDate,
         display_name: selectedUser.display_name,
         user_role: selectedUser.user_role,
         max_quota: formattedSize,
@@ -291,51 +294,30 @@ const UserListRegularPage = () => {
     );
   };
   const tableHeader = [
+    { id: "display_name", numeric: false, disablePadding: true, label: "Name" },
+    { id: "email", numeric: false, disablePadding: true, label: "Email" },
     {
-      id: "Name",
-      numeric: false,
-      disablePadding: true,
-      label: "Name",
-    },
-    {
-      id: "Email",
-      numeric: false,
-      disablePadding: true,
-      label: "Email",
-    },
-    {
-      id: "Expiry Date",
+      id: "validity_date",
       numeric: false,
       disablePadding: true,
       label: "Expiry Date",
     },
     {
-      id: "Last Login",
+      id: "last_login",
       numeric: false,
       disablePadding: true,
       label: "Last Login",
     },
+    { id: "user_type", numeric: false, disablePadding: true, label: "Role" },
+    { id: "emp_code", numeric: false, disablePadding: true, label: "Code" },
     {
-      id: "Role",
-      numeric: false,
-      disablePadding: true,
-      label: "Role",
-    },
-    {
-      id: "Code",
-      numeric: false,
-      disablePadding: true,
-      label: "Code",
-    },
-    {
-      id: "Quota(Gb)",
+      id: "max_quota",
       numeric: false,
       disablePadding: true,
       label: "Quota(Gb)",
     },
-   
     {
-      id: "Action",
+      id: "action",
       numeric: false,
       disablePadding: true,
       label: "Action",
@@ -373,7 +355,18 @@ const UserListRegularPage = () => {
         }
         handleCloseSync();
       },
-      (apiErr) => {}
+      (apiErr) => {
+        console.log(apiErr);
+        notification["warning"]({
+          placement: "top",
+          description: "",
+          message: apiErr?.response?.data?.message,
+          style: {
+            height: 80,
+          },
+        });
+        handleCloseSync();
+      }
     );
   };
   return (

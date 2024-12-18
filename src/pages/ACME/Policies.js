@@ -119,18 +119,7 @@ const Policies = () => {
       data: "",
     });
   };
-  // const handleAutocompleteChange = (id, value) => {
-  //   setAddPolicies((prevFormData) => ({
-  //     ...prevFormData,
-  //     [id]: value,
-  //   }));
-  // };
-  // const handlemultiSelectChange = (event) => {
-  //   const {
-  //     target: { value },
-  //   } = event;
-  //   handleAutocompleteChange("selected_user", typeof value === 'string' ? value.split(',') : value);
-  // };
+ 
   const handleAutocompleteChange = (id, value) => {
     setAddPolicies((prevFormData) => ({
       ...prevFormData,
@@ -460,32 +449,32 @@ const Policies = () => {
 
   const tableHeader = [
     {
-      id: "Policy Name",
+      id: "policy_name",
       numeric: false,
       disablePadding: true,
       label: "Policy Name",
     },
     {
-      id: "Policy Type",
+      id: "policy_type",
       numeric: false,
       disablePadding: true,
       label: "Policy Type",
     },
 
     {
-      id: "User Group",
+      id: "selected_group",
       numeric: false,
       disablePadding: true,
       label: "User Group",
     },
     {
-      id: "User",
+      id: "selected_users",
       numeric: false,
       disablePadding: true,
       label: "User",
     },
     {
-      id: "Updated By",
+      id: "updatedAt",
       numeric: false,
       disablePadding: true,
       label: "Updated By",

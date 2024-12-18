@@ -32,6 +32,9 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
+import ExcelRequestsImport from "../../TestFile/XLSformate";
+import { ExcelRenderer, OutTable } from "react-excel-renderer";
+
 function Fileviewer() {
   const {
     getnotes,
@@ -62,7 +65,7 @@ function Fileviewer() {
   });
   const history = useHistory();
   const location = useLocation();
-  const watermarkViewer = location.state.watermark;
+  const watermarkViewer = location?.state?.watermark;
   const workspace_type = location?.state?.workspace_type;
   const handleClickOpen = () => {
     setOpen(true);
@@ -80,13 +83,20 @@ function Fileviewer() {
     getdoclistuploadfile();
   }, []);
   // ------------------------------------------apis
+  const [cols, setCols] = useState([]);
+  const [rows, setRows] = useState([]);
+  const uploadHandler = (data) => {
+    console.log("Uploaded Data:", data);
+    // Do something with the extracted Excel data, like updating state or sending it to a backend
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL_LOCAL}/filedata`,
           {
-            filemongo_id: location.state.filemongo_id,
+            filemongo_id: location?.state?.filemongo_id,
           }
         );
         setFileType(response?.data.newdata.file_type);
@@ -100,6 +110,21 @@ function Fileviewer() {
         });
         const url = URL.createObjectURL(blob);
         setUrl(url);
+
+        ExcelRenderer(blob, (err, resp) => {
+          if (err) {
+            console.log(err);
+            setError("Failed to read the file.");
+          } else {
+            const { cols, rows } = resp;
+            setCols(cols);
+            setRows(rows);
+
+            const data = [...rows];
+            data.shift(); 
+            uploadHandler(data); 
+          }
+        });
       } catch (error) {
         notification["error"]({
           placement: "top",
@@ -121,7 +146,7 @@ function Fileviewer() {
       message: "Comment Created Successfully...",
     });
     let data = {
-      id: location.state.id,
+      id: location?.state?.id,
       notes: addProperty.notes,
     };
     CommonNotes(
@@ -136,7 +161,7 @@ function Fileviewer() {
   };
   const getNoteslist = () => {
     let data = {
-      id: location.state.id,
+      id: location?.state?.id,
     };
     getnotes(
       data,
@@ -211,7 +236,7 @@ function Fileviewer() {
     let data = {
       doctype: doctypeName,
       fieldnames: formValues,
-      file_name: location.state.file,
+      file_name: location?.state?.file,
     };
     addmetaproperties(
       data,
@@ -287,6 +312,9 @@ function Fileviewer() {
     });
   };
   const top100Films = propertys;
+  const [data, setData] = useState([]);
+
+ 
   return (
     <React.Fragment>
       <Head title="File Viewer - Regular"></Head>
@@ -303,7 +331,7 @@ function Fileviewer() {
             <BlockBetween>
               <BlockHeadContent>
                 <Typography style={{ fontSize: "24.5px", fontWeight: "bold" }}>
-                  File Viewer - {location.state.file}
+                  File Viewer - {location?.state?.file}
                 </Typography>
               </BlockHeadContent>
               <BlockHeadContent>
@@ -381,6 +409,13 @@ function Fileviewer() {
                 }}
               />
             )}
+            <div className="excel-table-wrapper">
+              <OutTable
+                data={rows}
+                columns={cols}
+                tableClassName="excel-table"
+              />
+            </div>
           </Grid>
           <Grid item lg={2} sm={3} xs={12}>
             <Stack flexDirection="column">

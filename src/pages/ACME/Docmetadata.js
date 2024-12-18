@@ -273,7 +273,9 @@ const Docmetadata = () => {
             getTotalGroups();
           }
         },
-        (apiErr) => {}
+        (apiErr) => {
+          console.log(apiErr, "--api545");
+        }
       );
     } else {
       let submittedData = {
@@ -300,7 +302,9 @@ const Docmetadata = () => {
             getUsers();
           }
         },
-        (apiErr) => {}
+        (apiErr) => {
+          console.log(apiErr, "--api545");
+        }
       );
     }
   };
@@ -355,16 +359,11 @@ const Docmetadata = () => {
           }
         },
         (apiErr) => {
-          if (apiErr.response.status == 404) {
-            notification["success"]({
-              placement: "top",
-              description: "",
-              message: apiErr.response.data.message,
-              style: {
-                height: 70,
-              },
-            });
-          }
+          notification["warning"]({
+            placement: "top",
+            description: "",
+            message: apiErr.response.data.message,
+          });
         }
       );
     }
@@ -416,25 +415,25 @@ const Docmetadata = () => {
   };
   const tableHeader = [
     {
-      id: "Doc Metadata Name",
+      id: "metadata_name",
       numeric: false,
       disablePadding: true,
       label: "Doc Metadata Name",
     },
     {
-      id: "Cabinet Name",
+      id: "cabinet_name",
       numeric: false,
       disablePadding: true,
       label: "Cabinet Name",
     },
     {
-      id: "Workspace Name",
+      id: "workspace_name",
       numeric: false,
       disablePadding: true,
       label: "Workspace Name",
     },
     {
-      id: "Doctype Name",
+      id: "doctype",
       numeric: false,
       disablePadding: true,
       label: "Doctype Name",

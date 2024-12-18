@@ -47,9 +47,13 @@ const Workspace = () => {
     enter_quota: "",
     selected_groups: [],
     selected_users: [],
+    select_sub_admin: [],
     selected_cabinet: "",
     workspace_type: "",
+    startDate: null,
+    endDate: null,
   });
+
   const [checkboxValues, setCheckboxValues] = useState({
     view: null,
     enable: null,
@@ -65,9 +69,14 @@ const Workspace = () => {
     comment: null,
     properties: null,
     version_enable: null,
-    view_watermark:null,
-    download_watermark:null
+    view_watermark: null,
+    download_watermark: null,
   });
+  //sub admin
+  const subAdminsUserList = userDropdowns
+    .map((user) => user)
+    .filter((email) => !(formData?.select_sub_admin || []).includes(email));
+
   const [open, setOpen] = useState({
     status: false,
     data: "",
@@ -141,6 +150,8 @@ const Workspace = () => {
       selected_users: [],
       selected_cabinet: "",
       workspace_type: "",
+      startDate: null,
+      endDate: null,
     });
     setEditedId(0);
   };
@@ -157,11 +168,16 @@ const Workspace = () => {
         id: editId,
         workspace_name: formData.workspace_name,
         enter_quota: formData.enter_quota,
-        selected_groups: formData.selected_groups.label,
-        selected_users: formData.selected_users,
+        selected_groups: formData.selected_groups,
+        users_list: formData.selected_users,
         selected_cabinet: formData.selected_cabinet,
         workspace_type: formData.workspace_type,
+        selected_users: formData.select_sub_admin,
       };
+      if (formData.workspace_type === "Data Room") {
+        submittedData.start_date = formData.startDate;
+        submittedData.end_date = formData.endDate;
+      }
       addWorkspace(
         submittedData,
         (apiRes) => {
@@ -178,17 +194,33 @@ const Workspace = () => {
             getWorkspaces();
           }
         },
-        (apiErr) => {}
+        (apiErr) => {
+          if (apiErr) {
+            notification["warning"]({
+              placement: "top",
+              description: "",
+              message: apiErr?.response?.data?.message,
+              style: {
+                height: 60,
+              },
+            });
+          }
+        }
       );
     } else {
       let submittedData = {
         workspace_name: formData.workspace_name,
         enter_quota: formData.enter_quota,
         selected_groups: formData.selected_groups,
-        selected_users: formData.selected_users,
+        users_list: formData.selected_users,
         selected_cabinet: formData.selected_cabinet,
         workspace_type: formData.workspace_type,
+        selected_users: formData.select_sub_admin,
       };
+      if (formData.workspace_type === "Data Room") {
+        submittedData.start_date = formData.startDate;
+        submittedData.end_date = formData.endDate;
+      }
       addWorkspace(
         submittedData,
         (apiRes) => {
@@ -203,14 +235,21 @@ const Workspace = () => {
             });
             onFormCancel();
             getWorkspaces();
-          }
-        },
-        (apiErr) => {
-          if (apiErr?.response?.status == 400) {
-            notification["success"]({
+          } else {
+            notification["error"]({
               placement: "top",
               description: "",
-              message: apiErr?.response.data.message,
+              message: apiRes.data.data.message,
+            });
+          }
+        },
+
+        (apiErr) => {
+          if (apiErr) {
+            notification["warning"]({
+              placement: "top",
+              description: "",
+              message: apiErr?.response?.data?.message,
               style: {
                 height: 60,
               },
@@ -241,9 +280,12 @@ const Workspace = () => {
           workspace_name: item.workspace_name,
           enter_quota: formattedSize,
           selected_groups: item.selected_groups,
-          selected_users: item.selected_users,
+          selected_users: item.users_list,
           selected_cabinet: item.selected_cabinet,
           workspace_type: item.workspace_type,
+          select_sub_admin: item.selected_users,
+          startDate: item.start_date,
+          endDate: item.end_date,
         }));
         setEditedId(id);
         setFormShow(true);
@@ -307,38 +349,38 @@ const Workspace = () => {
   };
   const tableHeader = [
     {
-      id: "Cabinet",
+      id: "selected_cabinet",
       numeric: false,
       disablePadding: true,
       label: "Cabinet",
     },
     {
-      id: "Workspace Type",
+      id: "workspace_type",
       numeric: false,
       disablePadding: true,
       label: "Workspace Type",
     },
     {
-      id: "Workspace Name",
+      id: "workspace_name",
       numeric: false,
       disablePadding: true,
       label: "Workspace Name",
     },
     {
-      id: "Groups",
+      id: "selected_groups",
       numeric: false,
       disablePadding: true,
       label: "Groups",
     },
     {
-      id: "User",
+      id: "selected_users",
       numeric: false,
       disablePadding: true,
       label: "User",
     },
 
     {
-      id: "Quota(Gb)",
+      id: "quota",
       numeric: false,
       disablePadding: true,
       label: "Quota(Gb)",
@@ -391,7 +433,7 @@ const Workspace = () => {
         download_watermark: checkboxValues.download_watermark,
         policy_type: PermissionEditedId.policy_type,
         workspace_id: PermissionEditedId.workspace_id,
-        workspace_name: PermissionEditedId.workspace_name,
+        // workspace_name: PermissionEditedId.workspace_name,
       };
       add_permission(
         submittedData,
@@ -420,7 +462,7 @@ const Workspace = () => {
         share: checkboxValues.share,
         rights: checkboxValues.rights,
         rename: checkboxValues?.rename,
-        workspace_name: workspace_name,
+        // workspace_name: workspace_name,
         comments: checkboxValues.comment,
         delete_per: checkboxValues.delete,
         download_per: checkboxValues.download,
@@ -477,12 +519,30 @@ const Workspace = () => {
       [id]: value,
     }));
   };
+  // const handleAutocompleteChange = (id, value) => {
+  //   setFormData((prevFormData) => ({
+  //     ...prevFormData,
+  //     [id]: value,
+  //   }));
+  // };
+
   const handleAutocompleteChange = (id, value) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       [id]: value,
     }));
   };
+
+  const handlemultiSelectChange = (id) => (event) => {
+    const {
+      target: { value },
+    } = event;
+    handleAutocompleteChange(
+      id,
+      typeof value === "string" ? value.split(",") : value
+    );
+  };
+
   const permissionWs1 = {
     title: "Workspace Permission",
     permissionArray: [
@@ -595,11 +655,14 @@ const Workspace = () => {
             formShow={formShow}
             formData={formData}
             cabinetList={cabinetList}
+            setFormData={setFormData}
             onFormCancel={onFormCancel}
             handleChange={handleChange}
             onFormSubmit={onFormSubmit}
             userDropdowns={userDropdowns}
             groupsDropdown={groupsDropdown}
+            subAdminsUserList={subAdminsUserList}
+            handlemultiSelectChange={handlemultiSelectChange}
             handleAutocompleteChange={handleAutocompleteChange}
           />
           <WorkspacePermission
@@ -618,7 +681,7 @@ const Workspace = () => {
             <WorkspaceTable
               searchTerm={searchTerm}
               headCells={tableHeader}
-              rows={userData}
+              allfolderlist={userData}
               onEditClick={onEditClick}
               handleClickOpen={handleClickOpen}
               onPermissionClick={handleOpenPermission}

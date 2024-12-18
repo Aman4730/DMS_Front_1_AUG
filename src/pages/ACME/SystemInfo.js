@@ -9,12 +9,34 @@ import SystemInfoCustomCard from "../../components/SystemInfoCustomCard";
 import ProgressBarchat from "../../components/SystemInfoPages/ProgressBarChart";
 import SystemLineChart from "../../components/SystemInfoPages/SystemLineChart";
 import { notification } from "antd";
+import CronReport from "../../components/SystemInfoPages/CronReport";
+import ModalPop from "../../components/Modal";
 const SystemInfo = () => {
-  const { getSystemInfo } = useContext(UserContext);
-  const [system_Info, setSystem_Info] = useState([]);
+  const { getSystemInfo, getCronStatus, StartCron } = useContext(UserContext);
+  const [loader, setLoader] = useState(false);
+  const [cronType, setCronType] = useState("");
   const [loading, setLoading] = useState(false);
+  const [system_Info, setSystem_Info] = useState([]);
+  const [cronStatusData, setCronStatusData] = useState([]);
+  const [confirmationModal, setConfirmationModal] = React.useState({
+    status: false,
+    data: {},
+  });
+  const handleClickOpen = (type) => {
+    setConfirmationModal({
+      status: true,
+      data: { type },
+    });
+  };
+  const handleClose = () => {
+    setConfirmationModal({
+      status: false,
+      data: "",
+    });
+  };
   useEffect(() => {
     getsystemInfo();
+    FetchCronStatus();
   }, []);
   const getsystemInfo = () => {
     getSystemInfo(
@@ -22,6 +44,36 @@ const SystemInfo = () => {
       (apiRes) => {
         setSystem_Info(apiRes.data);
         setLoading(true);
+      },
+      (apiErr) => {}
+    );
+  };
+  const getStartCron = (type) => {
+    handleClose();
+    setCronType(type);
+    let data = {
+      start: type,
+    };
+    setLoader(true);
+    StartCron(
+      data,
+      (apiRes) => {
+        setLoader(false);
+        if (apiRes.status)
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: apiRes.data.message,
+          });
+      },
+      (apiErr) => {}
+    );
+  };
+  const FetchCronStatus = () => {
+    getCronStatus(
+      {},
+      (apiRes) => {
+        setCronStatusData(apiRes?.data?.data);
       },
       (apiErr) => {}
     );
@@ -139,6 +191,38 @@ const SystemInfo = () => {
       });
     }
   };
+  const tableHeader = [
+    {
+      id: "type"||"action",
+      numeric: false,
+      disablePadding: true,
+      label: "Crons",
+    },
+    {
+      id: "frequency",
+      numeric: false,
+      disablePadding: true,
+      label: "Frequency",
+    },
+    {
+      id: "createdAt",
+      numeric: false,
+      disablePadding: true,
+      label: "Created At",
+    },
+    {
+      id: "system_ip",
+      numeric: false,
+      disablePadding: true,
+      label: "System Ip",
+    },
+    {
+      id: "Action",
+      numeric: false,
+      disablePadding: true,
+      label: "Action",
+    },
+  ];
   return (
     <React.Fragment>
       <Head title="SystemInfo - Regular"></Head>
@@ -165,6 +249,13 @@ const SystemInfo = () => {
               }}
             />
           )}
+          <ModalPop
+            open={confirmationModal.status}
+            handleOkay={getStartCron}
+            data={confirmationModal?.data?.type}
+            handleClose={handleClose}
+            title="Are you sure you want to Start the Cron"
+          />
           <Grid item xs={12} md={12}>
             <SystemInfoCustomCard
               system_Info={system_Info}
@@ -179,7 +270,17 @@ const SystemInfo = () => {
           <Grid item xs={12} md={12}>
             <ProgressBarchat system_Info={system_Info} />
           </Grid>
-          <Grid item xs={12} md={12}>
+          <Grid item xs={12} md={12} mr={2} ml={2}>
+            <CronReport
+              getStartCron={getStartCron}
+              allfolderlist={cronStatusData}
+              headCells={tableHeader}
+              loader={loader}
+              cronType={cronType}
+              handleClickOpen={handleClickOpen}
+            />
+          </Grid>
+          <Grid item xs={12} md={12} mb={2}>
             <SystemLineChart system_Info={system_Info} />
           </Grid>
         </Grid>

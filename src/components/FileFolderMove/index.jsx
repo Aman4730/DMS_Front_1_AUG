@@ -30,7 +30,7 @@ export default function FileFolderMove({
     <React.Fragment>
       <Dialog
         maxWidth="md"
-        open={openMove.status}
+        open={openMove}
         onClose={handleCloseMove}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"

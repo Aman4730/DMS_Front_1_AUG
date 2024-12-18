@@ -62,7 +62,7 @@ export default function GroupForm({
                   fullWidth
                   size="small"
                   id="selected_user"
-                  options={groupsDropdown || ""}
+                  options={(groupsDropdown || []).sort((a, b) => a.localeCompare(b))}
                   getOptionLabel={(option) => option}
                   filterSelectedOptions
                   sx={{ mt: 1 }}

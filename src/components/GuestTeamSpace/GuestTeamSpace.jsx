@@ -1596,7 +1596,7 @@ const GuestTeamSpace = () => {
             data={openDialog.data}
             permission={permissionWs1}
             checkboxValues={checkboxWs1}
-            openDialog={openDialog.status}
+            openDialog={openDialog}
             groupsDropdown={groupsDropdown}
             permissionForm={permissionForm}
             userDropdowns={permissionUserList}

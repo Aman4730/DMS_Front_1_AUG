@@ -97,7 +97,7 @@ const ForgotPassword = () => {
                   </Link>
                 </div>
                 <BlockTitle tag="h5" className="text-center">
-                  Reset Password - Acme DocHub
+                  Reset Password - ACME DocHub
                 </BlockTitle>
                 <BlockDes></BlockDes>
               </BlockContent>

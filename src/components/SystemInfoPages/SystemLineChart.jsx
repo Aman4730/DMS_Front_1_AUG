@@ -87,7 +87,6 @@ const SystemLineChart = ({ system_Info }) => {
       sx={{
         ml: 2,
         mr: 2,
-        mb: 1.1,
       }}
       style={{
         fontFamily: "Arial, sans-serif",

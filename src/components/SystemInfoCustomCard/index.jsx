@@ -71,7 +71,7 @@ const SystemInfoCustomCard = ({
             sx={{
               ml: 1,
               width: "100%",
-              maxWidth: "24%",
+              maxWidth: "24.2%",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",

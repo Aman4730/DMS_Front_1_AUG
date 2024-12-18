@@ -136,31 +136,31 @@ const RecycleBin = () => {
   // Table header configuration
   const tableHeader = [
     {
-      id: "File Name",
+      id: "folder_name" || "file_name",
       numeric: false,
       disablePadding: true,
       label: "File Name",
     },
     {
-      id: "Deleted By",
+      id: "deletedBy",
       numeric: false,
       disablePadding: true,
       label: "Deleted By",
     },
     {
-      id: "Deleted Time",
+      id: "deleted_at",
       numeric: false,
       disablePadding: true,
       label: "Deleted Time",
     },
     {
-      id: "Expiry In",
+      id: "daysLeft",
       numeric: false,
       disablePadding: true,
       label: "Expiry In",
     },
     {
-      id: "Size",
+      id: "folder_size" || "file_size",
       numeric: false,
       disablePadding: true,
       label: "Size",

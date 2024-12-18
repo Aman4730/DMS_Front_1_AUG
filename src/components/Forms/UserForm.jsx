@@ -157,7 +157,7 @@ export default function UserForm({
                   fullWidth
                   size="small"
                   id="add_group"
-                  options={groupsDropdown || ""}
+                  options={(groupsDropdown || []).sort((a, b) => a.localeCompare(b))}
                   getOptionLabel={(option) => option}
                   filterSelectedOptions
                   sx={{ mt: 1 }}

@@ -64,7 +64,7 @@ export default function DocMetaData({
                   size="small"
                   id="selected_cabinet"
                   sx={{ mt: 1 }}
-                  options={[...cabinetList, ""]}
+                  options={(cabinetList||[]).sort((a, b) => a.localeCompare(b))}
                   renderInput={(params) => (
                     <TextField {...params} label="Selected Cabinet" />
                   )}
@@ -80,7 +80,7 @@ export default function DocMetaData({
                   size="small"
                   id="selected_doctype"
                   sx={{ mt: 1 }}
-                  options={[...docList, ""]}
+                  options={(docList).sort((a, b) => a.localeCompare(b))}
                   renderInput={(params) => (
                     <TextField {...params} label="Selected Doctype" />
                   )}

@@ -182,7 +182,6 @@ export default function FileUpload({
                 Update
               </button>
             )}
-            {console.log(uploadStatus, "-----uploadStatus")}
             <div>
               {uploadStatus === "select" && (
                 <button className="upload-btn" onClick={handleCloseFileModal}>

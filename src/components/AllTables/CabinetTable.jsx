@@ -97,6 +97,35 @@ export default function CabinetTable({
   };
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
+console.log(rows)
+  const filteredRows = rows.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    const selectedUsers = row?.selected_users?.join(", ").toLowerCase() || "";
+    const selectedGroups = row?.selected_groups?.join(", ").toLowerCase() || "";
+    return (
+      row?.cabinet_name.toLowerCase().includes(searchLower) ||
+      selectedUsers.includes(searchLower) ||
+      selectedGroups.includes(searchLower)
+    );
+  });
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (a[orderBy] < b[orderBy]) {
+      return order === "asc" ? -1 : 1;
+    }
+    if (a[orderBy] > b[orderBy]) {
+      return order === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const rowsToDisplay = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+  
 
   return (
     <Box>
@@ -110,70 +139,58 @@ export default function CabinetTable({
               headCells={headCells}
             />
             <TableBody>
-              {(rowsPerPage > 0
-                ? rows?.slice(
-                    page * rowsPerPage,
-                    page * rowsPerPage + rowsPerPage
-                  )
-                : rows
-              )
-                ?.filter((item) =>
-                  item.cabinet_name
-                    ?.toLowerCase()
-                    .includes(searchTerm?.toLowerCase())
-                )
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
-                  return (
-                    <TableRow
-                      hover
-                      key={index}
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      selected={isItemSelected}
-                    >
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.cabinet_name}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.selected_groups}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.selected_users}
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip
-                          title="Edit"
-                          onClick={() => onEditClick(row.id)}
-                        >
-                          <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                        <Tooltip
-                          title="Delete"
-                          onClick={() => handleClickOpen(row.id)}
-                        >
-                          <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {!rows.length > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No data available
+              {rowsToDisplay.map((row, index) => {
+                const isItemSelected = isSelected(row.name);
+                return (
+                  <TableRow
+                    hover
+                    key={index}
+                    onClick={(event) => handleClick(event, row.name)}
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    selected={isItemSelected}
+                  >
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.cabinet_name}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.selected_groups}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.selected_users}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip
+                        title="Edit"
+                        onClick={() => onEditClick(row.id)}
+                      >
+                        <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
+                      <Tooltip
+                        title="Delete"
+                        onClick={() => handleClickOpen(row.id)}
+                      >
+                        <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
-                )}
+                );
+              })}
+              {!filteredRows.length && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={rows?.length}
+          count={filteredRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -201,7 +218,7 @@ export default function CabinetTable({
           }}
           style={{
             height: "40px",
-            overflow: "hidden", // Hide any overflow content
+            overflow: "hidden",
           }}
         />
       </Paper>

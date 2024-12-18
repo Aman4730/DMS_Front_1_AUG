@@ -20,11 +20,11 @@ function EnhancedTableHead(props) {
     onRequestSort(event, property);
   };
   const headCells = [
-    { id: "Profile_Id", label: "Id" },
-    { id: "Email_Id", label: "Email Id" },
-    { id: "Security", label: "Security" },
-    { id: "Authentication", label: "Authentication" },
-    { id: "Server IP / Url", label: "Server IP/Url" },
+    { id: "id", label: "Id" },
+    { id: "username", label: "Email Id" },
+    { id: "security", label: "Security" },
+    { id: "authentication", label: "Authentication" },
+    { id: "host_serverip", label: "Server IP/Url" },
     { id: "Action", label: "Action", style: { marginLeft: "23px" } },
   ];
   return (
@@ -93,10 +93,31 @@ export default function SmtpMainTable({
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const value = event.target.value;
+    if (value === "All") {
+      setRowsPerPage(getSmpt.length);
+      setPage(0);
+    } else {
+      setRowsPerPage(parseInt(value, 10));
+      setPage(0);
+    }
   };
   const isSelected = (name) => selected.indexOf(name) !== -1;
+  const filteredRows = getSmpt;
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (a[orderBy] < b[orderBy]) {
+      return order === "asc" ? -1 : 1;
+    }
+    if (a[orderBy] > b[orderBy]) {
+      return order === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const rowsToDisplay = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
     <Box>
@@ -112,7 +133,7 @@ export default function SmtpMainTable({
               headCells={headCells}
             />
             <TableBody>
-              {getSmpt.map((data, index) => {
+              {rowsToDisplay.map((data, index) => {
                 const isItemSelected = isSelected(data.name);
                 return (
                   <TableRow
@@ -191,10 +212,10 @@ export default function SmtpMainTable({
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 20, 30]}
+          rowsPerPageOptions={[10, 20, 30, 50, "All"]}
           component="div"
           count={getSmpt.length}
-          rowsPerPage={rowsPerPage}
+          rowsPerPage={rowsPerPage === "All" ? getSmpt.length : rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}

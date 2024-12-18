@@ -10,7 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import { visuallyHidden } from "@mui/utils";
-import { Button, Grid, Stack, TextField } from "@mui/material";
+import { Button, Grid } from "@mui/material";
 import { AutoComplete, DatePicker } from "antd";
 
 function EnhancedTableHead(props) {
@@ -100,12 +100,32 @@ export default function LogTable({
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const value = event.target.value;
+    if (value === "All") {
+      setRowsPerPage(rows.length);
+      setPage(0);
+    } else {
+      setRowsPerPage(parseInt(value, 10));
+      setPage(0);
+    }
   };
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
+  const filteredRows = rows;
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (a[orderBy] < b[orderBy]) {
+      return order === "asc" ? -1 : 1;
+    }
+    if (a[orderBy] > b[orderBy]) {
+      return order === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
 
+  const rowsToDisplay = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
   const options = [
     { value: "All" },
     { value: "Auth" },
@@ -117,7 +137,6 @@ export default function LogTable({
     { value: "Download" },
     { value: "Permission" },
   ];
-
   return (
     <Box>
       <Grid
@@ -200,13 +219,7 @@ export default function LogTable({
               headCells={headCells}
             />
             <TableBody>
-              {(rowsPerPage > 0
-                ? rows.slice(
-                    page * rowsPerPage,
-                    page * rowsPerPage + rowsPerPage
-                  )
-                : rows
-              ).map((row, index) => {
+              {rowsToDisplay.map((row, index) => {
                 const isItemSelected = isSelected(row.name);
                 const labelId = `enhanced-table-checkbox-${index}`;
                 const originalTimestamp = row.createdAt;
@@ -284,10 +297,10 @@ export default function LogTable({
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 20, 30]}
+          rowsPerPageOptions={[10, 20, 30, 50, "All"]}
           component="div"
           count={rows.length}
-          rowsPerPage={rowsPerPage}
+          rowsPerPage={rowsPerPage === "All" ? rows.length : rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}

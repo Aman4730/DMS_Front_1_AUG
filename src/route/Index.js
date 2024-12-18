@@ -174,7 +174,7 @@ const Pages = () => {
       "/GlobalSearch",
       "/recyclebin",
       "/logs",
-      "/user-list",
+      // "/user-list",
       "/groups",
       "/smtp",
       "/policies",

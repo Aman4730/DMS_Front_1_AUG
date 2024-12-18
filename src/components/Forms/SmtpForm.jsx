@@ -149,7 +149,7 @@ export default function SmtpForm({
               disablePortal
               size="small"
               id="Security"
-              options={["None", "SSL", "TLS", "STARTLS"]}
+              options={(["None", "SSL", "TLS", "STARTLS"]).sort((a, b) => a.localeCompare(b))}
               renderInput={(params) => (
                 <TextField {...params} label="Security" />
               )}

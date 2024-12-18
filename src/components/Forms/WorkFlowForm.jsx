@@ -58,7 +58,9 @@ export default function WorkFlowForm({
                   fullWidth
                   size="small"
                   id="selected_cabinet"
-                  options={cabinetList}
+                  options={(cabinetList || []).sort((a, b) =>
+                    a.localeCompare(b)
+                  )}
                   renderInput={(params) => (
                     <TextField {...params} label="Select Cabinet" />
                   )}
@@ -95,10 +97,13 @@ export default function WorkFlowForm({
                   size="small"
                   id="workspace_name"
                   options={getWorkspaces
-                    .filter((data) => data.workspace_type === addPolicies.workspace_type)
+                    .filter(
+                      (data) =>
+                        data.workspace_type === addPolicies.workspace_type
+                    )
                     .map((data) => ({ id: data.id, name: data.workspace_name }))
-                  }
-                    getOptionLabel={(option) => option.name}
+                    .sort((a, b) => a.name.localeCompare(b.name))}
+                  getOptionLabel={(option) => option.name}
                   renderInput={(params) => (
                     <TextField {...params} label="Workspace Name" />
                   )}
@@ -108,13 +113,14 @@ export default function WorkFlowForm({
                   }
                 />
               </Grid>
-
               <Grid item xs={6}>
                 <Autocomplete
                   fullWidth
                   size="small"
                   id="selected_group"
-                  options={groupDropdowns.map((data) => data.group_name)}
+                  options={groupDropdowns
+                    .map((data) => data.group_name)
+                    .sort((a, b) => a.localeCompare(b))}
                   renderInput={(params) => (
                     <TextField {...params} label="Select Group" />
                   )}
@@ -130,7 +136,7 @@ export default function WorkFlowForm({
                   fullWidth
                   size="small"
                   id="tags-outlined"
-                  options={userDropdowns || ""}
+                  options={(userDropdowns || []) .sort((a, b) => a.localeCompare(b))}
                   filterSelectedOptions
                   renderInput={(params) => (
                     <TextField {...params} label="Selected Users" />

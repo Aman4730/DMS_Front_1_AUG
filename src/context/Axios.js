@@ -1,8 +1,11 @@
 import axios from "axios";
 import ApiPaths from "./ApiPaths.json"; //json file containing ApiPaths data
+import { Button, notification } from "antd";
+import { useHistory } from "react-router-dom";
 
 // const url = "http://localhost:4001/"; //! local
 const url = `${process.env.REACT_APP_API_URL_LOCAL}/`; //! live
+
 
 let token = localStorage.getItem("token") || "";
 const axiosInstance = axios.create({
@@ -28,6 +31,15 @@ const setCustomerAuthToken = (token) => {
     Authorization: localStorage.getItem("customerToken"),
   };
 };
+
+const navigateToLogin = () => {
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  localStorage.removeItem("guest");
+  localStorage.removeItem("guestlogin");
+  // Destroy existing notification
+  notification.destroy("sessionExpired");
+};
 function AxiosPost(key, body, handleSuccess, handleError, config = {}) {
   // if (key != 'loginWIthOTP') {
   if (key == "updateCustomerBySelf") {
@@ -44,7 +56,31 @@ function AxiosPost(key, body, handleSuccess, handleError, config = {}) {
       if (handleSuccess) handleSuccess(res);
     })
     .catch((err) => {
-      console.log(err,"------errr")
+      const errorMsg = err?.response?.data?.message;
+      const status = err?.response?.status;
+      console.log(err?.response?.data?.message, "===err");
+      // JWT Token expiration handling
+      if (errorMsg === "jwt expired" && status === 400) {
+        notification.open({
+          key: "sessionExpired",
+          placement: "topRight",
+          message: "Session Expired",
+          description: "Your session has expired. Please log in again.",
+          btn: (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => navigateToLogin()}
+            >
+              Go to Login
+            </Button>
+          ),
+          duration: null,
+        });
+      } else {
+        console.error("Error:", err);
+      }
+
       if (handleError) handleError(err);
     });
 }

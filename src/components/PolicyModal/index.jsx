@@ -105,7 +105,6 @@ export default function PolicyModal({
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
   const [personName, setPersonName] = React.useState([]);
-
   const handleChange1 = (event) => {
     const {
       target: { value },
@@ -168,7 +167,7 @@ export default function PolicyModal({
                     <SelectBox
                       id="selected_user"
                       label="Select User"
-                      items={userDropdowns}
+                      items={(userDropdowns||[]).sort((a, b) => a.localeCompare(b))}
                       handleChange={handlemultiSelectChange}
                       selectedItems={addPolicies?.selected_user}
                     />
@@ -177,7 +176,7 @@ export default function PolicyModal({
                     <SelectBox
                       id="selected_group"
                       label="Select Group"
-                      items={groupsDropdown}
+                      items={(groupsDropdown||[]).sort((a, b) => a.localeCompare(b))}
                       handleChange={handlemultiSelectChange}
                       selectedItems={addPolicies?.selected_group}
                     />

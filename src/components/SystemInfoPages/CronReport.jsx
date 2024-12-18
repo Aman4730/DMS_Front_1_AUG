@@ -1,19 +1,17 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
-import { Switch } from "@mui/material";
 import Table from "@mui/material/Table";
 import Paper from "@mui/material/Paper";
-import Tooltip from "@mui/material/Tooltip";
 import { visuallyHidden } from "@mui/utils";
 import TableRow from "@mui/material/TableRow";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
-import DeleteIcon from "@mui/icons-material/Delete";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import TableContainer from "@mui/material/TableContainer";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import TablePagination from "@mui/material/TablePagination";
-
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { CircularProgress } from "@mui/material";
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, headCells } = props;
   const createSortHandler = (property) => (event) => {
@@ -50,15 +48,17 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function DoctypeTable({
-  rows,
+export default function CronReport({
   headCells,
   searchTerm,
-  onBlockClick,
+  getStartCron,
+  allfolderlist,
+  loader,
+  cronType,
   handleClickOpen,
 }) {
   const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("doctype_name");
+  const [orderBy, setOrderBy] = React.useState("calories");
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -92,15 +92,16 @@ export default function DoctypeTable({
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
+    const value = event.target.value;
+    if (value === "All") {
+      setRowsPerPage(rows.length);
+      setPage(0);
+    } else {
+      setRowsPerPage(parseInt(value, 10));
+      setPage(0);
+    }
   };
-  const isSelected = (name) => selected.indexOf(name) !== -1;
-  const filteredRows = rows?.filter((row) => {
-    const searchLower = searchTerm.toLowerCase();
-
-    return row.doctype_name?.toLowerCase().includes(searchLower);
-  });
+  const filteredRows = allfolderlist;
   const sortedRows = [...filteredRows].sort((a, b) => {
     if (a[orderBy] < b[orderBy]) {
       return order === "asc" ? -1 : 1;
@@ -115,9 +116,13 @@ export default function DoctypeTable({
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
+
+  const isSelected = (name) => selected.indexOf(name) !== -1;
+
   React.useEffect(() => {
     setPage(0);
   }, [searchTerm]);
+
   return (
     <Box>
       <Paper>
@@ -132,39 +137,51 @@ export default function DoctypeTable({
             <TableBody>
               {rowsToDisplay.map((row, index) => {
                 const isItemSelected = isSelected(row.name);
+                const originalTimestamp = row.createdAt;
+                const originalDate = new Date(originalTimestamp);
+                const options = {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                };
+                const convertedTimestamp = originalDate.toLocaleString(
+                  "en-GB",
+                  options
+                );
+
                 return (
                   <TableRow
                     hover
-                    key={row.id}
                     onClick={(event) => handleClick(event, row.name)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
+                    key={index}
                     selected={isItemSelected}
                   >
-                    <TableCell style={{ fontSize: "12px" }}>
-                      {row.doctype_name}
-                    </TableCell>
                     <TableCell>
-                      <Switch
-                        checked={row.doc_status === "true"}
-                        size="small"
-                        onChange={(event) =>
-                          onBlockClick(row.id, event.target.checked)
-                        }
-                      />
-
-                      <Tooltip
-                        title="Delete"
-                        onClick={() => handleClickOpen(row.id)}
-                      >
-                        <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                      </Tooltip>
+                      {row.type} : {row.action}
+                    </TableCell>
+                    <TableCell>{row.frequency}</TableCell>
+                    <TableCell>{convertedTimestamp}</TableCell>
+                    <TableCell>{row.system_ip}</TableCell>
+                    <TableCell
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleClickOpen(row.cronType)}
+                    >
+                      {loader && row.cronType === cronType ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <RestartAltIcon />
+                      )}
                     </TableCell>
                   </TableRow>
                 );
               })}
-              {!filteredRows.length > 0 && (
+              {!allfolderlist.length > 0 && (
                 <TableRow>
                   <TableCell colSpan={6} align="center">
                     No data available
@@ -177,7 +194,7 @@ export default function DoctypeTable({
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={filteredRows.length}
+          count={allfolderlist.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

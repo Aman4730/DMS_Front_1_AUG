@@ -236,19 +236,19 @@ const Cabinet = () => {
   //Table Header
   const tableHeader = [
     {
-      id: "Cabinet Name",
+      id: "cabinet_name",
       numeric: false,
       disablePadding: true,
       label: "Cabinet Name",
     },
     {
-      id: "Selected Groups",
+      id: "selected_groups",
       numeric: false,
       disablePadding: true,
       label: "Selected Groups",
     },
     {
-      id: "Selected User",
+      id: "selected_users",
       numeric: false,
       disablePadding: true,
       label: "Selected User",

@@ -16,8 +16,10 @@ import TableContainer from "@mui/material/TableContainer";
 import TablePagination from "@mui/material/TablePagination";
 import CloudSyncIcon from "@mui/icons-material/CloudSync";
 
+
+
 function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort, headCells } = props;
+  const { order, orderBy, onRequestSort,headCells } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -36,7 +38,7 @@ function EnhancedTableHead(props) {
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : "asc"}
               onClick={createSortHandler(headCell.id)}
-              style={headCell.style}
+              hideSortIcon={true}
             >
               {headCell.label}
               {orderBy === headCell.id ? (
@@ -63,32 +65,16 @@ export default function UserTable({
 }) {
   const [page, setPage] = React.useState(0);
   const [order, setOrder] = React.useState("asc");
-  const [selected, setSelected] = React.useState([]);
-  const [orderBy, setOrderBy] = React.useState("");
+  const [orderBy, setOrderBy] = React.useState("display_name");
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [selected, setSelected] = React.useState([]);
 
   const handleRequestSort = (event, property) => {
+    console.log(property,"=property")
+
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -96,10 +82,78 @@ export default function UserTable({
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const value = event.target.value;
+    if (value === "All") {
+      setRowsPerPage(rows.length);
+      setPage(0);
+    } else {
+      setRowsPerPage(parseInt(value, 10));
+      setPage(0);
+    }
   };
 
+  const filteredRows = rows.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      row.display_name.toLowerCase().includes(searchLower) ||
+      row.email.toLowerCase().includes(searchLower) ||
+      (row.validity_date &&
+        new Date(row.validity_date)
+          .toLocaleString("en-GB", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })
+          .includes(searchLower)) ||
+      (row.last_login &&
+        new Date(row.last_login)
+          .toLocaleString("en-GB", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })
+          .includes(searchLower)) ||
+      row.user_type.toLowerCase().includes(searchLower) ||
+      row.emp_code.toLowerCase().includes(searchLower) ||
+      formatSizeInGB(row.max_quota).toString().includes(searchLower)
+    );
+  });
+
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
+  const sortedRows = (rows) => {
+    console.log(orderBy, "======orderBy");
+
+    return rows.sort((a, b) => {
+      const aValue = a[orderBy] || "";
+      const bValue = b[orderBy] || "";
+      return order === "asc"
+        ? aValue.localeCompare(bValue, undefined, { sensitivity: "base" })
+        : bValue.localeCompare(aValue, undefined, { sensitivity: "base" });
+    });
+  };
+
+  const sortedFilteredRows = sortedRows(filteredRows);
+
+  const rowsToDisplay =
+    rowsPerPage === "All"
+      ? sortedFilteredRows
+      : sortedFilteredRows.slice(
+          page * rowsPerPage,
+          page * rowsPerPage + rowsPerPage
+        );
+
+  function formatSizeInGB(sizeInBytes) {
+    return (sizeInBytes / (1024 * 1024)).toFixed(2);
+  }
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   return (
@@ -110,161 +164,130 @@ export default function UserTable({
             <EnhancedTableHead
               order={order}
               orderBy={orderBy}
-              onRequestSort={handleRequestSort}
               headCells={headCells}
+              onRequestSort={handleRequestSort}
             />
             <TableBody>
-              {(rowsPerPage > 0
-                ? rows.slice(
-                    page * rowsPerPage,
-                    page * rowsPerPage + rowsPerPage
-                  )
-                : rows
-              )
-                ?.filter((item) =>
-                  (item.display_name || item.email)
-                    ?.toLowerCase()
-                    .includes(searchTerm?.toLowerCase())
-                )
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
-                  const lastLogin = row.last_login;
-                  const originalTimestamp = row.validity_date;
-                  const originalDate = new Date(originalTimestamp);
-                  const lastLoginDate = new Date(lastLogin);
-                  const options = {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  };
-                  const convertedTimestamp = originalDate.toLocaleString(
-                    "en-GB",
-                    options
-                  );
-                  const lastLoginFormate = lastLoginDate?.toLocaleString(
-                    "en-GB",
-                    options
-                  );
+              {rowsToDisplay.map((row, index) => {
+                const isItemSelected = isSelected(row.name);
+                const originalTimestamp = row.validity_date;
+                const originalDate = new Date(originalTimestamp);
+                const lastLoginDate = new Date(row.last_login);
+                const deactivatedDate = new Date(row.deactivatedDate);
+                const options = {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                };
+                const convertedTimestamp = originalDate.toLocaleString(
+                  "en-GB",
+                  options
+                );
+                const lastLoginFormate = lastLoginDate?.toLocaleString(
+                  "en-GB",
+                  options
+                );
+                const deactivatedDateFormate = deactivatedDate?.toLocaleString(
+                  "en-GB",
+                  options
+                );
+                const formattedSize = formatSizeInGB(row.max_quota);
 
-                  function formatSizeInGB(sizeInBytes) {
-                    return sizeInBytes / (1024 * 1024);
-                  }
-                  const formattedSize = formatSizeInGB(row.max_quota);
-
-                  return (
-                    <TableRow
-                      key={index}
-                      hover
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      selected={isItemSelected}
-                    >
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.display_name}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.email}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {convertedTimestamp == "Invalid Date"
-                          ? "No Expiry"
-                          : convertedTimestamp}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {lastLoginFormate}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.user_type}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.emp_code}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {formattedSize}
-                      </TableCell>
-                       
-                      <TableCell>
+                return (
+                  <TableRow
+                    key={index}
+                    hover
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    selected={isItemSelected}
+                  >
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.display_name}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.email}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {convertedTimestamp == "Invalid Date"
+                        ? "No Expiry"
+                        : convertedTimestamp}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {lastLoginFormate == "Invalid Date"
+                        ? "Not Logged In"
+                        : lastLoginFormate}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.user_type}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.emp_code}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {formattedSize}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip
+                        title="Omega Sync"
+                        onClick={() => handleClickSyncOpen(row.emp_code)}
+                      >
+                        <CloudSyncIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
+                      <Tooltip title="Edit" onClick={() => onEditClick(row.id)}>
+                        <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
+                      <Tooltip
+                        title="Delete"
+                        onClick={() => handleClickOpen(row.id)}
+                      >
+                        <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
+                      {row?.user_status == "false" ? (
                         <Tooltip
-                          title="Omega Sync"
-                          onClick={() => handleClickSyncOpen(row.emp_code)}
+                          title={
+                            row?.deactivatedReason && deactivatedDateFormate
+                              ? `${row.deactivatedReason} , Deactivated Date : ${deactivatedDateFormate}`
+                              : row?.deactivatedReason || deactivatedDateFormate
+                          }
                         >
-                          <CloudSyncIcon
-                            sx={{ ml: 1, mr: 1 }}
-                            fontSize="small"
+                          <Switch
+                            checked={row.user_status === "true"}
+                            size="small"
+                            onChange={(event) =>
+                              onBlockClick(row.id, event.target.checked)
+                            }
                           />
                         </Tooltip>
-                        <Tooltip
-                          title="Edit"
-                          onClick={() => onEditClick(row.id)}
-                        >
-                          <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      ) : (
+                        <Tooltip title={row?.deactivatedReason}>
+                          <Switch
+                            checked={row.user_status === "true"}
+                            size="small"
+                            onChange={(event) =>
+                              onBlockClick(row.id, event.target.checked)
+                            }
+                          />
                         </Tooltip>
-                        <Tooltip
-                          title="Delete"
-                          onClick={() => handleClickOpen(row.id)}
-                        >
-                          <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                        <Switch
-                          checked={row.user_status === "true"}
-                          size="small"
-                          onChange={(event) =>
-                            onBlockClick(row.id, event.target.checked)
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {!rows.length > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No data available
+                      )}
                     </TableCell>
                   </TableRow>
-                )}
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
-        
         <TablePagination
-          rowsPerPageOptions={[10, 20, 30]}
+          rowsPerPageOptions={[10, 25, 50, { label: "All", value: "All" }]}
           component="div"
-          count={rows.length}
+          count={sortedFilteredRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          SelectProps={{
-            inputProps: { "aria-label": "rows per page" },
-            native: true,
-            style: {
-              marginBottom: "13px",
-            },
-          }}
-          nextIconButtonProps={{
-            style: {
-              marginBottom: "12px",
-              color: "green",
-            },
-            tabIndex: -1,
-          }}
-          backIconButtonProps={{
-            style: {
-              marginBottom: "12px",
-              color: "green",
-            },
-            tabIndex: -1,
-          }}
-          style={{
-            height: "40px",
-            overflow: "hidden", // Hide any overflow content
-          }}
         />
       </Paper>
     </Box>

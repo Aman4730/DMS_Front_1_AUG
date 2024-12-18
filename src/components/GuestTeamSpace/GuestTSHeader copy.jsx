@@ -22,14 +22,6 @@ const GuestTSHeader = ({
     edit: false,
     add: false,
   });
-  useEffect(() => {
-    // After 5 seconds, set open to false
-    const timeoutId = setTimeout(() => {
-      setOpen(false);
-    }, 15000);
-    // Clean up the timeout when the component unmounts or when open changes
-    return () => clearTimeout(timeoutId);
-  }, []);
   let permission = localStorage.getItem("permission");
   let permissionObject = JSON?.parse(permission);
   return (

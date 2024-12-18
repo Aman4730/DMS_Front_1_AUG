@@ -95,8 +95,14 @@ export default function RecyclebinTable({
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const value = event.target.value;
+    if (value === "All") {
+      setRowsPerPage(allfolderlist.length);
+      setPage(0);
+    } else {
+      setRowsPerPage(parseInt(value, 10));
+      setPage(0);
+    }
   };
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
@@ -125,6 +131,32 @@ export default function RecyclebinTable({
         return "/Image/default.svg";
     }
   }
+  const filteredRows = allfolderlist.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      row?.file_name?.toLowerCase().includes(searchLower) ||
+      row?.folder_name?.toLowerCase().includes(searchLower) ||
+      row?.deletedBy?.toLowerCase().includes(searchLower)
+    );
+  });
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (a[orderBy] < b[orderBy]) {
+      return order === "asc" ? -1 : 1;
+    }
+    if (a[orderBy] > b[orderBy]) {
+      return order === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const rowsToDisplay = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
   return (
     <Box>
       <Paper>
@@ -137,140 +169,135 @@ export default function RecyclebinTable({
               headCells={headCells}
             />
             <TableBody>
-              {allfolderlist
-                .filter(
-                  (item) =>
-                    item?.file_name ||
-                    item?.folder_name
-                      ?.toLowerCase()
-                      .includes(searchTerm?.toLowerCase())
-                )
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row?.name);
-                  const originalTimestamp = row?.deleted_at;
-                  const originalDate = new Date(parseInt(originalTimestamp)*1000);
-                  const options = {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  };
-                  const convertedTimestamp = originalDate.toLocaleDateString(
-                    "en-GB",
-                    options
-                  );
-                  function formatFileSize(sizeInBytes) {
-                    if (sizeInBytes < 1024) {
-                      return sizeInBytes + " B";
-                    } else if (sizeInBytes < 1024 * 1024) {
-                      return (sizeInBytes / 1024).toFixed(2) + " KB";
-                    } else if (sizeInBytes < 1024 * 1024 * 1024) {
-                      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
-                    } else {
-                      return (
-                        (sizeInBytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
-                      );
-                    }
+              {rowsToDisplay.map((row, index) => {
+                const isItemSelected = isSelected(row?.name);
+                const originalTimestamp = row?.deleted_at;
+                const originalDate = new Date(
+                  parseInt(originalTimestamp) * 1000
+                );
+                const options = {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                };
+                const convertedTimestamp = originalDate.toLocaleDateString(
+                  "en-GB",
+                  options
+                );
+                function formatFileSize(sizeInBytes) {
+                  if (sizeInBytes < 1024) {
+                    return sizeInBytes + " B";
+                  } else if (sizeInBytes < 1024 * 1024) {
+                    return (sizeInBytes / 1024).toFixed(2) + " KB";
+                  } else if (sizeInBytes < 1024 * 1024 * 1024) {
+                    return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
+                  } else {
+                    return (
+                      (sizeInBytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
+                    );
                   }
-                  const fileSizeInBytes = row?.file_size || row?.folder_size;
-                  const formattedSize = formatFileSize(fileSizeInBytes);
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={index}
-                      selected={isItemSelected}
+                }
+                const fileSizeInBytes = row?.file_size || row?.folder_size;
+                const formattedSize = formatFileSize(fileSizeInBytes);
+                return (
+                  <TableRow
+                    hover
+                    onClick={(event) => handleClick(event, row.name)}
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={index}
+                    selected={isItemSelected}
+                  >
+                    <TableCell
+                      // onClick={() => callApi(data)}
+                      className="tablefont"
+                      style={{
+                        fontSize: "13px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "300px",
+                      }}
                     >
-                      <TableCell
-                        // onClick={() => callApi(data)}
-                        className="tablefont"
-                        style={{
-                          fontSize: "13px",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          maxWidth: "300px",
-                        }}
-                      >
-                        <img
-                          src={
-                            row?.file_name
-                              ? getFileIconByExtension(row.file_type)
-                              : row?.folder_name
-                              ? "/Image/folder.png"
-                              : ""
-                          }
-                          alt="File Icon"
-                          height="22px"
-                          style={{ marginRight: "5px", marginBottom: "2px" }}
-                        />
-                        {row?.file_name || row?.folder_name}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "13px" }}>
-                        {row?.deletedBy}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "13px" }}>
-                        {convertedTimestamp}
-                      </TableCell>
+                      <img
+                        src={
+                          row?.file_name
+                            ? getFileIconByExtension(row.file_type)
+                            : row?.folder_name
+                            ? "/Image/folder.png"
+                            : ""
+                        }
+                        alt="File Icon"
+                        height="22px"
+                        style={{ marginRight: "5px", marginBottom: "2px" }}
+                      />
+                      {row?.file_name || row?.folder_name}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "13px" }}>
+                      {row?.deletedBy}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "13px" }}>
+                      {convertedTimestamp}
+                    </TableCell>
 
-                      <TableCell style={{ fontSize: "13px" }}>
-                        {row?.daysLeft}
-                      </TableCell>
-                      <TableCell
-                        component="th"
-                        scope="row"
-                        style={{ fontSize: "13px" }}
+                    <TableCell style={{ fontSize: "13px" }}>
+                      {row?.daysLeft}
+                    </TableCell>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ fontSize: "13px" }}
+                    >
+                      {formattedSize}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip
+                        title="Restore"
+                        onClick={() =>
+                          onRestoreFiles({
+                            id: row?.id,
+                            user_type: row?.user_type,
+                            file_type: row?.file_type,
+                            folder_size: row?.folder_size,
+                            file_size: row?.file_size,
+                            file_name: row?.file_name,
+                            workspace_name: row?.workspace_name,
+                          })
+                        }
                       >
-                        {formattedSize}
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip
-                          title="Restore"
-                          onClick={() =>
-                            onRestoreFiles({
-                              id: row?.id,
-                              user_type: row?.user_type,
-                              file_type: row?.file_type,
-                              folder_size: row?.folder_size,
-                              file_size: row?.file_size,
-                              file_name: row?.file_name,
-                              workspace_name: row?.workspace_name,
-                            })
-                          }
-                        >
-                          <FastRewindIcon sx={{ mr: 1, ml: 2 }} />
-                        </Tooltip>
-                        <Tooltip
-                          title="Delete"
-                          onClick={() => handleClickOpen(row.id, row.file_type)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {!allfolderlist.length > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No data available
+                        <FastRewindIcon sx={{ mr: 1, ml: 2 }} />
+                      </Tooltip>
+                      <Tooltip
+                        title="Delete"
+                        onClick={() => handleClickOpen(row.id, row.file_type)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
-                )}
+                );
+              })}
+              {!allfolderlist.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 20, 30]}
+          rowsPerPageOptions={[10, 20, 30, 50, "All"]}
           component="div"
           count={allfolderlist.length}
-          rowsPerPage={rowsPerPage}
+          rowsPerPage={
+            rowsPerPage === "All" ? filteredRows.length : rowsPerPage
+          }
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}

@@ -645,7 +645,9 @@ const DataRoom = () => {
   // ------------------------------------------------file upload
   // ------------------------------------------------file Download
   const [progressBar, setProgressBar] = useState(0);
+  const [disabledBtn, setDisabledBtn] = useState(false);
   const onDownloadfolders = (filemongo_id, folder_name, folder_size) => {
+    setLoading(true);
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfolders`;
     const requestData = { folder_id: filemongo_id };
     axios
@@ -671,6 +673,7 @@ const DataRoom = () => {
           },
         });
         setProgressBar(0);
+        setLoading(false);
         const blob = new Blob([response.data], { type: "application/zip" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
@@ -682,28 +685,41 @@ const DataRoom = () => {
         URL.revokeObjectURL(url); // Clean up the object URL
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error downloading the folder:", error);
       });
   };
   const onFileDownload = (filemongo_id, file_name, file_size, file_type) => {
+    setDisabledBtn(true);
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfile`;
     const requestData = { filemongo_id: filemongo_id };
+
+    let downloadCompleted = false;
 
     axios
       .post(apiUrl, requestData, {
         responseType: "blob",
         onDownloadProgress: (progressEvent) => {
-          const loaded = progressEvent.loaded;
-          const totalBytes = file_size;
-          let progress = 0;
-          if (totalBytes > 0 && loaded > 0) {
-            progress = Math.round((loaded / totalBytes) * 100);
+          if (!downloadCompleted) {
+            const totalBytes = parseInt(file_size, 10);
+
+            const loaded = progressEvent.loaded;
+            if (totalBytes > 0) {
+              const progress = Math.min(
+                Math.round((loaded / totalBytes) * 100),
+                99
+              );
+              setProgressBar(progress);
+            }
           }
-          setProgressBar(progress);
         },
       })
-      .then(async (response) => {
-        setProgressBar(0);
+      .then((response) => {
+        downloadCompleted = true;
+        setProgressBar(100);
+        setDisabledBtn(false);
+        setTimeout(() => setProgressBar(0), 500);
+
         notification["success"]({
           placement: "top",
           description: "",
@@ -713,50 +729,25 @@ const DataRoom = () => {
           },
         });
 
-        if (file_type === "pdf") {
-          const arrayBuffer = await response.data.arrayBuffer();
-          const pdfDoc = await PDFDocument.load(arrayBuffer);
-          const pages = pdfDoc.getPages();
-          pages.forEach((page) => {
-            const { width, height } = page.getSize();
-            page.drawText("ACME", {
-              x: width / 2 - 50,
-              y: height / 2,
-              size: 50,
-              color: rgb(0.5, 0.5, 0.5),
-              opacity: 0.5,
-              rotate: degrees(30),
-            });
-          });
-
-          const pdfBytes = await pdfDoc.save();
-          const blob = new Blob([pdfBytes], { type: "application/pdf" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = file_name;
-          document.body.appendChild(link);
-          link.click();
-          URL.revokeObjectURL(url);
-          link.remove();
-        } else {
-          const blob = response.data;
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = file_name;
-          document.body.appendChild(link);
-          link.click();
-          URL.revokeObjectURL(url);
-          link.remove();
-        }
+        const blob = new Blob([response.data], { type: file_type });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = file_name;
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(url);
+        link.remove();
       })
       .catch((error) => {
-        console.error("Error downloading the file:", error);
+        downloadCompleted = true; // Stop further progress updates in case of error
+        setProgressBar(0);
         notification["error"]({
           placement: "top",
-          description: "Failed to download the file.",
-          message: "Download Error",
+          message: error?.response?.statusText || "Download Failed",
+          style: {
+            height: 60,
+          },
         });
       });
   };
@@ -1060,7 +1051,10 @@ const DataRoom = () => {
     }
   };
   // ---------------------------------Properties
-  const [propertiesModel, setPropertiesModel] = useState(false);
+  const [propertiesModel, setPropertiesModel] = useState({
+    status: false,
+    data: "",
+  });
   const handleClickOpenProperties = (data) => {
     setPropertiesModel({ status: true, data: data });
   };
@@ -1177,6 +1171,7 @@ const DataRoom = () => {
     let requestData = {
       folder_id: data.folder_id,
       file_name: data.file_name,
+      workspace_id: workSpaceData.workspace_id,
     };
     getallversions(
       requestData,
@@ -1764,7 +1759,6 @@ const DataRoom = () => {
             workspace_id: JSON.stringify(workSpaceData.workspace_id),
           };
           getAllfoldernames(newData);
-          console.log(data, "in----");
         } else {
           notification["warning"]({
             placement: "top",
@@ -1790,7 +1784,7 @@ const DataRoom = () => {
               color="primary"
               sx={{
                 "& .MuiLinearProgress-bar": {
-                  backgroundColor: "rgb(121, 139, 255)",
+                  backgroundColor: "rgb(16, 25, 36)",
                   width: "400px",
                   animationDuration: "3000ms",
                 },
@@ -1813,11 +1807,44 @@ const DataRoom = () => {
                 width: "100%",
                 position: "absolute",
                 zIndex: 100,
-                top: 1,
+                top: -3,
                 left: 0,
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              <LinearProgressBar progress={progressBar} />
+              <div
+                style={{
+                  backgroundColor: "grey",
+                  height: "5px",
+                  flex: 1,
+                  position: "relative",
+                  borderRadius: "3px",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${progressBar}%`,
+                    backgroundColor: "#203556",
+                    height: "100%",
+                    transition: "width 0.3s ease",
+                  }}
+                ></div>
+              </div>
+              <div
+                style={{
+                  color: "#463a99",
+                  fontSize: "12px",
+                  whiteSpace: "nowrap",
+                  position: "relative",
+                  top: "5px",
+                  marginRight: "10px",
+                }}
+              >
+                {progressBar}%
+              </div>
             </div>
           )}
           <ModalPop
@@ -1852,7 +1879,7 @@ const DataRoom = () => {
             data={openDialog.data}
             permission={permissionWs1}
             checkboxValues={checkboxWs1}
-            openDialog={openDialog.status}
+            openDialog={openDialog}
             groupsDropdown={groupsDropdown}
             permissionForm={permissionForm}
             userDropdowns={permissionUserList}
@@ -2003,6 +2030,7 @@ const DataRoom = () => {
             headCells={tableHeader}
             searchTerm={searchTerm}
             workspace_type="dataRoom"
+            disabledBtn={disabledBtn}
             setPropertys={setPropertys}
             allfolderlist={allfolderlist}
             onFileDownload={onFileDownload}

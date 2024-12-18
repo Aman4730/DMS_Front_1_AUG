@@ -53,6 +53,7 @@ function EnhancedTableHead(props) {
 
 export default function WorkspaceTable({
   rows,
+  allfolderlist,
   headCells,
   searchTerm,
   onEditClick,
@@ -67,6 +68,7 @@ export default function WorkspaceTable({
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
+    console.log(property);
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
@@ -101,6 +103,51 @@ export default function WorkspaceTable({
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
+  const formatFileSize = (sizeInBytes) => {
+    if (sizeInBytes < 1024) {
+      return sizeInBytes + " B";
+    } else if (sizeInBytes < 1024 * 1024) {
+      return (sizeInBytes / 1024).toFixed(2) + " KB";
+    } else if (sizeInBytes < 1024 * 1024 * 1024) {
+      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
+    } else {
+      return (sizeInBytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+    }
+  };
+
+  const filteredRows = allfolderlist?.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    const selectedUsers = (row.selected_users || []).join(", ").toLowerCase();
+    const fileSizeInBytes = row.quota || 0;
+    const formattedSize = formatFileSize(fileSizeInBytes);
+
+    return (
+      (row.workspace_name || "").toLowerCase().includes(searchLower) ||
+      (row.selected_cabinet || "").toLowerCase().includes(searchLower) ||
+      (row.workspace_type || "").toLowerCase().includes(searchLower) ||
+      formattedSize.includes(searchLower) ||
+      selectedUsers.includes(searchLower)
+    );
+  });
+
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (a[orderBy] < b[orderBy]) {
+      return order === "asc" ? -1 : 1;
+    }
+    if (a[orderBy] > b[orderBy]) {
+      return order === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const rowsToDisplay = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
   return (
     <Box>
       <Paper>
@@ -113,157 +160,156 @@ export default function WorkspaceTable({
               headCells={headCells}
             />
             <TableBody>
-              {(rowsPerPage > 0
-                ? rows?.slice(
-                    page * rowsPerPage,
-                    page * rowsPerPage + rowsPerPage
-                  )
-                : rows
-              )
-                ?.filter((item) =>
-                  item.workspace_name
-                    ?.toLowerCase()
-                    .includes(searchTerm?.toLowerCase())
-                )
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
-                  function formatFileSize(sizeInBytes) {
-                    if (sizeInBytes < 1024) {
-                      return sizeInBytes + " B";
-                    } else if (sizeInBytes < 1024 * 1024) {
-                      return (sizeInBytes / 1024).toFixed(2) + " KB";
-                    } else if (sizeInBytes < 1024 * 1024) {
-                      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
-                    } else {
-                      return (sizeInBytes / (1024 * 1024)).toFixed(2) + " GB";
-                    }
+              {rowsToDisplay.map((row, index) => {
+                const isItemSelected = isSelected(row.name);
+                function formatFileSize(sizeInBytes) {
+                  if (sizeInBytes < 1024) {
+                    return sizeInBytes + " B";
+                  } else if (sizeInBytes < 1024 * 1024) {
+                    return (sizeInBytes / 1024).toFixed(2) + " KB";
+                  } else if (sizeInBytes < 1024 * 1024) {
+                    return (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
+                  } else {
+                    return (sizeInBytes / (1024 * 1024)).toFixed(2) + " GB";
                   }
-                  const fileSizeInBytes = row.quota;
-                  const formattedSize = formatFileSize(fileSizeInBytes);
-                  let userName = "";
-                  for (let i = 0; i < row.selected_users.length; i++) {
-                    userName = userName + "\n" + row.selected_users[i];
-                  }
-                  const fileSizeInBytes1 = row.quota / 1024 / 1024;
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={index}
-                      selected={isItemSelected}
+                }
+                const fileSizeInBytes = row.quota || 0;
+                const formattedSize = formatFileSize(fileSizeInBytes);
+
+                let userName = "";
+                for (let i = 0; i < row?.selected_users?.length; i++) {
+                  userName = userName + "\n" + row?.selected_users[i];
+                }
+
+                let groupName = "";
+                for (let i = 0; i < row?.selected_groups?.length; i++) {
+                  groupName = groupName + "\n" + row?.selected_groups[i];
+                }
+
+                return (
+                  <TableRow
+                    hover
+                    onClick={(event) => handleClick(event, row.name)}
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={index}
+                    selected={isItemSelected}
+                  >
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.selected_cabinet}
+                    </TableCell>
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {row.workspace_type}
+                    </TableCell>
+                    <TableCell
+                      style={{
+                        fontSize: "12px",
+                        textOverflow: "ellipsis",
+                      }}
                     >
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.selected_cabinet}
-                      </TableCell>
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {row.workspace_type}
-                      </TableCell>
-                      <TableCell
-                        style={{
-                          fontSize: "12px",
-                          textOverflow: "ellipsis",
-                        }}
+                      {row.workspace_name}
+                    </TableCell>
+                    <TableCell
+                      style={{
+                        fontSize: "12px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "150px",
+                      }}
+                    >
+                      <abbr
+                        title={groupName}
+                        style={{ cursor: "pointer", textDecoration: "none" }}
                       >
-                        {row.workspace_name}
-                      </TableCell>
-
-                      <TableCell style={{ fontSize: "12px" }}>
                         {row.selected_groups}
-                      </TableCell>
-                      <TableCell
-                        style={{
-                          fontSize: "12px",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          maxWidth: "150px",
+                      </abbr>
+                    </TableCell>
+                    <TableCell
+                      style={{
+                        fontSize: "12px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "150px",
+                      }}
+                    >
+                      <abbr
+                        title={userName}
+                        style={{ cursor: "pointer", textDecoration: "none" }}
+                      >
+                        {row.selected_users}
+                      </abbr>
+                    </TableCell>
+
+                    <TableCell style={{ fontSize: "12px" }}>
+                      {formattedSize}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit" onClick={() => onEditClick(row.id)}>
+                        <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
+                      <Tooltip
+                        className=""
+                        onClick={() => {
+                          if (row?.workspacePermission?.id) {
+                            onEditPermissionClick({
+                              workspace_name: row?.workspace_name,
+                              id: row?.workspacePermission?.id,
+                              policy_type:
+                                row?.workspacePermission?.policy_type,
+                              workspace_id:
+                                row?.workspacePermission?.workspace_id,
+                            });
+                          } else {
+                            onPermissionClick(
+                              row.id,
+                              row.workspace_type,
+                              row.workspace_name
+                            );
+                          }
                         }}
                       >
-                        <abbr
-                          title={userName}
-                          style={{ cursor: "pointer", textDecoration: "none" }}
-                        >
-                          {row.selected_users}
-                        </abbr>
-                      </TableCell>
-
-                      <TableCell style={{ fontSize: "12px" }}>
-                        {formattedSize}
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip
-                          title="Edit"
-                          onClick={() => onEditClick(row.id)}
-                        >
-                          <EditIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                        <Tooltip
-                          className=""
-                          // onClick={() =>
-                          //   onPermissionClick(row.id, row.workspace_type)
-                          // }
-                          onClick={() => {
-                            if (row?.workspacePermission?.id) {
-                              onEditPermissionClick({
-                                workspace_name: row?.workspace_name,
-                                id: row?.workspacePermission?.id,
-                                policy_type:
-                                  row?.workspacePermission?.policy_type,
-                                workspace_id:
-                                  row?.workspacePermission?.workspace_id,
-                              });
-                            } else {
-                              onPermissionClick(
-                                row.id,
-                                row.workspace_type,
-                                row.workspace_name
-                              );
-                            }
+                        <LockPersonIcon
+                          tag="a"
+                          containerClassName="btn btn-trigger btn-icon"
+                          id={"" + row.id}
+                          icon="icon ni ni-na"
+                          direction="top"
+                          text="Edit"
+                          style={{
+                            backgroundColor: "transparent",
+                            boxShadow: "none",
+                            cursor: "pointer",
+                            fontSize: "20px",
                           }}
-                        >
-                          <LockPersonIcon
-                            tag="a"
-                            containerClassName="btn btn-trigger btn-icon"
-                            id={"" + row.id}
-                            icon="icon ni ni-na"
-                            direction="top"
-                            text="Edit"
-                            style={{
-                              backgroundColor: "transparent",
-                              boxShadow: "none",
-                              // color: "#454545",
-                              cursor: "pointer",
-                              fontSize: "20px",
-                            }}
-                          />
-                        </Tooltip>
-                        <Tooltip
-                          title="Delete"
-                          onClick={() => handleClickOpen(row.id)}
-                        >
-                          <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {!rows.length > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No data available
+                        />
+                      </Tooltip>
+                      <Tooltip
+                        title="Delete"
+                        onClick={() => handleClickOpen(row.id)}
+                      >
+                        <DeleteIcon sx={{ ml: 1, mr: 1 }} fontSize="small" />
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
-                )}
+                );
+              })}
+              {!filteredRows.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 20, 30]}
           component="div"
-          count={rows?.length}
+          count={filteredRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

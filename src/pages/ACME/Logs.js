@@ -125,31 +125,31 @@ const WS1 = () => {
   // ------------------------------------------------postApis End
   const tableHeader = [
     {
-      id: "Date/Time",
+      id: "createdAt",
       numeric: false,
       disablePadding: true,
       label: "Date/Time",
     },
     {
-      id: "User Id",
+      id: "user_id" || "guest_id",
       numeric: false,
       disablePadding: true,
       label: "User Id",
     },
     {
-      id: "Category",
+      id: "category",
       numeric: false,
       disablePadding: true,
       label: "Category",
     },
     {
-      id: "Description",
+      id: "action",
       numeric: false,
       disablePadding: true,
       label: "Description",
     },
     {
-      id: "System Details",
+      id: "system_ip",
       numeric: false,
       disablePadding: true,
       label: "System Details",

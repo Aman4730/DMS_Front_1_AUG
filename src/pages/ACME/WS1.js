@@ -22,6 +22,9 @@ import FileFolderProperties from "../../components/FileFolderProperties/index.js
 import { addDays, format } from "date-fns";
 import JSZip from "jszip";
 import FolderUpload from "../../components/FolderUploaded/index.jsx";
+import TestFile from "../../TestFile/index.jsx";
+import QRGenerate from "../../components/QRGenerate/index.jsx";
+import html2canvas from "html2canvas";
 const WS1 = () => {
   useEffect(() => {
     getdoclistuploadfile();
@@ -84,6 +87,9 @@ const WS1 = () => {
     setUserData([...newData]);
   }, []);
   // ------------------------------------------------getApis Start
+  useEffect(() => {
+    getWorkspaces();
+  }, [workSpaceData.workspace_name]);
   //main policy
   const PermissionPolicy = isLogin?.Permission;
   const [ws1Policy, setWs1Policy] = useState({});
@@ -118,6 +124,14 @@ const WS1 = () => {
       {},
       (apiRes) => {
         setWorkspace(apiRes?.data?.data);
+        const filteredUserList = apiRes?.data?.data
+          ?.filter(
+            (user) => user?.workspace_name === workSpaceData?.workspace_name
+          )
+          ?.map((user) => user.users_list)
+          ?.filter((userList) => userList !== null && userList !== undefined);
+
+        setPermissionUserList(filteredUserList[0] || []);
       },
       (apiErr) => {
         console.log(apiErr);
@@ -174,9 +188,6 @@ const WS1 = () => {
   };
 
   // ------------------------------------------------getApis End
-  useEffect(() => {
-    getWorkspaces();
-  }, []);
 
   const [individualPer, setIndividualPer] = useState({});
   useEffect(() => {
@@ -595,6 +606,7 @@ const WS1 = () => {
             },
             cancelToken: cancelTokenSource.current.token,
             onUploadProgress: (progressEvent) => {
+              console.log(progressEvent, "====progressEvent");
               const percentCompleted = Math.round(
                 (progressEvent.loaded * 100) / progressEvent.total
               );
@@ -686,6 +698,7 @@ const WS1 = () => {
   // ------------------------------------------------file upload
   // ------------------------------------------------file & folder Download
   const [progressBar, setProgressBar] = useState(0);
+  const [disabledBtn, setDisabledBtn] = useState(false);
   const onDownloadfolders = (filemongo_id, folder_name, folder_size) => {
     setLoading(true);
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfolders`;
@@ -700,7 +713,7 @@ const WS1 = () => {
           if (totalBytes > 0 && loaded > 0) {
             progress = Math.round((loaded / totalBytes) * 100);
           }
-          setProgressBar(progress);
+          console.log(progressEvent, "==progressEvent");
         },
       })
       .then((response) => {
@@ -725,28 +738,41 @@ const WS1 = () => {
         URL.revokeObjectURL(url); // Clean up the object URL
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error downloading the folder:", error);
       });
   };
   const onFileDownload = (filemongo_id, file_name, file_size, file_type) => {
+    setDisabledBtn(true);
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfile`;
     const requestData = { filemongo_id: filemongo_id };
+
+    let downloadCompleted = false;
 
     axios
       .post(apiUrl, requestData, {
         responseType: "blob",
         onDownloadProgress: (progressEvent) => {
-          const loaded = progressEvent.loaded;
-          const totalBytes = file_size;
-          let progress = 0;
-          if (totalBytes > 0 && loaded > 0) {
-            progress = Math.round((loaded / totalBytes) * 100);
+          if (!downloadCompleted) {
+            const totalBytes = parseInt(file_size, 10);
+
+            const loaded = progressEvent.loaded;
+            if (totalBytes > 0) {
+              const progress = Math.min(
+                Math.round((loaded / totalBytes) * 100),
+                99
+              );
+              setProgressBar(progress);
+            }
           }
-          setProgressBar(progress);
         },
       })
-      .then(async (response) => {
-        setProgressBar(0);
+      .then((response) => {
+        downloadCompleted = true;
+        setProgressBar(100);
+        setDisabledBtn(false);
+        setTimeout(() => setProgressBar(0), 500);
+
         notification["success"]({
           placement: "top",
           description: "",
@@ -755,7 +781,8 @@ const WS1 = () => {
             height: 60,
           },
         });
-        const blob = response.data;
+
+        const blob = new Blob([response.data], { type: file_type });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -766,14 +793,30 @@ const WS1 = () => {
         link.remove();
       })
       .catch((error) => {
+        downloadCompleted = true; // Stop further progress updates in case of error
+        setProgressBar(0);
         notification["error"]({
           placement: "top",
-          message: error?.response?.statusText,
+          message: error?.response?.statusText || "Download Failed",
           style: {
             height: 60,
           },
         });
       });
+  };
+  const onCancelDownload = () => {
+    if (cancelTokenSource.current) {
+      cancelTokenSource.current.cancel("Upload cancelled by user.");
+      notification["success"]({
+        placement: "top",
+        description: "",
+        message: "File Upload Canceled",
+        style: {
+          height: 60,
+        },
+      });
+      handleCloseFileModal();
+    }
   };
   // Add watermark
   const onFileWatermarkDownload = (
@@ -782,8 +825,11 @@ const WS1 = () => {
     file_size,
     file_type
   ) => {
+    setDisabledBtn(true);
     const apiUrl = `${process.env.REACT_APP_API_URL_LOCAL}/downloadfile`;
     const requestData = { filemongo_id: filemongo_id };
+
+    let downloadCompleted = false;
 
     axios
       .post(apiUrl, requestData, {
@@ -792,14 +838,22 @@ const WS1 = () => {
           const loaded = progressEvent?.loaded;
           const totalBytes = file_size || 0;
           let progress = 0;
+
           if (totalBytes > 0 && loaded > 0) {
             progress = Math.round((loaded / totalBytes) * 100);
           }
-          setProgressBar(progress);
+
+          // Only update progress if download is ongoing
+          if (!downloadCompleted) {
+            setProgressBar(progress);
+          }
         },
       })
       .then(async (response) => {
-        setProgressBar(0);
+        downloadCompleted = true; // Stop progress updates after download is complete
+        setProgressBar(100);
+        setDisabledBtn(false);
+
         notification["success"]({
           placement: "top",
           description: "",
@@ -808,6 +862,8 @@ const WS1 = () => {
             height: 60,
           },
         });
+
+        // Handling PDF watermark logic
         if (file_type === "pdf") {
           const arrayBuffer = await response.data.arrayBuffer();
           const pdfDoc = await PDFDocument.load(arrayBuffer);
@@ -835,6 +891,7 @@ const WS1 = () => {
           URL.revokeObjectURL(url);
           link.remove();
         } else {
+          // For non-PDF files, directly download the file
           const blob = response.data;
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
@@ -847,14 +904,22 @@ const WS1 = () => {
         }
       })
       .catch((error) => {
+        downloadCompleted = true; // Ensure no further progress updates on error
+        setProgressBar(0);
+        setDisabledBtn(false);
+
         console.error("Error downloading the file:", error);
         notification["error"]({
           placement: "top",
           description: "Failed to download the file.",
           message: "Download Error",
+          style: {
+            height: 60,
+          },
         });
       });
   };
+
   // ------------------------------------------------Start Share Link Modal
   const checkboxData = [
     { label: "View", name: "view" },
@@ -1107,26 +1172,26 @@ const WS1 = () => {
   const [folderList, setFolderList] = useState([{ name: "test" }]);
   const tableHeader = [
     {
-      id: "name",
+      id: "file_name",
       numeric: false,
       disablePadding: true,
       label: "Folder / File Name ",
     },
 
     {
-      id: "Update Date/Time",
+      id: "updatedAt",
       numeric: false,
       disablePadding: true,
       label: "Update D/T",
     },
     {
-      id: "Uploaded By",
+      id: "user_email",
       numeric: false,
       disablePadding: true,
       label: "Uploaded By",
     },
     {
-      id: "Size",
+      id: "file_size",
       numeric: false,
       disablePadding: true,
       label: "Size",
@@ -1174,6 +1239,9 @@ const WS1 = () => {
   const findFolder = (folder) => {
     nestedFolder(state, folder);
   };
+  const [innerDefaultPermission, setInnerDefaultPermission] = useState({});
+  // console.log(innerDefaultPermission, "=innerDefaultPermission");
+
   const callApi = async (data) => {
     setList((prev) => {
       return [...prev, data];
@@ -1184,12 +1252,45 @@ const WS1 = () => {
       workspace_name: data?.workspace_name,
       workspace_id: data?.workspace_id,
     };
+
+    if (Object.keys(data?.permission || {}).length > 0) {
+      const truePermissions = Object.keys(data.permission).filter(
+        (key) => data.permission[key] === true
+      );
+
+      setInnerDefaultPermission((prev) => {
+        let updatedPermissions = { ...prev };
+
+        truePermissions.forEach((perm) => {
+          if (!updatedPermissions[perm]) {
+            updatedPermissions[perm] = true;
+          }
+        });
+
+        return updatedPermissions;
+      });
+    }
+
+    if (
+      data.view == "true" ||
+      data?.rename == "true" ||
+      data.download == "true" ||
+      data?.move == "true" ||
+      data.share == "true" ||
+      data.delete_action == "true" ||
+      data.comment == "true" ||
+      data?.properties == "true" ||
+      data.rights == "true" ||
+      data.create_folder == "true" ||
+      data.upload_file == "true" ||
+      data.upload_folder == "true"
+    ) {
+      setInnerDefaultPermission(data?.permission);
+    }
     getAllfoldernames(apiData);
     setCurrentFolderData(data);
   };
-  const [permissionD, setPermissionD] = useState({});
   const callApiHeader = async (data) => {
-    setPermissionD(data);
     if (data.id === "its_me") {
       getAllfoldernames({
         workspace_name: retrievedWorkspaceName,
@@ -1202,6 +1303,7 @@ const WS1 = () => {
         id: 0,
       });
       setList([{ id: "its_me", folder_name: workSpaceData.workspace_name }]);
+      setInnerDefaultPermission({});
     } else {
       let apiData = {
         parent_id: data.id,
@@ -1214,6 +1316,26 @@ const WS1 = () => {
       let arr = list;
       arr.splice(data.index + 1, 100);
       setList(arr);
+      if (data?.permission) {
+        const truePermissions = Object.keys(data.permission).filter(
+          (key) => data.permission[key] === true
+        );
+
+        setInnerDefaultPermission((prev) => {
+          if (data?.levels === 0) {
+            return prev;
+          }
+
+          const updatedPermissions = { ...prev };
+          truePermissions.forEach((permission) => {
+            delete updatedPermissions[permission];
+          });
+
+          return updatedPermissions;
+        });
+
+        delete data.permission;
+      }
     }
   };
   // ---------------------------------Properties
@@ -1337,6 +1459,7 @@ const WS1 = () => {
     let requestData = {
       folder_id: data.folder_id,
       file_name: data.file_name,
+      workspace_id: workSpaceData.workspace_id,
     };
     getallversions(
       requestData,
@@ -1417,8 +1540,11 @@ const WS1 = () => {
   // ---------------------------------Ws1 Rights
 
   const [PermissionEditedId, setPermissionEditedId] = useState({});
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editPermission, setEditPermission] = useState([]);
+  const [openDialog, setOpenDialog] = useState({
+    status: false,
+    data: {},
+  });
+  const [editPermission, setEditPermission] = useState({});
 
   const [checkboxWs1, setCheckboxWs1] = useState({
     view: false,
@@ -1447,30 +1573,45 @@ const WS1 = () => {
     }));
   };
   useEffect(() => {
-    getEditWorkspacePermission();
-  }, [permissionForm.selected_users, permissionForm.selected_group]);
+    if (permissionForm.selected_users.length) {
+      getEditWorkspacePermission();
+    }
+  }, [permissionForm.selected_users.length]);
+
   const getEditWorkspacePermission = () => {
     let data = {
-      folder_id: 238,
       email: permissionForm?.selected_users,
       group: permissionForm?.selected_group,
     };
+    if (openDialog?.data?.file_type) {
+      data.file_id = openDialog?.data?.id;
+    } else {
+      data.folder_id = openDialog?.data?.id;
+    }
     getWorkspacePermission(
       data,
       (apiRes) => {
-        setEditPermission(apiRes.data.workspacePermission);
+        setEditPermission(apiRes.data.workspace_permissions);
       },
       (apiErr) => {}
     );
   };
-  const handleOpenPermission = (id, file_type, file_name, folder_name) => {
+  const handleOpenPermission = (id, file_name, folder_name, file_type) => {
     setOpenDialog({
       status: true,
-      data: { id, file_type, file_name, folder_name },
+      data: {
+        id,
+        file_name,
+        folder_name,
+        file_type,
+      },
     });
   };
   const handleClosePermission = () => {
-    setOpenDialog(false);
+    setOpenDialog({
+      status: false,
+      data: {},
+    });
     resetWs1Permission();
   };
   const handleCheckboxWs1 = (event) => {
@@ -1480,143 +1621,46 @@ const WS1 = () => {
       [name]: checked,
     }));
   };
-  const onSubmitAddPermission = (id, file_type, file_name, folder_name) => {
-    if (PermissionEditedId?.permissionId) {
-      let data;
-      if (PermissionEditedId.file_type) {
-        data = {
-          id: PermissionEditedId?.permissionId,
-          file_id: PermissionEditedId?.id,
-          file_name: PermissionEditedId.file_name,
-          policy_type: "My Workspace",
-          view: checkboxWs1.view,
-          share: checkboxWs1.share,
-          rename: checkboxWs1?.rename,
-          selected_users: permissionForm?.selected_users,
-          selected_group: permissionForm?.selected_group,
-          upload_folder: checkboxWs1.upload_folder,
-          view_watermark: checkboxWs1?.view_watermark,
-          download_watermark: checkboxWs1.download_watermark,
-          create_folder: checkboxWs1.create_folder,
-          upload_file: checkboxWs1.upload_file,
-          delete_per: checkboxWs1.delete,
-          download_per: checkboxWs1.download,
-          move: checkboxWs1?.move,
-          rights: checkboxWs1?.rights,
-          comments: checkboxWs1?.comment,
-          properties: checkboxWs1?.properties,
-        };
-      } else {
-        data = {
-          id: PermissionEditedId?.permissionId,
-          folder_id: PermissionEditedId?.id,
-          folder_name: PermissionEditedId.folder_name,
-          policy_type: "My Workspace",
-          view: checkboxWs1.view,
-          share: checkboxWs1.share,
-          rename: checkboxWs1?.rename,
-          selected_users: permissionForm?.selected_users,
-          selected_group: permissionForm?.selected_group,
-          view_watermark: checkboxWs1?.view_watermark,
-          download_watermark: checkboxWs1.download_watermark,
-          upload_folder: checkboxWs1.upload_folder,
-          create_folder: checkboxWs1.create_folder,
-          upload_file: checkboxWs1.upload_file,
-          delete_per: checkboxWs1.delete,
-          download_per: checkboxWs1.download,
-          move: checkboxWs1?.move,
-          rights: checkboxWs1?.rights,
-          comments: checkboxWs1?.comment,
-          properties: checkboxWs1?.properties,
-        };
-      }
+  const onSubmitAddPermission = () => {
+    let data = {
+      policy_type: "My Workspace",
+      view: checkboxWs1.view,
+      share: checkboxWs1.share,
+      rename: checkboxWs1?.rename,
+      selected_users: permissionForm?.selected_users,
+      selected_group: permissionForm?.selected_group,
+      upload_folder: checkboxWs1.upload_folder,
+      view_watermark: checkboxWs1?.view_watermark,
+      download_watermark: checkboxWs1.download_watermark,
+      create_folder: checkboxWs1.create_folder,
+      upload_file: checkboxWs1.upload_file,
+      delete_per: checkboxWs1.delete,
+      download_per: checkboxWs1.download,
+      move: checkboxWs1?.move,
+      rights: checkboxWs1?.rights,
+      comments: checkboxWs1?.comment,
+      properties: checkboxWs1?.properties,
+      workspace_name: workSpaceData.workspace_name,
+      ...(openDialog.data.file_type
+        ? { file_id: openDialog.data.id, file_name: openDialog.data.file_name }
+        : {
+            folder_id: openDialog.data.id,
+            folder_name: openDialog.data.folder_name,
+          }),
+      ...(editPermission?.id && { id: editPermission.id }),
+    };
+    add_permission(
+      data,
+      (apiRes) => {
+        if (apiRes.status === 200 || apiRes.status === 201) {
+          notification["success"]({
+            placement: "top",
+            description: "",
+            message: apiRes?.data?.message,
+            style: { height: 60 },
+          });
+          handleClosePermission();
 
-      add_permission(
-        data,
-        (apiRes) => {
-          if (apiRes.status === 200) {
-            notification["success"]({
-              placement: "top",
-              description: "",
-              message: apiRes?.data?.message,
-              style: {
-                height: 60,
-              },
-            });
-            handleClosePermission();
-          }
-          let newData = {
-            parent_id: currentFolderData?.id,
-            levels: currentFolderData?.levels + 1,
-            workspace_id: JSON.stringify(workSpaceData.workspace_id),
-            workspace_name: workSpaceData?.workspace_name,
-          };
-          getAllfoldernames(newData);
-        },
-        (apiErr) => {}
-      );
-    } else {
-      let data;
-      if (file_type) {
-        data = {
-          file_id: id,
-          policy_type: "My Workspace",
-          file_name: file_name,
-          view: checkboxWs1.view,
-          share: checkboxWs1.share,
-          rename: checkboxWs1?.rename,
-          selected_users: permissionForm?.selected_users,
-          selected_group: permissionForm?.selected_group,
-          view_watermark: checkboxWs1?.view_watermark,
-          download_watermark: checkboxWs1.download_watermark,
-          upload_folder: checkboxWs1.upload_folder,
-          create_folder: checkboxWs1.create_folder,
-          upload_file: checkboxWs1.upload_file,
-          delete_per: checkboxWs1.delete,
-          download_per: checkboxWs1.download,
-          move: checkboxWs1?.move,
-          rights: checkboxWs1?.rights,
-          comments: checkboxWs1?.comment,
-          properties: checkboxWs1?.properties,
-        };
-      } else {
-        data = {
-          folder_id: id,
-          policy_type: "My Workspace",
-          view: checkboxWs1.view,
-          share: checkboxWs1.share,
-          folder_name: folder_name,
-          rename: checkboxWs1?.rename,
-          selected_users: permissionForm?.selected_users,
-          selected_group: permissionForm?.selected_group,
-          view_watermark: checkboxWs1?.view_watermark,
-          download_watermark: checkboxWs1.download_watermark,
-          upload_folder: checkboxWs1.upload_folder,
-          create_folder: checkboxWs1.create_folder,
-          upload_file: checkboxWs1.upload_file,
-          delete_per: checkboxWs1.delete,
-          download_per: checkboxWs1.download,
-          move: checkboxWs1?.move,
-          rights: checkboxWs1?.rights,
-          comments: checkboxWs1?.comment,
-          properties: checkboxWs1?.properties,
-        };
-      }
-
-      add_permission(
-        data,
-        (apiRes) => {
-          if (apiRes.status === 201) {
-            notification["success"]({
-              placement: "top",
-              description: "",
-              message: apiRes?.data?.message,
-              style: {
-                height: 60,
-              },
-            });
-            handleClosePermission();
-          }
           let newData = {
             parent_id: currentFolderData?.id,
             levels: currentFolderData?.levels + 1,
@@ -1624,47 +1668,35 @@ const WS1 = () => {
             workspace_id: JSON.stringify(workSpaceData.workspace_id),
           };
           getAllfoldernames(newData);
-        },
-        (apiErr) => {}
-      );
+        }
+      },
+      (apiErr) => {
+        console.error(apiErr);
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (editPermission) {
+      setCheckboxWs1((prevFormData) => ({
+        ...prevFormData,
+        view: editPermission.view || false,
+        share: editPermission.share || false,
+        rename: editPermission.rename || false,
+        upload_folder: editPermission.upload_folder || false,
+        create_folder: editPermission.create_folder || false,
+        upload_file: editPermission.upload_file || false,
+        delete: editPermission.delete_per || false,
+        download: editPermission.download_per || false,
+        move: editPermission.move || false,
+        rights: editPermission.rights || false,
+        comment: editPermission.comments || false,
+        properties: editPermission.properties || false,
+        view_watermark: editPermission.view_watermark || false,
+        download_watermark: editPermission.download_watermark || false,
+      }));
     }
-  };
-  const onEditPermissionClick = (
-    id,
-    permissionId,
-    file_name,
-    folder_name,
-    file_type
-  ) => {
-    setOpenDialog({ status: true });
-    allfolderlist.map((item) => {
-      const permissionData = item.permission;
-      if (item?.permission?.id == permissionId) {
-        setCheckboxWs1((prevFormData) => ({
-          ...prevFormData,
-          // view: permissionData?.view,
-          // share: permissionData?.share,
-          // rename: permissionData?.rename,
-          // upload_folder: permissionData?.upload_folder,
-          // create_folder: permissionData?.create_folder,
-          // upload_file: permissionData?.upload_file,
-          // delete: permissionData?.delete_per,
-          // download: permissionData?.download_per,
-          // move: permissionData?.move,
-          // rights: permissionData?.rights,
-          // comment: permissionData?.comments,
-          // properties: permissionData?.properties,
-        }));
-      }
-      setPermissionEditedId({
-        id: id,
-        file_name: file_name,
-        folder_name: folder_name,
-        file_type: file_type,
-        permissionId: permissionId,
-      });
-    });
-  };
+  }, [editPermission]);
   const permissionWs1 = {
     title: "Workspace Permission",
     permissionArray: [
@@ -1741,6 +1773,7 @@ const WS1 = () => {
       selected_group: [],
       selected_users: [],
     });
+    setEditPermission({});
   };
 
   // ---------------------------------Ws1 Rights
@@ -1755,6 +1788,7 @@ const WS1 = () => {
   //     }
   //   });
   // };
+  const [loginUserPermission, setLoginUserPermission] = useState("");
   useEffect(() => {
     workspacePermission();
     getallfolderPermission();
@@ -1763,6 +1797,7 @@ const WS1 = () => {
   const workspacePermission = () => {
     workspace?.forEach((data) => {
       if (data.workspace_name === workSpaceData?.workspace_name) {
+        setLoginUserPermission(data.selected_users);
         setWorkspacePermissionWs1(data.workspacePermission);
       }
     });
@@ -1926,6 +1961,36 @@ const WS1 = () => {
       });
   };
   // ---------------------------------folderupload
+  const [openQRGenerate, setOpenQRGenerate] = useState(false);
+  const qrData = "fileshare.acme.in:8086"; 
+
+  const handleClickOpenQRGenerate = () => {
+    setOpenQRGenerate(true);
+  };
+
+  const handleCloseQRGenerate = () => {
+    setOpenQRGenerate(false);
+  };
+
+  const downloadQRCode = () => {
+    const cardElement = document.getElementById("qr-card");
+    if (!cardElement) {
+      console.error("QR card element not found");
+      return;
+    }
+
+    html2canvas(cardElement)
+      .then((canvas) => {
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = image;
+        link.download = "qr-card.png";
+        link.click();
+      })
+      .catch((error) => {
+        console.error("Error capturing the QR card:", error);
+      });
+  };
   return (
     <React.Fragment>
       <Head title="My Workspace - Regular"></Head>
@@ -1953,17 +2018,50 @@ const WS1 = () => {
           ) : (
             ""
           )}
-          {progressBar !== 0 && (
+          {progressBar > 0 && progressBar < 100 && (
             <div
               style={{
                 width: "100%",
                 position: "absolute",
                 zIndex: 100,
-                top: 1,
+                top: -3,
                 left: 0,
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              <LinearProgressBar progress={progressBar} />
+              <div
+                style={{
+                  backgroundColor: "grey",
+                  height: "5px",
+                  flex: 1,
+                  position: "relative",
+                  borderRadius: "3px",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${progressBar}%`,
+                    backgroundColor: "#203556",
+                    height: "100%",
+                    transition: "width 0.3s ease",
+                  }}
+                ></div>
+              </div>
+              <div
+                style={{
+                  color: "#463a99",
+                  fontSize: "12px",
+                  whiteSpace: "nowrap",
+                  position: "relative",
+                  top: "5px",
+                  marginRight: "10px",
+                }}
+              >
+                {progressBar}%
+              </div>
             </div>
           )}
           <ModalPop
@@ -1977,6 +2075,13 @@ const WS1 = () => {
                 ? "File Deleted?  You Sure!"
                 : "Folder Deleted?  You Sure!"
             }
+          />
+          <QRGenerate
+            qrData={qrData}
+            open={openQRGenerate}
+            onFileDownload={onFileDownload}
+            downloadQRCode={downloadQRCode}
+            handleClose={handleCloseQRGenerate}
           />
           <ModalPop
             open={openShare.status}
@@ -2123,7 +2228,9 @@ const WS1 = () => {
             callApiHeader={callApiHeader}
             openFileUpload={handleOpenFileModal}
             openFolderModal={handleOpenFolderModal}
+            loginUserPermission={loginUserPermission}
             openFolderUpload={handleClickOpenUploadFolder}
+            innerDefaultPermission={innerDefaultPermission}
             workspacePermissionWs1={workspacePermissionWs1}
             openModal1={() => setFileModal({ ...fileModal, status: true })}
           />
@@ -2150,6 +2257,7 @@ const WS1 = () => {
             propertys={propertys}
             headCells={tableHeader}
             searchTerm={searchTerm}
+            disabledBtn={disabledBtn}
             setPropertys={setPropertys}
             workspace_type="my-workspace"
             allfolderlist={allfolderlist}
@@ -2159,14 +2267,16 @@ const WS1 = () => {
             onDownloadfolders={onDownloadfolders}
             handleOpenDeleteFile={handleClickOpen}
             openEditFolderModal={onEditFolderClick}
+            loginUserPermission={loginUserPermission}
             handleClickLinkOpen={handleClickLinkOpen}
             handleClickShareOpen={handleClickShareOpen}
             handleOpenPermission={handleOpenPermission}
-            onEditPermissionClick={onEditPermissionClick}
+            innerDefaultPermission={innerDefaultPermission}
             workspacePermissionWs1={workspacePermissionWs1}
             handleClickVersionOpen={handleClickVersionOpen}
             handleClickOpenCommets={handleClickOpenCommets}
             onFileWatermarkDownload={onFileWatermarkDownload}
+            handleClickOpenQRGenerate={handleClickOpenQRGenerate}
             handleClickOpenProperties={handleClickOpenProperties}
           />
         </Stack>

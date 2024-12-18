@@ -20,7 +20,7 @@ function FileFolderComments({
 }) {
   return (
     <React.Fragment>
-      <Dialog open={openCommets.status} onClose={handleCloseCommets}>
+      <Dialog open={openCommets} onClose={handleCloseCommets}>
         <DialogTitle>Add Comments</DialogTitle>
         <DialogContent>
           <Stack flexDirection="row">

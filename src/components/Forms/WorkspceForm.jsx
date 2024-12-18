@@ -8,16 +8,20 @@ import {
   Autocomplete,
 } from "@mui/material";
 import { DatePicker } from "@atlaskit/datetime-picker";
+import SelectBox from "../SelectBox";
 export default function WorkspceForm({
   editId,
   formShow,
   formData,
   cabinetList,
+  setFormData,
   onFormCancel,
   handleChange,
   onFormSubmit,
   userDropdowns,
   groupsDropdown,
+  subAdminsUserList,
+  handlemultiSelectChange,
   handleAutocompleteChange,
 }) {
   return (
@@ -84,91 +88,88 @@ export default function WorkspceForm({
               />
             </Grid>
             <Grid item lg={3} sm={3} xs={12}>
-              <Autocomplete
-                multiple
-                fullWidth
-                size="small"
-                id="tags-outlined"
-                options={groupsDropdown || ""}
-                getOptionLabel={(option) => option}
-                filterSelectedOptions
-                renderInput={(params) => (
-                  <TextField {...params} label="Selected Groups" />
+              <SelectBox
+                id="selected_groups"
+                label="Select Groups"
+                items={(groupsDropdown || []).sort((a, b) =>
+                  a.localeCompare(b)
                 )}
-                value={formData?.selected_groups}
-                onChange={(event, value) =>
-                  handleAutocompleteChange("selected_groups", value)
-                }
+                handleChange={handlemultiSelectChange}
+                selectedItems={formData.selected_groups || []}
               />
             </Grid>
             <Grid item lg={3} sm={3} xs={12}>
-              <Autocomplete
-                multiple
-                fullWidth
-                size="small"
-                id="tags-outlined"
-                options={userDropdowns || ""}
-                getOptionLabel={(option) => option}
-                filterSelectedOptions
-                renderInput={(params) => (
-                  <TextField {...params} label="Selected Users" />
+              <SelectBox
+                id="select_sub_admin"
+                label="Select Sub Admin"
+                items={(userDropdowns || []).sort((a, b) => a.localeCompare(b))}
+                handleChange={handlemultiSelectChange}
+                selectedItems={formData?.select_sub_admin || []}
+              />
+            </Grid>
+            <Grid item lg={3} sm={3} xs={12}>
+              <SelectBox
+                id="selected_users"
+                label="Select User"
+                items={(subAdminsUserList || []).sort((a, b) =>
+                  a.localeCompare(b)
                 )}
-                value={formData?.selected_users}
-                onChange={(event, value) =>
-                  handleAutocompleteChange("selected_users", value)
-                }
+                handleChange={handlemultiSelectChange}
+                selectedItems={formData?.selected_users || []}
               />
             </Grid>
-            <Grid item lg={3} sm={3} xs={12}>
-              <DatePicker
-                name="userValidity"
-                // selected={formData.userValidity}
-                // onChange={(e) => {
-                //   setFormData({ ...formData, userValidity: e });
-                // }}
-                dateFormat="DD/MM/YYYY"
-                placeholder="Start Date"
-                customInput={<TextField fullWidth size="small" />}
-              />
-            </Grid>
-            <Grid item lg={3} sm={3} xs={12}>
-              <DatePicker
-                name="userValidity"
-                // selected={formData.userValidity}
-                // onChange={(e) => {
-                //   setFormData({ ...formData, userValidity: e });
-                // }}
-                dateFormat="DD/MM/YYYY"
-                placeholder="End Date"
-                customInput={<TextField fullWidth size="small" />}
-              />
-            </Grid>
-            <Grid item xs={2} justifyContent="flex-end" container>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  onClick={onFormSubmit}
-                  style={{
-                    outline: "none",
-                    height: "37px",
-                    marginRight: "3px",
-                  }}
-                >
-                  {editId ? "Update" : "Submit"}
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  onClick={onFormCancel}
-                  style={{
-                    outline: "none",
-                    height: "37px",
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Grid>
+            {formData?.workspace_type === "Data Room" && (
+              <React.Fragment>
+                <Grid item lg={3} sm={3} xs={12} border="1px solid red">
+                  <DatePicker
+                    name="startDate"
+                    selected={formData.startDate}
+                    onChange={(e) => {
+                      setFormData({ ...formData, startDate: e });
+                    }}
+                    dateFormat="DD/MM/YYYY"
+                    placeholder="Start Date"
+                    defaultValue={formData?.startDate}
+                    customInput={<TextField fullWidth size="small" />}
+                  />
+                </Grid>
+                <Grid item lg={3} sm={3} xs={12}>
+                  <DatePicker
+                    name="endDate"
+                    selected={formData.endDate}
+                    onChange={(e) => {
+                      setFormData({ ...formData, endDate: e });
+                    }}
+                    dateFormat="DD/MM/YYYY"
+                    placeholder="End Date"
+                    defaultValue={formData?.endDate}
+                    customInput={<TextField fullWidth size="small" />}
+                  />
+                </Grid>
+              </React.Fragment>
+            )}
+            <Grid item mt={1}>
+              <Button
+                variant="contained"
+                onClick={onFormSubmit}
+                style={{
+                  outline: "none",
+                  height: "37px",
+                  marginRight: "3px",
+                }}
+              >
+                {editId ? "Update" : "Submit"}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={onFormCancel}
+                style={{
+                  outline: "none",
+                  height: "37px",
+                }}
+              >
+                Cancel
+              </Button>
             </Grid>
           </Grid>
         </Card>

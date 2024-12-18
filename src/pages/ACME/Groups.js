@@ -204,19 +204,19 @@ const UserListRegularPage = () => {
 
   const tableHeader = [
     {
-      id: "Group Name",
+      id: "group_name",
       numeric: false,
       disablePadding: true,
       label: "Group Name",
     },
     {
-      id: "Group Admin",
+      id: "group_admin",
       numeric: false,
       disablePadding: true,
       label: "Group Admin",
     },
     {
-      id: "Selected User",
+      id: "selected_user",
       numeric: false,
       disablePadding: true,
       label: "Selected User",

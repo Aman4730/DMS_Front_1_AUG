@@ -334,25 +334,25 @@ const WorkFlow = () => {
   //table header
   const tableHeader = [
     {
-      id: "Policy Name",
+      id: "policy_name",
       numeric: false,
       disablePadding: true,
       label: "Policy Name",
     },
     {
-      id: "User Group",
+      id: "group_admin",
       numeric: false,
       disablePadding: true,
       label: "User Group",
     },
     {
-      id: "User",
+      id: "user_email",
       numeric: false,
       disablePadding: true,
       label: "User",
     },
     {
-      id: "Updated By",
+      id: "updatedAt",
       numeric: false,
       disablePadding: true,
       label: "Updated By",
